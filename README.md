@@ -1,2 +1,2 @@
-# iotdb-client-c-
+# iotdb-client-csharp
 c# client for iotdb
