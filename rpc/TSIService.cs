@@ -23,7 +23,7 @@ using Thrift.Transport;
 using Thrift.Transport.Client;
 using Thrift.Transport.Server;
 using Thrift.Processor;
-
+ 
 
 #pragma warning disable IDE0079  // remove unnecessary pragmas
 #pragma warning disable IDE1006  // parts of the code use IDL spelling
