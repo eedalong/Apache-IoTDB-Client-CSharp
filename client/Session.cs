@@ -23,16 +23,22 @@ using Thrift.Processor;
 
 namespace iotdb_client_csharp.client
 {
+    public enum TSDataType{BOOLEAN, INT32, INT64, FLOAT, DOUBLE, TEXT};
+    public enum TSEncoding{PLAIN, PLAIN_DICTIONARY, RLE, DIFF, TS_2DIFF, BITMAP, GORILLA_V1, REGULAR, GORILLA};
+    public enum Compressor{UNCOMPRESSED, SNAPPY, GZIP, LZO, SDT, PAA, PLA, LZ4};
+
     public class Session
     {
        private string username="root", password="root", zoneId, host;
+       public int SUCCESS_CODE{
+           get{return 200;}
+       }
        private int port, fetch_size=10000;
        private long sessionId, statementId;
        private bool is_close = true;
 
        private TSIService.Client client; 
        private TSocketTransport transport;
-       private static readonly TConfiguration configuration = null;  // new TConfiguration() if  needed
        private static TSProtocolVersion protocol_version = TSProtocolVersion.IOTDB_SERVICE_PROTOCOL_V3;
 
 
@@ -53,7 +59,7 @@ namespace iotdb_client_csharp.client
             if(!is_close){
                 return ;
             }
-            this.transport = new TSocketTransport(this.host, this.port, configuration);
+            this.transport = new TSocketTransport(this.host, this.port, null);
             if(!transport.IsOpen){
                 try{
                     var task = transport.OpenAsync(new CancellationToken());
@@ -125,6 +131,70 @@ namespace iotdb_client_csharp.client
                 }
             }
 
+        }
+        public int set_storage_group(string group_name){
+            var task = client.setStorageGroupAsync(sessionId, group_name);
+            task.Wait();
+            var status = task.Result;
+            return verify_success(status);
+        }
+
+        public int delete_storage_group(string group_name){
+            var task = client.deleteStorageGroupsAsync(sessionId, new List<string>{group_name});
+            task.Wait();
+            var status = task.Result;
+            return verify_success(status);
+        }
+        public int delete_storage_groups(List<string> group_names){
+            var task = client.deleteStorageGroupsAsync(sessionId, group_names);
+            task.Wait();
+            var status = task.Result;
+            var message = String.Format("delete storage group(s) {0} message: {1}", group_names, status.Message);
+            Console.WriteLine(message);
+            return verify_success(status);
+        }
+
+        public int create_time_series(string ts_path, TSDataType data_type, TSEncoding encoding, Compressor compressor){
+            var req = new TSCreateTimeseriesReq(sessionId, ts_path, (int)data_type, (int)encoding, (int)compressor);
+            var task = client.createTimeseriesAsync(req);
+            task.Wait();
+            var status = task.Result;
+            var message = String.Format("creating time series {0} message: {1}", ts_path, status.Message);
+            Console.WriteLine(message);
+            return verify_success(status); 
+        }
+
+        public int create_multi_time_series(List<string> ts_path_lst, List<TSDataType> data_type_lst, List<TSEncoding> encoding_lst, List<Compressor> compressor_lst){
+            var data_types = data_type_lst.ConvertAll<int>(x => (int)x);
+            var encodings = encoding_lst.ConvertAll<int>(x => (int)x);
+            var compressors = compressor_lst.ConvertAll<int>(x => (int)x);
+            var req = new TSCreateMultiTimeseriesReq(sessionId, ts_path_lst, data_types, encodings, compressors);
+            var task = client.createMultiTimeseriesAsync(req);
+            task.Wait();
+            var status = task.Result;
+            var message = String.Format("creating multiple time series {0} message: {1}", ts_path_lst, status.Message);
+            Console.WriteLine(message);
+            return verify_success(status);
+        }
+        public int delete_time_series(List<string> path_list){
+            var task = client.deleteTimeseriesAsync(sessionId, path_list);
+            task.Wait();
+            var status = task.Result;
+            var message = String.Format("deleting multiple time series {0} message: {1}", path_list, status.Message);
+            Console.WriteLine(message);
+            return verify_success(status);
+        }
+        public bool check_time_series_exists(string ts_path){
+            return false;
+        }
+
+        private int verify_success(TSStatus status){
+            if (status.Code == SUCCESS_CODE){
+                return 0;
+            }
+            var message = String.Format("error status is {}", status);
+            Console.WriteLine(message);
+            return -1;
         }
          
         public void set_time_zone(string zoneId){
