@@ -69,6 +69,7 @@ namespace iotdb_client_csharp.client
                     //TODO, should define our own Exception
                     // here we just print the exception
                     Console.Write(e.ToString());
+                    throw e;
                 }
             }
             if(enableRPCCompression){
@@ -99,6 +100,7 @@ namespace iotdb_client_csharp.client
             catch(Exception e){
                 transport.Close();
                 Console.WriteLine("session closed because ", e);
+                throw e;
             }
             if(zoneId != ""){
                 set_time_zone(zoneId);
@@ -123,6 +125,7 @@ namespace iotdb_client_csharp.client
             catch(TException e){
                 var message = String.Format("Error occurs when closing session at server. Maybe server is down. Error message:{0}", e);
                 Console.WriteLine(message);
+                throw e;
             }
             finally{
                 is_close = true;
@@ -185,7 +188,45 @@ namespace iotdb_client_csharp.client
             return verify_success(status);
         }
         public bool check_time_series_exists(string ts_path){
+            // TBD by dalong
             return false;
+        }
+        public int delete_data(List<string> ts_path_lst, long start_time, long end_time){
+            var req = new TSDeleteDataReq(sessionId, ts_path_lst, start_time, end_time);
+            TSStatus status;
+            try{
+                var task = client.deleteDataAsync(req);
+                task.Wait();
+                status = task.Result;
+            }
+            catch(TException e){
+                var message_local = String.Format("data deletion fails because: {0}", e);
+                Console.WriteLine(message_local);
+                throw e;
+            }
+            var message = String.Format("delete data from {0}, message: {1}", ts_path_lst, status.Message);
+            Console.WriteLine(message);
+            return verify_success(status);
+        }
+        public int insert_str_record(string device_id, List<string> measurements, List<string> values, long timestamp){
+            // TBD by Luzhan
+            return 0;
+        }
+        public int insert_record(string device_id, List<string> measurements, List<string> values, List<TSDataType> data_types, long timestamp){
+            // TBD by Luzhan
+            return 0;
+        }
+        public int insert_records(List<string> device_id, List<List<string>> measurements_lst, List<List<string>> values_lst, List<List<TSDataType>> data_types_lst, List<long> timestamp_lst){
+            // TBD by Luzhan
+            return 0;
+        }
+        public int test_insert_record(string device_id, List<string> measurements, List<string> values, List<TSDataType> data_types, long timestamp){
+            // TBD by Luzhan
+            return 0;
+        }
+        public int test_insert_records(List<string> device_id, List<List<string>> measurements_lst, List<List<string>> values_lst, List<List<TSDataType>> data_types_lst, List<long> timestamp_lst){
+            // TBD by Luzhan
+            return 0;
         }
 
         private int verify_success(TSStatus status){
