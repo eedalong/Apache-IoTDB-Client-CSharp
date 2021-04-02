@@ -208,9 +208,22 @@ namespace iotdb_client_csharp.client
             Console.WriteLine(message);
             return verify_success(status);
         }
+        public TSInsertStringRecordReq gen_insert_str_record_req(string device_id, List<string> measurements, List<string> values, long timestamp){
+            if(values.Count() != measurements.Count()){
+                var err_msg = String.Format("length of data types does not equal to length of values!");
+                Console.WriteLine(err_msg)
+            }
+            return TSInsertStringRecordReq(sessionId, device_id, measurements, values, timestamp);
+        }
         public int insert_str_record(string device_id, List<string> measurements, List<string> values, long timestamp){
             // TBD by Luzhan
-            return 0;
+            var req = gen_insert_str_record_req(device_id, measurements, values, timestamp);
+            var task = client.insertStringRecordAsync(req);
+            task.Wait();
+            var status = task.Result;
+            var message = String.Format("insert one record to device {0} message: {1}", device_id, status.message);
+            Console.WriteLine(message);
+            return verify_success(status);
         }
         public int insert_record(string device_id, List<string> measurements, List<string> values, List<TSDataType> data_types, long timestamp){
             // TBD by Luzhan
