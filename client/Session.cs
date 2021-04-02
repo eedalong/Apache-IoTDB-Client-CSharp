@@ -23,8 +23,8 @@ using Thrift.Processor;
 
 namespace iotdb_client_csharp.client
 {
-    public enum TSDataType{BOOLEAN, INT32, INT64, FLOAT, DOUBLE, TEXT};
-    public enum TSEncoding{PLAIN, PLAIN_DICTIONARY, RLE, DIFF, TS_2DIFF, BITMAP, GORILLA_V1, REGULAR, GORILLA};
+    public enum TSDataType{BOOLEAN, INT32, INT64, FLOAT, DOUBLE, TEXT, NONE};
+    public enum TSEncoding{PLAIN, PLAIN_DICTIONARY, RLE, DIFF, TS_2DIFF, BITMAP, GORILLA_V1, REGULAR, GORILLA, NONE};
     public enum Compressor{UNCOMPRESSED, SNAPPY, GZIP, LZO, SDT, PAA, PLA, LZ4};
 
     public class Session
@@ -269,6 +269,15 @@ namespace iotdb_client_csharp.client
                 throw e; 
             }
             return resp.TimeZone;
+        }
+        public void execute_query_statement(string sql, long timeout){
+            var req = new TSExecuteStatementReq(sessionId, sql, statementId);
+            req.FetchSize = fetch_size;
+            req.Timeout = timeout;
+            var task = client.executeQueryStatementAsync(req);
+            task.Wait();
+            var resp = task.Result;
+
         }
        
     }
