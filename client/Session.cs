@@ -301,17 +301,6 @@ namespace iotdb_client_csharp.client
             }
             return resp.TimeZone;
         }
-        public void execute_query_statement(string sql, long timeout){
-            // TODO
-            var req = new TSExecuteStatementReq(sessionId, sql, statementId);
-            req.FetchSize = fetch_size;
-            req.Timeout = timeout;
-            var task = client.executeQueryStatementAsync(req);
-            task.Wait();
-            var resp = task.Result;
-            return ;
-
-        }
        
     }
 }
