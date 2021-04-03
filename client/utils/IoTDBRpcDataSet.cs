@@ -187,12 +187,12 @@ namespace iotdb_client_csharp.client.utils
             has_cached_record = true;
 
         }
-        private bool is_null(int index, int row_num){
+        public bool is_null(int index, int row_num){
             var bitmap = current_bitmap[index];
             var shift = row_num % 8;
             return ((FLAG >> shift & bitmap) & 0xff ) == 0;
         }
-        private bool is_null_by_index(int column_index){
+        public bool is_null_by_index(int column_index){
             var name = find_column_name_by_index(column_index);
             var index = column_name_index[name] - START_INDEX;
             if(index < 0){
@@ -200,7 +200,7 @@ namespace iotdb_client_csharp.client.utils
             }
             return is_null(index, rows_index-1);
         }
-        private bool is_null_by_name(string column_name){
+        public bool is_null_by_name(string column_name){
             var index = column_name_index[column_name] - START_INDEX;
             if(index < 0){
                 return true;
@@ -208,14 +208,14 @@ namespace iotdb_client_csharp.client.utils
             return is_null(index, rows_index-1);
         }
 
-        private string find_column_name_by_index(int column_index){
+        public string find_column_name_by_index(int column_index){
             if(column_index <= 0){
                 throw new Exception("Column index should start from 1");
             }
             if(column_index > column_name_lst.Count){
                 throw new Exception(string.Format("column index {0} out of range {0}", column_index, column_name_lst.Count));
             }
-            return column_name_lst[column_index -1 ];
+            return column_name_lst[column_index -1];
         }
 
         public int get_fetch_size(){
@@ -251,6 +251,9 @@ namespace iotdb_client_csharp.client.utils
         }
         public bool get_has_cached_record(){
             return has_cached_record;
+        }
+        public void set_has_cached_record(bool value){
+            has_cached_record = value;
         }
 
 
