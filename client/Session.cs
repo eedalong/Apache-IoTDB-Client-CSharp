@@ -1,3 +1,4 @@
+using System.Net.Mime;
 using Thrift;
 using Thrift.Transport;
 using Thrift.Protocol;
@@ -209,25 +210,105 @@ namespace iotdb_client_csharp.client
             Console.WriteLine(message);
             return verify_success(status);
         }
+        public TSInsertStringRecordReq gen_insert_str_record_req(string device_id, List<string> measurements, List<string> values, long timestamp){
+            if(values.Count() != measurements.Count()){
+                throw new TException("length of data types does not equal to length of values!",null);
+            }
+            return new TSInsertStringRecordReq(sessionId, device_id, measurements, values, timestamp);
+        }
         public int insert_str_record(string device_id, List<string> measurements, List<string> values, long timestamp){
             // TBD by Luzhan
-            return 0;
+            var req = gen_insert_str_record_req(device_id, measurements, values, timestamp);
+            var task = client.insertStringRecordAsync(req);
+            task.Wait();
+            var status = task.Result;
+            var message = String.Format("insert one record to device {0} message: {1}", device_id, status.Message);
+            Console.WriteLine(message);
+            return verify_success(status);
+        }
+        public TSInsertRecordReq gen_insert_record_req(string device_id, List<string> measurements, List<string> values, List<int> data_types, long timestamp){
+            if(values.Count() != data_types.Count() || values.Count() != measurements.Count()){
+                throw new TException("length of data types does not equal to length of values!", null);
+            }
+            var values_in_bytes = value_to_bytes(data_types, values);
+            return new TSInsertRecordReq(sessionId, device_id, measurements, values_in_bytes, timestamp);
         }
         public int insert_record(string device_id, List<string> measurements, List<string> values, List<TSDataType> data_types, long timestamp){
             // TBD by Luzhan
-            return 0;
+            var data_types_in_int = data_types.ConvertAll<int>(x => (int)x);
+            var req = gen_insert_record_req(device_id, measurements, values, data_types_in_int, timestamp);
+            var task = client.insertRecordAsync(req);
+            task.Wait();
+            var status = task.Result;
+            var message = String.Format("insert one record to device {0} message: {1}", device_id, status.Message);
+            Console.WriteLine(message);
+            return verify_success(status);
+        }
+        public TSInsertRecordsReq gen_insert_records_req(List<string> device_id, List<List<string>> measurements_lst, List<List<string>> values_lst, List<List<int>> data_types_lst, List<long> timestamp_lst){
+            //TODO
+            if(device_id.Count() != measurements_lst.Count() || timestamp_lst.Count() != data_types_lst.Count() || 
+               device_id.Count() != timestamp_lst.Count()    || timestamp_lst.Count() != values_lst.Count()){
+                   var err_msg = String.Format("deviceIds, times, measurementsList and valueList's size should be equal");
+                   throw new TException(err_msg,null);
+            }
+            
+            List<byte[]> values_lst_in_bytes = new List<byte[]>();
+            for(int i = 0;i < values_lst.Count(); i++){
+                var values = values_lst[i];
+                var data_types = data_types_lst[i];
+                var measurements = measurements_lst[i];
+                if(values.Count() != data_types.Count() || values.Count() != measurements.Count()){
+                    var err_msg = String.Format("deviceIds, times, measurementsList and valueList's size should be equal");
+                    throw new TException(err_msg, null);
+                }
+                var values_in_bytes = value_to_bytes(data_types, values);
+                values_lst_in_bytes.Add(values_in_bytes);
+            }
+
+            return new TSInsertRecordsReq(sessionId, device_id, measurements_lst, values_lst_in_bytes, timestamp_lst);
         }
         public int insert_records(List<string> device_id, List<List<string>> measurements_lst, List<List<string>> values_lst, List<List<TSDataType>> data_types_lst, List<long> timestamp_lst){
             // TBD by Luzhan
-            return 0;
+            List<List<int>> data_types_lst_in_int = new List<List<int>>();
+            var len = data_types_lst.Count();
+            for(int i = 0; i < len; i++){
+                var data_types_in_int = data_types_lst[i].ConvertAll<int>(x => (int)x);
+                data_types_lst_in_int.Add(data_types_in_int);
+            }
+            var req = gen_insert_records_req(device_id, measurements_lst, values_lst, data_types_lst_in_int, timestamp_lst);
+            var task = client.insertRecordsAsync(req);
+            task.Wait();
+            var status = task.Result;
+            var message = String.Format("insert multiple records to devices {0} message: {1}", device_id, status.Message);
+            Console.WriteLine(message);
+            return verify_success(status);
         }
         public int test_insert_record(string device_id, List<string> measurements, List<string> values, List<TSDataType> data_types, long timestamp){
             // TBD by Luzhan
-            return 0;
+            var data_types_int = data_types.ConvertAll<int>(x => (int)x);
+            var req = gen_insert_record_req(device_id, measurements, values, data_types_int, timestamp);
+            var task = client.testInsertRecordAsync(req);
+            task.Wait();
+            var status = task.Result;
+            var message = String.Format("testing! insert one record to device {0} message: {1}", device_id, status.Message);
+            Console.WriteLine(message);
+            return verify_success(status);
         }
         public int test_insert_records(List<string> device_id, List<List<string>> measurements_lst, List<List<string>> values_lst, List<List<TSDataType>> data_types_lst, List<long> timestamp_lst){
             // TBD by Luzhan
-            return 0;
+            List<List<int>> data_types_lst_in_int = new List<List<int>>();
+            var len = data_types_lst.Count();
+            for(int i = 0; i < len; i++){
+                var data_types_in_int = data_types_lst[i].ConvertAll<int>(x => (int)x);
+                data_types_lst_in_int.Add(data_types_in_int);
+            }
+             var req = gen_insert_records_req(device_id, measurements_lst, values_lst, data_types_lst_in_int, timestamp_lst);
+            var task = client.testInsertRecordsAsync(req);
+            task.Wait();
+            var status = task.Result;
+            var message = String.Format("testing! insert multiple records, message: {0}", status.Message);
+            Console.WriteLine(message);
+            return verify_success(status);
         }
         public int insert_tablet(Tablet tablet){
             // TBD by Luzhan
@@ -301,6 +382,37 @@ namespace iotdb_client_csharp.client
             }
             return resp.TimeZone;
         }
-       
+        public byte[] value_to_bytes(List<int> data_types, List<string> values){
+            //TODO
+            List<byte> res = new List<byte>(){};
+            for(int i = 0; i < data_types.Count(); i++){
+                switch(data_types[i]){
+                    case (int)TSDataType.BOOLEAN:
+                        res.AddRange(BitConverter.GetBytes(Boolean.Parse(values[i])));
+                        break;
+                    case (int)TSDataType.FLOAT:
+                        res.AddRange(BitConverter.GetBytes(float.Parse(values[i])));
+                        break;
+                    case (int)TSDataType.DOUBLE:
+                        res.AddRange(BitConverter.GetBytes(double.Parse(values[i])));
+                        break;
+                    case (int)TSDataType.INT32:
+                        res.AddRange(BitConverter.GetBytes(Int32.Parse(values[i])));
+                        break;
+                    case (int)TSDataType.INT64:
+                        res.AddRange(BitConverter.GetBytes(Int64.Parse(values[i])));
+                        break;
+                    case (int)TSDataType.TEXT:
+                        var len = values[i].Length;
+                        res.AddRange(BitConverter.GetBytes(len));
+                        res.AddRange(System.Text.Encoding.UTF8.GetBytes(values[i]));
+                        break;
+                    default:
+                        var err_msg = String.Format("Unsupported data type:{0}",data_types[i].ToString());
+                        break;
+                }
+            }
+        return res.ToArray();
+        }
     }
 }
