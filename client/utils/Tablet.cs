@@ -22,12 +22,9 @@ namespace iotdb_client_csharp.client.utils
                 throw new Exception("input length not matched");
             }
             if(!check_timestamp_lst_sorted()){
-                var sorted = timestamp_lst.Select((x, i) => (value:x, original_idx:i)).OrderBy(x => x.value).ToList();
-                this.timestamp_lst = sorted.Select(x => x.value).ToList();
-                var idx_lst = sorted.Select(x => x.original_idx).ToList();
-                foreach(var index in idx_lst){
-                    this.value_lst.Add(value_lst[index]);
-                }
+                var sorted = timestamp_lst.Select((x, index) => (timestamp:x, values:value_lst[index])).OrderBy(x => x.timestamp).ToList();
+                this.timestamp_lst = sorted.Select(x => x.timestamp).ToList();
+                this.value_lst = sorted.Select(x => x.values).ToList();
             }else{
                 this.value_lst = value_lst;
                 this.timestamp_lst = timestamp_lst;

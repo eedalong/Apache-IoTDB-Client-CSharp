@@ -20,6 +20,7 @@ using Thrift.Protocol.Utilities;
 using Thrift.Transport.Client;
 using Thrift.Transport.Server;
 using Thrift.Processor;
+using iotdb_client_csharp.client.utils;
 
 namespace iotdb_client_csharp.client
 {
@@ -228,6 +229,36 @@ namespace iotdb_client_csharp.client
             // TBD by Luzhan
             return 0;
         }
+        public int insert_tablet(Tablet tablet){
+            // TBD by Luzhan
+            return 0;
+        }
+        public int insert_tablets(List<Tablet> tablet_lst){
+            // TBD by Luzhan
+            return 0;
+        }
+        public int insert_records_of_one_device(long device_id, List<long> timestamp_lst, List<List<string>> measurements_lst, List<List<TSDataType>> data_types_lst, List<List<string>> values_lst){
+            var sorted = timestamp_lst.Select((x, index) => (timestamp: x, measurements:measurements_lst[index], data_types:data_types_lst[index], values:values_lst[index])).OrderBy(x => x.timestamp).ToList();
+            List<long> sorted_timestamp_lst = sorted.Select(x => x.timestamp).ToList();
+            List<List<string>> sorted_measurements_lst = sorted.Select(x => x.measurements).ToList();
+            List<List<TSDataType>> sorted_datatye_lst = sorted.Select(x => x.data_types).ToList();
+            List<List<string>> sorted_value_lst = sorted.Select(x => x.values).ToList();
+            return insert_records_of_one_device_sorted(device_id, sorted_timestamp_lst, sorted_measurements_lst, sorted_datatye_lst, sorted_value_lst);
+
+        }
+        public int insert_records_of_one_device_sorted(long device_id, List<long> timestamp_lst, List<List<string>> measurements_lst, List<List<TSDataType>> data_types_lst, List<List<string>> values_lst){
+            // TBD by Luzhan
+            return 0;
+        }
+
+        public int test_insert_tablet(Tablet tablet){
+            // TBD by Luzhan
+            return 0;
+        }
+        public int test_insert_tablets(List<Tablet> tablet_lst){
+            // TBD by Luzhan
+            return 0;
+        }
 
         private int verify_success(TSStatus status){
             if (status.Code == SUCCESS_CODE){
@@ -271,12 +302,14 @@ namespace iotdb_client_csharp.client
             return resp.TimeZone;
         }
         public void execute_query_statement(string sql, long timeout){
+            // TODO
             var req = new TSExecuteStatementReq(sessionId, sql, statementId);
             req.FetchSize = fetch_size;
             req.Timeout = timeout;
             var task = client.executeQueryStatementAsync(req);
             task.Wait();
             var resp = task.Result;
+            return ;
 
         }
        
