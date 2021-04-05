@@ -24,17 +24,17 @@ using iotdb_client_csharp.client.utils;
 
 namespace iotdb_client_csharp.client
 {
-    public enum TSDataType{BOOLEAN, INT32, INT64, FLOAT, DOUBLE, TEXT, NONE};
-    public enum TSEncoding{PLAIN, PLAIN_DICTIONARY, RLE, DIFF, TS_2DIFF, BITMAP, GORILLA_V1, REGULAR, GORILLA, NONE};
-    public enum Compressor{UNCOMPRESSED, SNAPPY, GZIP, LZO, SDT, PAA, PLA, LZ4};
+    //public enum TSDataType{BOOLEAN, INT32, INT64, FLOAT, DOUBLE, TEXT, NONE};
+    //public enum TSEncoding{PLAIN, PLAIN_DICTIONARY, RLE, DIFF, TS_2DIFF, BITMAP, GORILLA_V1, REGULAR, GORILLA, NONE};
+    //public enum Compressor{UNCOMPRESSED, SNAPPY, GZIP, LZO, SDT, PAA, PLA, LZ4};
 
     public class Session
     {
-       private string username="root", password="root", zoneId, host;
+       private string username, password, zoneId, host;
        public int SUCCESS_CODE{
            get{return 200;}
        }
-       private int port, fetch_size=10000;
+       private int port, fetch_size;
        private long sessionId, statementId;
        private bool is_close = true;
 
@@ -47,7 +47,28 @@ namespace iotdb_client_csharp.client
            // init success code 
            this.host = host;
            this.port = port;
+           this.username = "root";
+           this.password = "root";
+           this.zoneId = "UTC+08:00";
+           this.fetch_size = 10000;
        } 
+       public Session(string host, int port, string username, string password){
+           this.host = host;
+           this.port = port;
+           this.password = password;
+           this.username = username;
+           this.zoneId = "UTC+08:00";
+           this.fetch_size = 10000;
+       }
+       public Session(string host, int port, string username, string password, int fetch_size){
+           this.host = host;
+           this.port = port;
+           this.username = username;
+           this.password = password;
+           this.fetch_size = fetch_size;
+           this.zoneId = "UTC+08:00";
+
+       }
         public Session(string host, int port, string username="root", string password="root", int fetch_size=10000, string zoneId = "UTC+08:00"){
             this.host = host;
             this.port = port;
@@ -69,7 +90,7 @@ namespace iotdb_client_csharp.client
                 catch(TTransportException e){
                     //TODO, should define our own Exception
                     // here we just print the exception
-                    Console.Write(e.ToString());
+                    Console.Write(e);
                     throw e;
                 }
             }
@@ -89,6 +110,7 @@ namespace iotdb_client_csharp.client
                 if(open_resp.ServerProtocolVersion != protocol_version){
                     var message = String.Format("Protocol Differ, Client version is {0} but Server version is {1}", protocol_version, open_resp.ServerProtocolVersion);
                     Console.WriteLine(message);
+                    throw new TException(message, null);
                 }
                 if (open_resp.ServerProtocolVersion == 0){
                     throw new TException("Protocol not supported", null);
@@ -137,10 +159,17 @@ namespace iotdb_client_csharp.client
 
         }
         public int set_storage_group(string group_name){
-            var task = client.setStorageGroupAsync(sessionId, group_name);
-            task.Wait();
-            var status = task.Result;
-            return verify_success(status);
+            try{
+                var task = client.setStorageGroupAsync(sessionId, group_name);
+                task.Wait();
+                var status = task.Result;
+                return verify_success(status);
+            }
+            catch(TException e){
+                var message = String.Format("set storage group {0} failed, beacuse {1}", group_name, e);
+                Console.WriteLine(message);
+                throw e;
+            }
         }
 
         public int delete_storage_group(string group_name){
