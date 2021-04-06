@@ -14,14 +14,14 @@ namespace iotdb_client_csharp.client.utils
             field_lst.Add(field);
         }
 
-        public void set_filed(int index, Field filed){
-            field_lst[index] = filed;
-        }
-
         public void add_filed<T>(TSDataType data_type, T value){
             var filed = new Field(data_type);
-            filed.set_value(data_type, value);
+            filed.set_value(value);
             field_lst.Add(filed);
+        }
+
+        public void set_filed(int index, Field filed){
+            field_lst[index] = filed;
         }
         public override string ToString()
         {
