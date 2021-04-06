@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 namespace iotdb_client_csharp.client.utils
 {
     public class Field
@@ -49,6 +50,7 @@ namespace iotdb_client_csharp.client.utils
                 double_val = value;
             }
         }
+        // why we need to keep binary values here 
         private byte[] binary_val{
             get{
                 return binary_val;
@@ -57,6 +59,7 @@ namespace iotdb_client_csharp.client.utils
                 binary_val = value;
             }
         }
+
 
         private TSDataType data_type{get;set;}
         
@@ -87,7 +90,11 @@ namespace iotdb_client_csharp.client.utils
                     double_val = (double)(object)value;
                     break;
                 case TSDataType.TEXT:
-                    binary_val = (byte[])(object)value;
+                    var res = new List<byte>{};
+                    var str_val = (string)(object)value;
+                    res.AddRange(BitConverter.GetBytes(str_val.Length));
+                    res.AddRange(System.Text.Encoding.UTF8.GetBytes(str_val));
+                    binary_val = res.ToArray();
                     break;
                 default:
                     var message = "unsupported data type";
@@ -95,6 +102,31 @@ namespace iotdb_client_csharp.client.utils
                     break;
             }
         }
+        public byte[] get_value_bytes(){
+            List<byte> res = new List<byte>{};
+            switch(data_type){
+                case TSDataType.BOOLEAN:
+                    res.AddRange(BitConverter.GetBytes(bool_val));
+                    break;
+                case TSDataType.INT32:
+                    res.AddRange(BitConverter.GetBytes(int_val));
+                    break;
+                case TSDataType.INT64:
+                    res.AddRange(BitConverter.GetBytes(long_val));
+                    break;
+                case TSDataType.FLOAT:
+                    res.AddRange(BitConverter.GetBytes(float_val));
+                    break;
+                case TSDataType.DOUBLE:
+                    res.AddRange(BitConverter.GetBytes(double_val));
+                    break;
+                case TSDataType.TEXT:
+                    res.AddRange(binary_val);
+                    break;
+            }
+            return res.ToArray();
+        }
+
         public override string ToString()
         {
             switch(data_type){

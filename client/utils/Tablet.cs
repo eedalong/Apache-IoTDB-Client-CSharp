@@ -3,9 +3,22 @@ using System.Collections.Generic;
 using System.Linq;
 namespace iotdb_client_csharp.client.utils
 {
+    /*
+    * A tablet data of one device, the tablet contains multiple measurements of this device that share
+    * the same time column.
+    *
+    * for example:  device root.sg1.d1
+    *
+    * time, m1, m2, m3
+    *    1,  1,  2,  3
+    *    2,  1,  2,  3
+    *    3,  1,  2,  3
+    *
+    * Notice: The tablet should not have empty cell
+    *
+    */
     public class Tablet
     {
-        // TBD by Zengz
        public string device_id{get;}
        public List<string> measurement_lst{get;}
        public List<TSDataType> data_type_lst{get;}
@@ -52,6 +65,7 @@ namespace iotdb_client_csharp.client.utils
            }
            return res.ToArray();
        }
+       
        public byte[] get_binary_values(){
            List<byte> res = new List<byte>{};
            for(int i = 0; i < col_number; i++){
