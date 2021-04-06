@@ -51,12 +51,12 @@ namespace iotdb_client_csharp.client.utils
             }
         }
         // why we need to keep binary values here 
-        private byte[] binary_val{
+        public string str_val{
             get{
-                return binary_val;
+                return str_val;
             }
             set{
-                binary_val = value;
+                str_val = value;
             }
         }
 
@@ -90,11 +90,7 @@ namespace iotdb_client_csharp.client.utils
                     double_val = (double)(object)value;
                     break;
                 case TSDataType.TEXT:
-                    var res = new List<byte>{};
-                    var str_val = (string)(object)value;
-                    res.AddRange(BitConverter.GetBytes(str_val.Length));
-                    res.AddRange(System.Text.Encoding.UTF8.GetBytes(str_val));
-                    binary_val = res.ToArray();
+                    str_val = (string)(object)value;
                     break;
                 default:
                     var message = "unsupported data type";
@@ -121,7 +117,8 @@ namespace iotdb_client_csharp.client.utils
                     res.AddRange(BitConverter.GetBytes(double_val));
                     break;
                 case TSDataType.TEXT:
-                    res.AddRange(binary_val);
+                    res.AddRange(BitConverter.GetBytes(str_val.Length));
+                    res.AddRange(System.Text.Encoding.UTF8.GetBytes(str_val));
                     break;
             }
             return res.ToArray();
@@ -131,7 +128,7 @@ namespace iotdb_client_csharp.client.utils
         {
             switch(data_type){
                 case TSDataType.TEXT:
-                    return System.Text.Encoding.UTF8.GetString(binary_val);
+                    return str_val;
                 case TSDataType.INT32:
                     return int_val.ToString();
                 case TSDataType.INT64:
