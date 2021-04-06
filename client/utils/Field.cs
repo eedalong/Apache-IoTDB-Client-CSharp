@@ -5,16 +5,58 @@ namespace iotdb_client_csharp.client.utils
     {
         // TBD By Zengz
         public bool bool_val{
-            get{return bool_val;};
+            get{
+                return bool_val;
+            }
             set{
                 valid_data_type();
                 bool_val = value;
-            }}
-        private int int_val;
-        private long long_val;
-        private float float_val;
-        private double double_val;
-        private byte[] binary_val;
+            }
+        }
+        public int int_val{
+            get{
+                return int_val;
+            }
+            set{
+                valid_data_type();
+                int_val = value;
+            }
+        }
+        public long long_val{
+            get{
+                return long_val;
+            }
+            set{
+                valid_data_type();
+                long_val = value;
+            }
+        }
+        public float float_val{
+            get{
+                return float_val;
+            }
+            set{
+                valid_data_type();
+                float_val = value;
+            }
+        }
+        public double double_val{
+            get{
+                return double_val;
+            }
+            set{
+                valid_data_type();
+                double_val = value;
+            }
+        }
+        private byte[] binary_val{
+            get{
+                return binary_val;
+            }
+            set{
+                binary_val = value;
+            }
+        }
 
         private TSDataType data_type{get;set;}
         
@@ -27,7 +69,7 @@ namespace iotdb_client_csharp.client.utils
             }
         }
 
-        public void set_value<T>(TSDataType data_type, T value){
+        public void set_value<T>(T value){
             switch(data_type){
                 case TSDataType.BOOLEAN:
                     bool_val = (bool)(object)value;

@@ -70,27 +70,27 @@ namespace iotdb_client_csharp.client.utils
                     switch(data_type){
                         case TSDataType.BOOLEAN:
                             var bool_value = unpack_bool(value_bytes);
-                            field.set_value(data_type, bool_value);
+                            field.set_value(bool_value);
                             break;
                         case TSDataType.INT32:
                             var int_value = unpack_int(value_bytes);
-                            field.set_value(data_type, int_value);
+                            field.set_value(int_value);
                             break;
                         case TSDataType.INT64:
                             var long_value = unpack_long(value_bytes);
-                            field.set_value(data_type, long_value);
+                            field.set_value(long_value);
                             break;
                         case TSDataType.TEXT:
                             var bytes_value = value_bytes;
-                            field.set_value(data_type, bytes_value);
+                            field.set_value(bytes_value);
                             break;
                         case TSDataType.FLOAT:
                             float float_value = unpack_float(value_bytes);
-                            field.set_value(data_type, float_value);
+                            field.set_value(float_value);
                             break;
                         case TSDataType.DOUBLE:
                             double double_value = unpack_double(value_bytes);
-                            field.set_value(data_type, double_value);
+                            field.set_value(double_value);
                             break;
                         default:
                             var message = "unsupported data type";
