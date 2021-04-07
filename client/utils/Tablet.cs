@@ -64,46 +64,45 @@ namespace iotdb_client_csharp.client.utils
            return true ;
        }
        public byte[] get_binary_timestamps(){
-           List<byte> res = new List<byte>{};
+           ByteBuffer buffer = new ByteBuffer(new byte[]{});
            foreach(var timestamp in timestamp_lst){
-               res.AddRange(BitConverter.GetBytes(timestamp));
+               buffer.add_long(timestamp);
            }
-           return res.ToArray();
+           return buffer.get_buffer();
        }
        
        public byte[] get_binary_values(){
-           List<byte> res = new List<byte>{};
+           ByteBuffer buffer = new ByteBuffer(new byte[]{});
            for(int i = 0; i < col_number; i++){
                 switch(data_type_lst[i]){
                     case TSDataType.BOOLEAN:
                         for(int j=0; j< row_number; j++){
-                            res.AddRange(BitConverter.GetBytes(value_lst[j][i] == "True"));
+                            buffer.add_bool(value_lst[j][i] == "true");
                         }
                         break;
                     case TSDataType.INT32:
                         for(int j=0; j<row_number; j++){
-                            res.AddRange(BitConverter.GetBytes(int.Parse(value_lst[j][i])));
+                            buffer.add_int(int.Parse(value_lst[j][i]));
                         }
                         break;
                     case TSDataType.INT64:
                         for(int j=0; j<row_number; j++){
-                            res.AddRange(BitConverter.GetBytes(long.Parse(value_lst[j][i])));
+                            buffer.add_long(long.Parse(value_lst[j][i]));
                         }
                         break;
                     case TSDataType.FLOAT:
                         for(int j=0; j<row_number; j++){
-                            res.AddRange(BitConverter.GetBytes(float.Parse(value_lst[j][i])));
+                            buffer.add_float(float.Parse(value_lst[j][i]));
                         }
                         break;
                     case TSDataType.DOUBLE:
                         for(int j=0; j<row_number; j++){
-                            res.AddRange(BitConverter.GetBytes(double.Parse(value_lst[j][i])));
+                            buffer.add_double(double.Parse(value_lst[j][i]));
                         }
                         break;
                     case TSDataType.TEXT:
                         for(int j=0; j<row_number; j++){
-                            res.AddRange(BitConverter.GetBytes(value_lst[j][i].Length));
-                            res.AddRange(System.Text.Encoding.UTF8.GetBytes(value_lst[j][i]));
+                            buffer.add_str(value_lst[j][i]);
                         }
                         break;
                     default:
@@ -112,7 +111,7 @@ namespace iotdb_client_csharp.client.utils
                         break;
                 }
            }
-           return res.ToArray();
+           return buffer.get_buffer();
        }
 
 

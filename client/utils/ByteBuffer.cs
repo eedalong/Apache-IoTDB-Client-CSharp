@@ -52,6 +52,9 @@ namespace iotdb_client_csharp.client.utils
             string str_value = System.Text.Encoding.UTF8.GetString(buffer, pos, length);
             return str_value;
         }
+        public byte[] get_buffer(){
+            return buffer;
+        }
         // these for write
         public void add_bool(bool value){
             buffer.Concat(BitConverter.GetBytes(value));
