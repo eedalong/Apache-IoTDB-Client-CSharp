@@ -521,10 +521,9 @@ namespace iotdb_client_csharp.client
         public TSInsertRecordsOfOneDeviceReq gen_insert_records_of_one_device_request(long device_id, List<long> timestamp_lst, List<List<string>> measurements_lst,  List<List<string>> values_lst, List<List<TSDataType>> data_types_lst){
             List<byte[]> binary_value_lst = new List<byte[]>(){};
             for(int i = 0; i < values_lst.Count(); i++){
-                List<int> data_type_values = new List<int>(){};
+                List<TSDataType> data_type_values = data_types_lst[i];
                 for(int j = 0;j < data_types_lst[i].Count(); j++){
                     var data_type_value = (int)data_types_lst[i][j];
-                    data_type_values.Add(data_type_value);
                 }
                 if(values_lst[i].Count() != data_type_values.Count() || values_lst[i].Count() != measurements_lst[i].Count()){
                     var err_msg = "insert records of one device error: deviceIds, times, measurementsList and valuesList's size should be equal";
@@ -693,26 +692,27 @@ namespace iotdb_client_csharp.client
         }
 
 
-        public byte[] value_to_bytes(List<int> data_types, List<string> values){
+        public byte[] value_to_bytes(List<TSDataType> data_types, List<string> values){
             ByteBuffer buffer = new ByteBuffer(new byte[]{});
             for(int i = 0;i < data_types.Count(); i++){
+                buffer.add_int((int)data_types[i]);
                 switch(data_types[i]){
-                    case (int)TSDataType.BOOLEAN:
+                    case TSDataType.BOOLEAN:
                         buffer.add_bool(bool.Parse(values[i]));
                         break;
-                    case (int)TSDataType.INT32:
+                    case TSDataType.INT32:
                         buffer.add_int(int.Parse(values[i]));
                         break;
-                    case (int)TSDataType.INT64:
+                    case TSDataType.INT64:
                         buffer.add_long(long.Parse(values[i]));
                         break;
-                    case (int)TSDataType.FLOAT:
+                    case TSDataType.FLOAT:
                         buffer.add_float(float.Parse(values[i]));
                         break;
-                    case (int)TSDataType.DOUBLE:
+                    case TSDataType.DOUBLE:
                         buffer.add_double(double.Parse(values[i]));
                         break;
-                    case (int)TSDataType.TEXT:
+                    case TSDataType.TEXT:
                         buffer.add_str(values[i]);
                         break;
                     default:
