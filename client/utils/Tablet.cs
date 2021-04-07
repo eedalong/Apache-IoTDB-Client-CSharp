@@ -30,7 +30,12 @@ namespace iotdb_client_csharp.client.utils
 
        public Tablet(string device_id, List<string> measurement_lst, List<TSDataType> data_type_lst, List<List<string>> value_lst, List<long> timestamp_lst){
             if(timestamp_lst.Count != value_lst.Count){
-                var err_msg = String.Format("Input error! len(timestamps) does not equal to len(values)!");
+                var err_msg = String.Format("Input error! len(timestamp_lst) does not equal to len(value_lst)!");
+                Console.WriteLine(err_msg);
+                throw new Exception("input length not matched");
+            }
+            if(measurement_lst.Count != data_type_lst.Count){
+                var err_msg = string.Format("Input Error, len(measurement_lst) does not equal to len(data_type_lst)");
                 Console.WriteLine(err_msg);
                 throw new Exception("input length not matched");
             }
