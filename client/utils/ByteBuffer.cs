@@ -50,6 +50,7 @@ namespace iotdb_client_csharp.client.utils
             int length = BitConverter.ToInt32(buffer, pos);
             pos += 1;
             string str_value = System.Text.Encoding.UTF8.GetString(buffer, pos, length);
+            pos += length;
             return str_value;
         }
         public byte[] get_buffer(){
@@ -79,6 +80,7 @@ namespace iotdb_client_csharp.client.utils
         public void add_str(string value){
             buffer.Concat(BitConverter.GetBytes(value.Length));
             buffer.Concat(System.Text.Encoding.UTF8.GetBytes(value));
+            total_length = buffer.Length;
         }
 
     }
