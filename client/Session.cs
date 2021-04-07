@@ -160,39 +160,68 @@ namespace iotdb_client_csharp.client
 
         }
         public int set_storage_group(string group_name){
+            TSStatus status;
             try{
                 var task = client.setStorageGroupAsync(sessionId, group_name);
                 task.Wait();
-                var status = task.Result;
-                return verify_success(status);
+                status = task.Result;
             }
             catch(TException e){
-                var message = String.Format("set storage group {0} failed, beacuse {1}", group_name, e);
-                Console.WriteLine(message);
+                var err_msg = String.Format("set storage group {0} failed, beacuse {1}", group_name, e);
+                Console.WriteLine(err_msg);
                 throw e;
             }
+            var message = String.Format("set storage group {0} message: {1}", group_name, status.Message);
+            Console.WriteLine(message);
+            return verify_success(status);
         }
 
         public int delete_storage_group(string group_name){
-            var task = client.deleteStorageGroupsAsync(sessionId, new List<string>{group_name});
-            task.Wait();
-            var status = task.Result;
+            TSStatus status;
+            try{
+                var task = client.deleteStorageGroupsAsync(sessionId, new List<string>{group_name});
+                task.Wait();
+                status = task.Result;
+            }
+            catch(TException e){
+                var err_msg = String.Format("delete storage group {0} failed, beacuse {1}", group_name, e);
+                Console.WriteLine(err_msg);
+                throw e;
+            }
+            var message = String.Format("delete storage group {0} message: {1}", group_name, status.Message);
+            Console.WriteLine(message);
             return verify_success(status);
         }
         public int delete_storage_groups(List<string> group_names){
-            var task = client.deleteStorageGroupsAsync(sessionId, group_names);
-            task.Wait();
-            var status = task.Result;
+            TSStatus status;
+            try{
+                var task = client.deleteStorageGroupsAsync(sessionId, group_names);
+                task.Wait();
+                status = task.Result;
+            }
+            catch(TException e){
+                var err_msg = String.Format("delete storage group(s) {0} failed, beacuse {1}", group_names, e);
+                Console.WriteLine(err_msg);
+                throw e;                
+            }
             var message = String.Format("delete storage group(s) {0} message: {1}", group_names, status.Message);
             Console.WriteLine(message);
             return verify_success(status);
         }
 
         public int create_time_series(string ts_path, TSDataType data_type, TSEncoding encoding, Compressor compressor){
+            TSStatus status;
             var req = new TSCreateTimeseriesReq(sessionId, ts_path, (int)data_type, (int)encoding, (int)compressor);
-            var task = client.createTimeseriesAsync(req);
-            task.Wait();
-            var status = task.Result;
+            try{
+                var task = client.createTimeseriesAsync(req);
+                task.Wait();
+                status = task.Result;
+            }
+            catch(TException e){
+                var err_msg = String.Format("create time series {0} failed, beacuse {1}", ts_path, e);
+                Console.WriteLine(err_msg);
+                throw e;
+            }
             var message = String.Format("creating time series {0} message: {1}", ts_path, status.Message);
             Console.WriteLine(message);
             return verify_success(status); 
@@ -202,25 +231,49 @@ namespace iotdb_client_csharp.client
             var data_types = data_type_lst.ConvertAll<int>(x => (int)x);
             var encodings = encoding_lst.ConvertAll<int>(x => (int)x);
             var compressors = compressor_lst.ConvertAll<int>(x => (int)x);
+            TSStatus status;
             var req = new TSCreateMultiTimeseriesReq(sessionId, ts_path_lst, data_types, encodings, compressors);
-            var task = client.createMultiTimeseriesAsync(req);
-            task.Wait();
-            var status = task.Result;
+            try{
+                var task = client.createMultiTimeseriesAsync(req);
+                task.Wait();
+                status = task.Result;
+            }
+            catch(TException e){
+                var err_msg = String.Format("create multiple time series {0} failed, beacuse {1}", ts_path_lst, e);
+                Console.WriteLine(err_msg);
+                throw e;             
+            }
             var message = String.Format("creating multiple time series {0} message: {1}", ts_path_lst, status.Message);
             Console.WriteLine(message);
             return verify_success(status);
         }
         public int delete_time_series(List<string> path_list){
-            var task = client.deleteTimeseriesAsync(sessionId, path_list);
-            task.Wait();
-            var status = task.Result;
+            TSStatus status;
+            try{
+                var task = client.deleteTimeseriesAsync(sessionId, path_list);
+                task.Wait();
+                status = task.Result;
+            }
+            catch(TException e){
+                var err_msg = String.Format("delete time series {0} failed, beacuse {1}", path_list, e);
+                Console.WriteLine(err_msg);
+                throw e;             
+            }
             var message = String.Format("deleting multiple time series {0} message: {1}", path_list, status.Message);
             Console.WriteLine(message);
             return verify_success(status);
         }
         public bool check_time_series_exists(string ts_path){
             // TBD by dalong
-            return false;
+            try{
+                string sql = "SHOW TIMESERIES " + ts_path;
+                return execute_query_statement(sql).has_next();
+            }
+            catch(TException e){
+                var err_msg = String.Format("could not check if certain time series exists because {0}", e);
+                Console.WriteLine(err_msg);
+                throw e;
+            }
         }
         public int delete_data(List<string> ts_path_lst, long start_time, long end_time){
             var req = new TSDeleteDataReq(sessionId, ts_path_lst, start_time, end_time);
@@ -555,6 +608,16 @@ namespace iotdb_client_csharp.client
             Console.WriteLine(message);
             return -1;
         }
+
+        // 这个函数可能会用到，C++里面验证成功的时候不是返回值，而是throw一个exception
+        private void verify_success_(TSStatus status){
+            if(status.Code == SUCCESS_CODE){
+                return;
+            }
+            var message = String.Format("error status is {0}, {1}", status.Code, status.Message);
+            Console.WriteLine(message);
+            throw new TException();
+        }
          
         public void set_time_zone(string zoneId){
             var req = new TSSetTimeZoneReq(sessionId, zoneId);
@@ -588,37 +651,77 @@ namespace iotdb_client_csharp.client
             }
             return resp.TimeZone;
         }
+        public SessionDataSet execute_query_statement(string sql){
+            TSExecuteStatementResp resp;
+            TSStatus status;
+            var req = new TSExecuteStatementReq(sessionId, sql, statementId);
+            try{
+                var task = client.executeQueryStatementAsync(req);
+                task.Wait();
+                resp = task.Result;
+                status = resp.Status;
+            }
+            catch(TException e){
+                var err_msg = String.Format("could not execute query statement because {0}", e);
+                Console.WriteLine(err_msg);
+                throw e;
+            }
+            if(verify_success(status) == -1){
+                throw new TException();
+            }
+            return new SessionDataSet(sql, resp.Columns, resp.DataTypeList, resp.ColumnNameIndexMap, resp.QueryId, client, sessionId, resp.QueryDataSet);
+
+        }
+        public int execute_non_query_statement(string sql){
+            TSExecuteStatementResp resp;
+            TSStatus status;
+            var req = new TSExecuteStatementReq(sessionId, sql, statementId);
+            try{
+                var task = client.executeUpdateStatementAsync(req);
+                task.Wait();
+                resp = task.Result;
+                status = resp.Status;
+            }
+            catch(TException e){
+                var err_msg = String.Format("execution of non-query statement fails because: {0}", e);
+                Console.WriteLine(err_msg);
+                throw e;
+            }
+            var message = String.Format("execute non-query statement {0} message: {1}", sql, status.Message);
+            Console.WriteLine(message);
+            return verify_success(status);
+        }
+
+
         public byte[] value_to_bytes(List<int> data_types, List<string> values){
-            //TODO
-            List<byte> res = new List<byte>(){};
-            for(int i = 0; i < data_types.Count(); i++){
+            ByteBuffer buffer = new ByteBuffer(new byte[]{});
+            for(int i = 0;i < data_types.Count(); i++){
                 switch(data_types[i]){
                     case (int)TSDataType.BOOLEAN:
-                        res.AddRange(BitConverter.GetBytes(Boolean.Parse(values[i])));
-                        break;
-                    case (int)TSDataType.FLOAT:
-                        res.AddRange(BitConverter.GetBytes(float.Parse(values[i])));
-                        break;
-                    case (int)TSDataType.DOUBLE:
-                        res.AddRange(BitConverter.GetBytes(double.Parse(values[i])));
+                        buffer.add_bool(bool.Parse(values[i]));
                         break;
                     case (int)TSDataType.INT32:
-                        res.AddRange(BitConverter.GetBytes(Int32.Parse(values[i])));
+                        buffer.add_int(int.Parse(values[i]));
                         break;
                     case (int)TSDataType.INT64:
-                        res.AddRange(BitConverter.GetBytes(Int64.Parse(values[i])));
+                        buffer.add_long(long.Parse(values[i]));
+                        break;
+                    case (int)TSDataType.FLOAT:
+                        buffer.add_float(float.Parse(values[i]));
+                        break;
+                    case (int)TSDataType.DOUBLE:
+                        buffer.add_double(double.Parse(values[i]));
                         break;
                     case (int)TSDataType.TEXT:
-                        var len = values[i].Length;
-                        res.AddRange(BitConverter.GetBytes(len));
-                        res.AddRange(System.Text.Encoding.UTF8.GetBytes(values[i]));
+                        buffer.add_str(values[i]);
                         break;
                     default:
-                        var err_msg = String.Format("Unsupported data type:{0}",data_types[i].ToString());
+                        var message = String.Format("Unsupported data type:{0}",data_types[i]);
+                        Console.WriteLine(message);
                         break;
                 }
             }
-        return res.ToArray();
+            return buffer.get_buffer();
         }
     }
 }
