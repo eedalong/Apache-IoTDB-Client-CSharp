@@ -138,6 +138,10 @@ namespace iotdb_client_csharp.client.utils
                 case TSDataType.TEXT:
                     buffer.add_str(str_val);
                     break;
+                case TSDataType.NONE:
+                    var err_msg = string.Format("NONE type does not support get bytes");
+                    Console.WriteLine(err_msg);
+                    throw new Exception(err_msg);
             }
             return buffer.get_buffer();
         }
