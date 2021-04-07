@@ -117,31 +117,29 @@ namespace iotdb_client_csharp.client.utils
             }
         }
         public byte[] get_bytes(){
-            List<byte> res = new List<byte>{};
-            res.AddRange(BitConverter.GetBytes((int)type));
+            ByteBuffer buffer = new ByteBuffer(new byte[]{});
+            buffer.add_int((int)type);
             switch(type){
                 case TSDataType.BOOLEAN:
-                    res.AddRange(BitConverter.GetBytes(bool_val));
+                    buffer.add_bool(bool_val);
                     break;
                 case TSDataType.INT32:
-                    
-                    res.AddRange(BitConverter.GetBytes(int_val));
+                    buffer.add_int(int_val);
                     break;
                 case TSDataType.INT64:
-                    res.AddRange(BitConverter.GetBytes(long_val));
+                    buffer.add_long(long_val);
                     break;
                 case TSDataType.FLOAT:
-                    res.AddRange(BitConverter.GetBytes(float_val));
+                    buffer.add_float(float_val);
                     break;
                 case TSDataType.DOUBLE:
-                    res.AddRange(BitConverter.GetBytes(double_val));
+                    buffer.add_double(double_val);
                     break;
                 case TSDataType.TEXT:
-                    res.AddRange(BitConverter.GetBytes(str_val.Length));
-                    res.AddRange(System.Text.Encoding.UTF8.GetBytes(str_val));
+                    buffer.add_str(str_val);
                     break;
             }
-            return res.ToArray();
+            return buffer.get_buffer();
         }
 
         public override string ToString()
