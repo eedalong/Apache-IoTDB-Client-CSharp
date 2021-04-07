@@ -6,9 +6,11 @@ namespace iotdb_client_csharp.client.utils
     {
         private long timestamp{get;set;}
         private List<Field> field_lst{get;set;}
-        public RowRecord(long timestamp, List<Field> field_lst){
+        private List<string> measurements{get;set;}
+        public RowRecord(long timestamp, List<Field> field_lst, List<string> measurements){
             this.timestamp = timestamp;
             this.field_lst = field_lst;
+            this.measurements = measurements;
         }
         public void add_filed(Field field){
             field_lst.Add(field);
@@ -16,7 +18,7 @@ namespace iotdb_client_csharp.client.utils
 
         public void add_filed<T>(TSDataType data_type, T value){
             var filed = new Field(data_type);
-            filed.set_value(value);
+            filed.set(value);
             field_lst.Add(filed);
         }
 

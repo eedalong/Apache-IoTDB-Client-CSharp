@@ -61,19 +61,19 @@ namespace iotdb_client_csharp.client.utils
         }
 
 
-        private TSDataType data_type{get;set;}
+        private TSDataType type{get;set;}
         
         public Field(TSDataType data_type){
-            this.data_type = data_type;
+            this.type = data_type;
         }
         public void valid_data_type(){
-            if(data_type == TSDataType.NONE){
+            if(type == TSDataType.NONE){
                 throw new Exception("CanNot Set A None Type");
             }
         }
 
-        public void set_value<T>(T value){
-            switch(data_type){
+        public void set<T>(T value){
+            switch(type){
                 case TSDataType.BOOLEAN:
                     bool_val = (bool)(object)value;
                     break;
@@ -98,13 +98,33 @@ namespace iotdb_client_csharp.client.utils
                     break;
             }
         }
-        public byte[] get_value_bytes(){
+        public T get<T>(){
+            switch(type){
+                case TSDataType.BOOLEAN:
+                    return (T)(object)bool_val;
+                case TSDataType.INT64:
+                    return (T)(object)long_val;
+                case TSDataType.FLOAT:
+                    return (T)(object)float_val;
+                case TSDataType.INT32:
+                    return (T)(object)int_val;
+                case TSDataType.DOUBLE:
+                    return (T)(object)double_val;
+                case TSDataType.TEXT:
+                    return (T)(object)str_val;
+                default:
+                    return (T)(object)null;
+            }
+        }
+        public byte[] get_bytes(){
             List<byte> res = new List<byte>{};
-            switch(data_type){
+            res.AddRange(BitConverter.GetBytes((int)type));
+            switch(type){
                 case TSDataType.BOOLEAN:
                     res.AddRange(BitConverter.GetBytes(bool_val));
                     break;
                 case TSDataType.INT32:
+                    
                     res.AddRange(BitConverter.GetBytes(int_val));
                     break;
                 case TSDataType.INT64:
@@ -126,7 +146,7 @@ namespace iotdb_client_csharp.client.utils
 
         public override string ToString()
         {
-            switch(data_type){
+            switch(type){
                 case TSDataType.TEXT:
                     return str_val;
                 case TSDataType.INT32:
