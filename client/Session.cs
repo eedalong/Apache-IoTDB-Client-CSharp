@@ -40,7 +40,7 @@ namespace iotdb_client_csharp.client
        private bool is_close = true;
 
        private TSIService.Client client; 
-       private TSocketTransport transport;
+       private TFramedTransport transport;
        private static TSProtocolVersion protocol_version = TSProtocolVersion.IOTDB_SERVICE_PROTOCOL_V3;
 
 
@@ -82,10 +82,10 @@ namespace iotdb_client_csharp.client
             if(!is_close){
                 return ;
             }
-            this.transport = new TSocketTransport(this.host, this.port, null);
+            this.transport = new TFramedTransport(new TSocketTransport(this.host, this.port, new TConfiguration()));
             if(!transport.IsOpen){
                 try{
-                    var task = transport.OpenAsync(new CancellationToken());
+                    var task = transport.OpenAsync(new CancellationToken(false));
                     task.Wait();
                 }
                 catch(TTransportException e){
