@@ -317,7 +317,7 @@ namespace iotdb_client_csharp.client
             Console.WriteLine(message);
             return verify_success(status);
         }
-        public TSInsertRecordReq gen_insert_record_req(string device_id, List<string> measurements, List<string> values, List<int> data_types, long timestamp){
+        public TSInsertRecordReq gen_insert_record_req(string device_id, List<string> measurements, List<string> values, List<TSDataType> data_types, long timestamp){
             if(values.Count() != data_types.Count() || values.Count() != measurements.Count()){
                 var err_msg = "length of data types does not equal to length of values!";
                 throw new TException(err_msg, null);
@@ -327,8 +327,7 @@ namespace iotdb_client_csharp.client
         }
         public int insert_record(string device_id, List<string> measurements, List<string> values, List<TSDataType> data_types, long timestamp){
             // TBD by Luzhan
-            var data_types_in_int = data_types.ConvertAll<int>(x => (int)x);
-            var req = gen_insert_record_req(device_id, measurements, values, data_types_in_int, timestamp);
+            var req = gen_insert_record_req(device_id, measurements, values, data_types, timestamp);
             TSStatus status;
             try{
                 var task = client.insertRecordAsync(req);
@@ -344,7 +343,7 @@ namespace iotdb_client_csharp.client
             Console.WriteLine(message);
             return verify_success(status);
         }
-        public TSInsertRecordsReq gen_insert_records_req(List<string> device_id, List<List<string>> measurements_lst, List<List<string>> values_lst, List<List<int>> data_types_lst, List<long> timestamp_lst){
+        public TSInsertRecordsReq gen_insert_records_req(List<string> device_id, List<List<string>> measurements_lst, List<List<string>> values_lst, List<List<TSDataType>> data_types_lst, List<long> timestamp_lst){
             //TODO
             if(device_id.Count() != measurements_lst.Count() || timestamp_lst.Count() != data_types_lst.Count() || 
                device_id.Count() != timestamp_lst.Count()    || timestamp_lst.Count() != values_lst.Count()){
@@ -369,13 +368,7 @@ namespace iotdb_client_csharp.client
         }
         public int insert_records(List<string> device_id, List<List<string>> measurements_lst, List<List<string>> values_lst, List<List<TSDataType>> data_types_lst, List<long> timestamp_lst){
             // TBD by Luzhan
-            List<List<int>> data_types_lst_in_int = new List<List<int>>();
-            var len = data_types_lst.Count();
-            for(int i = 0; i < len; i++){
-                var data_types_in_int = data_types_lst[i].ConvertAll<int>(x => (int)x);
-                data_types_lst_in_int.Add(data_types_in_int);
-            }
-            var req = gen_insert_records_req(device_id, measurements_lst, values_lst, data_types_lst_in_int, timestamp_lst);
+            var req = gen_insert_records_req(device_id, measurements_lst, values_lst, data_types_lst, timestamp_lst);
             TSStatus status;
             try{
                 var task = client.insertRecordsAsync(req);
@@ -393,8 +386,7 @@ namespace iotdb_client_csharp.client
         }
         public int test_insert_record(string device_id, List<string> measurements, List<string> values, List<TSDataType> data_types, long timestamp){
             // TBD by Luzhan
-            var data_types_int = data_types.ConvertAll<int>(x => (int)x);
-            var req = gen_insert_record_req(device_id, measurements, values, data_types_int, timestamp);
+            var req = gen_insert_record_req(device_id, measurements, values, data_types, timestamp);
             TSStatus status;
             try{
                 var task = client.testInsertRecordAsync(req);
@@ -412,13 +404,7 @@ namespace iotdb_client_csharp.client
         }
         public int test_insert_records(List<string> device_id, List<List<string>> measurements_lst, List<List<string>> values_lst, List<List<TSDataType>> data_types_lst, List<long> timestamp_lst){
             // TBD by Luzhan
-            List<List<int>> data_types_lst_in_int = new List<List<int>>();
-            var len = data_types_lst.Count();
-            for(int i = 0; i < len; i++){
-                var data_types_in_int = data_types_lst[i].ConvertAll<int>(x => (int)x);
-                data_types_lst_in_int.Add(data_types_in_int);
-            }
-            var req = gen_insert_records_req(device_id, measurements_lst, values_lst, data_types_lst_in_int, timestamp_lst);
+            var req = gen_insert_records_req(device_id, measurements_lst, values_lst, data_types_lst, timestamp_lst);
             TSStatus status;
             try{
                 var task = client.testInsertRecordsAsync(req);
