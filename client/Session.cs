@@ -263,6 +263,9 @@ namespace iotdb_client_csharp.client
             Console.WriteLine(message);
             return verify_success(status);
         }
+        public int delete_time_series(string ts_path){
+            return delete_time_series(new List<string>{ts_path});
+        }
         public bool check_time_series_exists(string ts_path){
             // TBD by dalong
             try{
@@ -299,9 +302,10 @@ namespace iotdb_client_csharp.client
             }
             return new TSInsertStringRecordReq(sessionId, device_id, measurements, values, timestamp);
         }
-        public int insert_str_record(string device_id, List<string> measurements, List<string> values, long timestamp){
+        public int insert_record(string device_id, List<string> measurements, List<string> values, long timestamp){
             // TBD by Luzhan
             var req = gen_insert_str_record_req(device_id, measurements, values, timestamp);
+            Console.WriteLine(req);
             TSStatus status;
             try{
                 var task = client.insertStringRecordAsync(req);
@@ -589,7 +593,8 @@ namespace iotdb_client_csharp.client
             if (status.Code == SUCCESS_CODE){
                 return 0;
             }
-            var message = String.Format("error status is {}", status);
+
+            var message = String.Format("error status is {0}", status);
             Console.WriteLine(message);
             return -1;
         }
@@ -681,7 +686,7 @@ namespace iotdb_client_csharp.client
         public byte[] value_to_bytes(List<TSDataType> data_types, List<string> values){
             ByteBuffer buffer = new ByteBuffer(new byte[]{});
             for(int i = 0;i < data_types.Count(); i++){
-                buffer.add_int((int)data_types[i]);
+                buffer.add_char((char)data_types[i]);
                 switch(data_types[i]){
                     case TSDataType.BOOLEAN:
                         buffer.add_bool(bool.Parse(values[i]));
@@ -707,7 +712,12 @@ namespace iotdb_client_csharp.client
                         break;
                 }
             }
-            return buffer.get_buffer();
+            // Append value into buffer in Big Endian order to comply with IoTDB server
+            var buf = buffer.get_buffer();
+            if(BitConverter.IsLittleEndian){
+                buf = buf.Reverse().ToArray();
+            }
+            return buf;
         }
     }
 }

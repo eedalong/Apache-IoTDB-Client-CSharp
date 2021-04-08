@@ -1,16 +1,19 @@
 using System;
 using System.Linq;
+using System.Collections.Generic;
 namespace iotdb_client_csharp.client.utils
 {
     public class ByteBuffer
     {
         private byte[] buffer;
+        private List<byte> write_buffer;
         private int pos;
         private int total_length;
         public ByteBuffer(byte[] buffer){
             this.buffer = buffer;
             this.pos = 0;
             this.total_length = buffer.Length;
+            this.write_buffer = new List<byte>{};
         }
         public bool has_remaining(){
             return pos < total_length;
@@ -58,29 +61,40 @@ namespace iotdb_client_csharp.client.utils
         }
         // these for write
         public void add_bool(bool value){
-            buffer.Concat(BitConverter.GetBytes(value));
+            write_buffer.AddRange(BitConverter.GetBytes(value));
+            buffer = write_buffer.ToArray();
             total_length =  buffer.Length;
         }
-        public void add_int(int value){
-            buffer.Concat(BitConverter.GetBytes(value));
-            total_length = buffer.Length;
+        public void add_int(Int32 value){
+            write_buffer.AddRange(BitConverter.GetBytes(value));
+            buffer = write_buffer.ToArray();
+            total_length =  buffer.Length;
         }
         public void add_long(long value){
-            buffer.Concat(BitConverter.GetBytes(value));
-            total_length = buffer.Length;
+            write_buffer.AddRange(BitConverter.GetBytes(value));
+            buffer = write_buffer.ToArray();
+            total_length =  buffer.Length;
         }
         public void add_float(float value){
-            buffer.Concat(BitConverter.GetBytes(value));
-            total_length = buffer.Length;
+            write_buffer.AddRange(BitConverter.GetBytes(value));
+            buffer = write_buffer.ToArray();
+            total_length =  buffer.Length;
         }
         public void add_double(double value){
-            buffer.Concat(BitConverter.GetBytes(value));
-            total_length = buffer.Length;
+            write_buffer.AddRange(BitConverter.GetBytes(value));
+            buffer = write_buffer.ToArray();
+            total_length =  buffer.Length;
         }
         public void add_str(string value){
-            buffer.Concat(BitConverter.GetBytes(value.Length));
-            buffer.Concat(System.Text.Encoding.UTF8.GetBytes(value));
+            write_buffer.AddRange(BitConverter.GetBytes(value.Length));
+            write_buffer.AddRange(System.Text.Encoding.UTF8.GetBytes(value));
+            buffer = write_buffer.ToArray();
             total_length = buffer.Length;
+        }
+        public void add_char(char value){
+           write_buffer.AddRange(BitConverter.GetBytes(value));
+           buffer = write_buffer.ToArray();
+           total_length =  buffer.Length; 
         }
 
     }
