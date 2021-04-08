@@ -85,7 +85,7 @@ namespace iotdb_client_csharp.client
             var session_test = new SessionTest();
             session_test.TestOpen();
             session_test.TestGetTimeZone();
-            //session_test.TestInsertStrRecord();
+            session_test.TestInsertStrRecord();
             session_test.TestInsertRecord();
         }
     }
