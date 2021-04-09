@@ -74,11 +74,32 @@ namespace iotdb_client_csharp.client
            status = session.create_time_series("root.test_group.test_series", TSDataType.TEXT, TSEncoding.PLAIN, Compressor.UNCOMPRESSED);
            System.Diagnostics.Debug.Assert(status == 0);
            var measures = new List<string>{"s_01"};
-           var values = new List<string>{0.ToString()};
+           var values = new List<string>{12.ToString()};
            var types = new List<TSDataType>{TSDataType.INT32};
-           status = session.insert_record("root.test_group.test_device", measures, values, types, 1);
+           status = session.insert_record("root.test_group.test_series.test_device", measures, values, types, 1);
            System.Diagnostics.Debug.Assert(status == 0);
            Console.WriteLine("TestInsertRecord Passed!");
+        }
+        public void TestSqlQuery(){
+           var session = new Session("localhost", 6667);
+           int status = 0;
+           session.open(false);
+           System.Diagnostics.Debug.Assert(session.is_open());
+           session.delete_storage_group("root.test_group");
+           status = session.set_storage_group("root.test_group");
+           System.Diagnostics.Debug.Assert(status == 0);
+           session.delete_time_series("root.test_group.test_series");
+           status = session.create_time_series("root.test_group.test_series", TSDataType.TEXT, TSEncoding.PLAIN, Compressor.UNCOMPRESSED);
+           System.Diagnostics.Debug.Assert(status == 0);
+           var res = session.execute_query_statement("show timeseries root");
+           while(res.has_next()){
+               Console.WriteLine(res.next());
+           }
+           res = session.execute_query_statement("show devices");
+           while(res.has_next()){
+               Console.WriteLine(res.next());
+           }
+
         }
 
         static void Main(){
@@ -87,6 +108,7 @@ namespace iotdb_client_csharp.client
             session_test.TestGetTimeZone();
             session_test.TestInsertStrRecord();
             session_test.TestInsertRecord();
+            session_test.TestSqlQuery();
         }
     }
 

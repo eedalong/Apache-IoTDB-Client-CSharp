@@ -51,7 +51,7 @@ namespace iotdb_client_csharp.client
            this.username = "root";
            this.password = "root";
            this.zoneId = "UTC+08:00";
-           this.fetch_size = 10000;
+           this.fetch_size = 1024;
        } 
        public Session(string host, int port, string username, string password){
            this.host = host;
@@ -59,7 +59,7 @@ namespace iotdb_client_csharp.client
            this.password = password;
            this.username = username;
            this.zoneId = "UTC+08:00";
-           this.fetch_size = 10000;
+           this.fetch_size = 1024;
        }
        public Session(string host, int port, string username, string password, int fetch_size){
            this.host = host;
@@ -85,7 +85,7 @@ namespace iotdb_client_csharp.client
             this.transport = new TFramedTransport(new TSocketTransport(this.host, this.port, new TConfiguration()));
             if(!transport.IsOpen){
                 try{
-                    var task = transport.OpenAsync(new CancellationToken(false));
+                    var task = transport.OpenAsync(new CancellationToken());
                     task.Wait();
                 }
                 catch(TTransportException e){
@@ -645,6 +645,7 @@ namespace iotdb_client_csharp.client
             TSExecuteStatementResp resp;
             TSStatus status;
             var req = new TSExecuteStatementReq(sessionId, sql, statementId);
+            req.FetchSize = this.fetch_size;
             try{
                 var task = client.executeQueryStatementAsync(req);
                 task.Wait();
@@ -657,7 +658,7 @@ namespace iotdb_client_csharp.client
                 throw e;
             }
             if(verify_success(status) == -1){
-                throw new TException();
+                throw new TException("execute query failed", null);
             }
             return new SessionDataSet(sql, resp.Columns, resp.DataTypeList, resp.ColumnNameIndexMap, resp.QueryId, client, sessionId, resp.QueryDataSet);
 
@@ -684,6 +685,7 @@ namespace iotdb_client_csharp.client
 
 
         public byte[] value_to_bytes(List<TSDataType> data_types, List<string> values){
+
             ByteBuffer buffer = new ByteBuffer(new byte[]{});
             for(int i = 0;i < data_types.Count(); i++){
                 buffer.add_char((char)data_types[i]);
@@ -714,9 +716,10 @@ namespace iotdb_client_csharp.client
             }
             // Append value into buffer in Big Endian order to comply with IoTDB server
             var buf = buffer.get_buffer();
-            if(BitConverter.IsLittleEndian){
-                buf = buf.Reverse().ToArray();
-            }
+            
+            //if(BitConverter.IsLittleEndian){
+            //    buf = buf.Reverse().ToArray();
+            //}
             return buf;
         }
     }
