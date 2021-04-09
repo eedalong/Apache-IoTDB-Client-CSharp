@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Thrift;
+using System.Linq;
 namespace iotdb_client_csharp.client.utils
 {
     public class SessionDataSet
@@ -10,7 +11,7 @@ namespace iotdb_client_csharp.client.utils
         List<string> column_name_lst;
         Dictionary<string, int> column_name_index_map;
         Dictionary<int, int> duplicate_location;
-        List<string> deduplicated_column_type_lst;
+        List<string> column_type_lst;
         TSQueryDataSet query_dataset;
         byte[] current_bitmap;
         int column_size;
@@ -44,22 +45,42 @@ namespace iotdb_client_csharp.client.utils
             this.query_id = query_id;
             this.current_bitmap = new byte[column_name_lst.Count];
             this.column_size = column_name_lst.Count;
-            this.column_name_lst = column_name_lst;
+            this.column_name_lst = new List<string>{};
             this.column_size = column_name_lst.Count;
             this.time_buffer = new ByteBuffer(query_data_set.Time);
             this.client = client;
+            this.column_name_index_map = new Dictionary<string, int>{};
+            this.column_type_lst = new List<string>{};
+            this.duplicate_location = new Dictionary<int, int>{};
+            this.value_buffer_lst = new List<ByteBuffer>{};
+            this.bitmap_buffer_lst = new List<ByteBuffer>{};
+
 
             // some internal variable
-            has_catched_result = false;
-            row_index = 0;
+            this.has_catched_result = false;
+            this.row_index = 0;
+            if(column_name_index != null){
+                for(var index = 0; index < column_name_lst.Count; index++){
+                    this.column_name_lst.Add("");
+                    this.column_type_lst.Add("");
+                }
+                for(var index = 0; index < column_name_lst.Count; index++){
+                    var name = column_name_lst[index];
+                    this.column_name_lst[column_name_index[name]] = name;
+                    this.column_type_lst[column_name_index[name]] = column_type_lst[index];
+                    
+                }
+            }else{
+                this.column_name_lst = column_name_lst;
+                this.column_type_lst = column_type_lst;
+            }
         
-            for(int index = 0; index < column_name_lst.Count; index++){
-                var column_name = column_name_lst[index];
+            for(int index = 0; index < this.column_name_lst.Count; index++){
+                var column_name = this.column_name_lst[index];
                 if(this.column_name_index_map.ContainsKey(column_name)){
                     this.duplicate_location[index] = this.column_name_index_map[column_name];
                 }else{
                     this.column_name_index_map[column_name] = index;
-                    this.deduplicated_column_type_lst.Add(column_type_lst[index]);
                 }
                 this.value_buffer_lst.Add(new ByteBuffer(query_data_set.ValueList[index]));
                 this.bitmap_buffer_lst.Add(new ByteBuffer(query_data_set.BitmapList[index]));
@@ -69,7 +90,17 @@ namespace iotdb_client_csharp.client.utils
         }
         
         public List<string> get_column_names(){
-            return this.column_name_lst;
+            var name_lst = new List<string>{"timestamp"};
+            name_lst.AddRange(this.column_name_lst);
+            return name_lst;
+        }
+        public void show_table_names(){
+            var str = "";
+            var name_lst = get_column_names();
+            foreach(var name in name_lst){
+                str += name + "\t\t";
+            }
+            Console.WriteLine(str);
         }
         public bool has_next(){
             if(has_catched_result){
@@ -116,24 +147,23 @@ namespace iotdb_client_csharp.client.utils
         }
         public void construct_one_row(){
             List<Field> field_lst = new List<Field>{};
-            int loc = 0;
             for(int i = 0; i < this.column_size; i++){
                 if(duplicate_location.ContainsKey(i)){
                     var field = field_lst[duplicate_location[i]];
                     field_lst.Add(field);
                 }else{
-                    ByteBuffer column_value_buffer = value_buffer_lst[loc];
-                    ByteBuffer column_bitmap_buffer = bitmap_buffer_lst[loc];
+                    ByteBuffer column_value_buffer = value_buffer_lst[i];
+                    ByteBuffer column_bitmap_buffer = bitmap_buffer_lst[i];
                     if(row_index % 8 == 0){
-                        current_bitmap[loc] = column_bitmap_buffer.get_byte();
+                        current_bitmap[i] = column_bitmap_buffer.get_byte();
                     }
-                    if(!is_null(loc, row_index)){
-                        TSDataType column_data_type = get_data_type_from_str(deduplicated_column_type_lst[loc]);
+                    if(!is_null(i, row_index)){
+                        TSDataType column_data_type = get_data_type_from_str(column_type_lst[i]);
                         var local_field = new Field(column_data_type);
                         switch(column_data_type){
                             case TSDataType.BOOLEAN:
                                 var bool_val = column_value_buffer.get_bool();
-                                local_field.set(local_field);
+                                local_field.set(bool_val);
                                 break;
                             case TSDataType.INT32:
                                 var int_val = column_value_buffer.get_int();
@@ -167,7 +197,6 @@ namespace iotdb_client_csharp.client.utils
                         var local_field = new Field(TSDataType.NONE);
                         field_lst.Add(local_field);
                     }
-                    loc += 1;
                 }
             }
             long timestamp = time_buffer.get_long();
@@ -187,11 +216,7 @@ namespace iotdb_client_csharp.client.utils
             try{
                 var task = client.fetchResultsAsync(req);
                 task.Wait();
-                var resp = task.Result;
-                //TODO we should check response status
-                if(resp.Status.Code != 200){
-                    throw new TException("fetch result failed", null);
-                }
+                var resp = task.Result;            
                 if(resp.HasResultSet){
                     this.query_dataset = resp.QueryDataSet;
                     // reset buffer
