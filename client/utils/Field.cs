@@ -104,6 +104,10 @@ namespace iotdb_client_csharp.client.utils
                     return float_val.ToString();
                 case TSDataType.DOUBLE:
                     return double_val.ToString();
+                case TSDataType.BOOLEAN:
+                    return bool_val.ToString();
+                case TSDataType.NONE:
+                    return "NULL";
                 default:
                     return "";
             }
