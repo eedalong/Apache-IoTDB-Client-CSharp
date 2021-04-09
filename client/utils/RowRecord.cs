@@ -14,12 +14,6 @@ namespace iotdb_client_csharp.client.utils
             field_lst.Add(field);
         }
 
-        public void add_filed<T>(TSDataType data_type, T value){
-            var filed = new Field(data_type);
-            filed.set(value);
-            field_lst.Add(filed);
-        }
-
         public void set_filed(int index, Field filed){
             field_lst[index] = filed;
         }

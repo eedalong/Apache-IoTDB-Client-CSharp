@@ -5,61 +5,13 @@ namespace iotdb_client_csharp.client.utils
     public class Field
     {
         // TBD By Zengz
-        public bool bool_val{
-            get{
-                return bool_val;
-            }
-            set{
-                valid_data_type();
-                bool_val = value;
-            }
-        }
-        public int int_val{
-            get{
-                return int_val;
-            }
-            set{
-                valid_data_type();
-                int_val = value;
-            }
-        }
-        public long long_val{
-            get{
-                return long_val;
-            }
-            set{
-                valid_data_type();
-                long_val = value;
-            }
-        }
-        public float float_val{
-            get{
-                return float_val;
-            }
-            set{
-                valid_data_type();
-                float_val = value;
-            }
-        }
-        public double double_val{
-            get{
-                return double_val;
-            }
-            set{
-                valid_data_type();
-                double_val = value;
-            }
-        }
+        public bool bool_val;
+        public int int_val;
+        public long long_val;
+        public float float_val;
+        public double double_val;
         // why we need to keep binary values here 
-        public string str_val{
-            get{
-                return str_val;
-            }
-            set{
-                str_val = value;
-            }
-        }
-
+        public string str_val;
 
         private TSDataType type{get;set;}
         
@@ -72,31 +24,24 @@ namespace iotdb_client_csharp.client.utils
             }
         }
 
-        public void set<T>(T value){
-            switch(type){
-                case TSDataType.BOOLEAN:
-                    bool_val = (bool)(object)value;
-                    break;
-                case TSDataType.INT32:
-                    int_val = (int)(object)value;
-                    break;
-                case TSDataType.INT64:
-                    long_val = (long)(object)value;
-                    break;
-                case TSDataType.FLOAT:
-                    float_val= (float)(object)value;
-                    break;
-                case TSDataType.DOUBLE:
-                    double_val = (double)(object)value;
-                    break;
-                case TSDataType.TEXT:
-                    str_val = (string)(object)value;
-                    break;
-                default:
-                    var message = "unsupported data type";
-                    Console.WriteLine(message);
-                    break;
-            }
+
+        public void set(string value){
+            str_val = value;
+        }
+        public void set(int value){
+            int_val = value;
+        }
+        public void set(double value){
+            double_val = value;
+        }
+        public void set(long value){
+            long_val = value;
+        }
+        public void set(float value){
+            float_val = value;
+        }
+        public void set(bool value){
+            bool_val = value;
         }
         public T get<T>(){
             switch(type){
@@ -159,6 +104,10 @@ namespace iotdb_client_csharp.client.utils
                     return float_val.ToString();
                 case TSDataType.DOUBLE:
                     return double_val.ToString();
+                case TSDataType.BOOLEAN:
+                    return bool_val.ToString();
+                case TSDataType.NONE:
+                    return "NULL";
                 default:
                     return "";
             }
