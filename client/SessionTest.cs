@@ -137,9 +137,9 @@ namespace iotdb_client_csharp.client
         static void Main(){
             var session_test = new SessionTest();
             session_test.TestOpen();
-            //session_test.TestGetTimeZone();
-            //session_test.TestInsertStrRecord();
-            //session_test.TestInsertRecord();
+            session_test.TestGetTimeZone();
+            session_test.TestInsertStrRecord();
+            session_test.TestInsertRecord();
             session_test.TestNonSql();
             session_test.TestSqlQuery();
         }
