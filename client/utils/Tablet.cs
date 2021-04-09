@@ -77,7 +77,7 @@ namespace iotdb_client_csharp.client.utils
                 switch(data_type_lst[i]){
                     case TSDataType.BOOLEAN:
                         for(int j=0; j< row_number; j++){
-                            buffer.add_bool(value_lst[j][i] == "true");
+                            buffer.add_bool(bool.Parse(value_lst[j][i]));
                         }
                         break;
                     case TSDataType.INT32:

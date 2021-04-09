@@ -92,6 +92,7 @@ namespace iotdb_client_csharp.client
                     //TODO, should define our own Exception
                     // here we just print the exception
                     Console.Write(e);
+                    // logging.Error("open failed")
                     throw e;
                 }
             }

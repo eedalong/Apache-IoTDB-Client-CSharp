@@ -2,6 +2,11 @@ using System.Collections.Generic;
 using System;
 using iotdb_client_csharp.client.utils;
 
+/*
+group: root.97209_TEST_CSHARP_CLIENT_GROUP
+timeseries: root.97209_TEST_CSHARP_CLIENT_GROUP.TEST_CSHARP_CLIENT_DEVICE.TEST_CSHARP_CLIENT_TSX;
+
+*/
 namespace iotdb_client_csharp.client
 {
     public class SessionTest
@@ -95,7 +100,7 @@ namespace iotdb_client_csharp.client
             // by Luzhan
             var session = new Session("localhost", 6667, "root", "root");
             session.open(false);
-            session.execute_query_statement("delete storage group root.*");
+            session.execute_query_statement("delete storage group root.TEST_CSHARP_CLIENT_GROUP");
             session.set_storage_group("root.sg_test_01");
             session.set_storage_group("root.sg_test_02");
             session.set_storage_group("root.sg_test_03");
