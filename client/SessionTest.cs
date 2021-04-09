@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System;
-using System.Collections.Generic;
 using iotdb_client_csharp.client.utils;
 
 namespace iotdb_client_csharp.client
@@ -221,6 +220,8 @@ namespace iotdb_client_csharp.client
             session_test.TestInsertRecord();
             session_test.TestNonSql();
             session_test.TestSqlQuery();
+            System.Console.WriteLine("TEST PASSED");
+
         }
     }
 
