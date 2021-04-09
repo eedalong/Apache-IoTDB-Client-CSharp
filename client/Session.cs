@@ -714,12 +714,7 @@ namespace iotdb_client_csharp.client
                         break;
                 }
             }
-            // Append value into buffer in Big Endian order to comply with IoTDB server
             var buf = buffer.get_buffer();
-            
-            //if(BitConverter.IsLittleEndian){
-            //    buf = buf.Reverse().ToArray();
-            //}
             return buf;
         }
     }
