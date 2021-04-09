@@ -48,10 +48,16 @@ namespace iotdb_client_csharp.client.utils
             this.column_size = column_name_lst.Count;
             this.time_buffer = new ByteBuffer(query_data_set.Time);
             this.client = client;
+            this.column_name_index_map = new Dictionary<string, int>{};
+            this.deduplicated_column_type_lst = new List<string>{};
+            this.duplicate_location = new Dictionary<int, int>{};
+            this.value_buffer_lst = new List<ByteBuffer>{};
+            this.bitmap_buffer_lst = new List<ByteBuffer>{};
+
 
             // some internal variable
-            has_catched_result = false;
-            row_index = 0;
+            this.has_catched_result = false;
+            this.row_index = 0;
         
             for(int index = 0; index < column_name_lst.Count; index++){
                 var column_name = column_name_lst[index];
@@ -133,7 +139,7 @@ namespace iotdb_client_csharp.client.utils
                         switch(column_data_type){
                             case TSDataType.BOOLEAN:
                                 var bool_val = column_value_buffer.get_bool();
-                                local_field.set(local_field);
+                                local_field.set(bool_val);
                                 break;
                             case TSDataType.INT32:
                                 var int_val = column_value_buffer.get_int();
@@ -187,11 +193,7 @@ namespace iotdb_client_csharp.client.utils
             try{
                 var task = client.fetchResultsAsync(req);
                 task.Wait();
-                var resp = task.Result;
-                //TODO we should check response status
-                if(resp.Status.Code != 200){
-                    throw new TException("fetch result failed", null);
-                }
+                var resp = task.Result;            
                 if(resp.HasResultSet){
                     this.query_dataset = resp.QueryDataSet;
                     // reset buffer
