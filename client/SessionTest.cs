@@ -95,6 +95,7 @@ namespace iotdb_client_csharp.client
             // by Luzhan
             var session = new Session("localhost", 6667, "root", "root");
             session.open(false);
+            session.execute_query_statement("delete storage group root.*");
             session.set_storage_group("root.sg_test_01");
             session.set_storage_group("root.sg_test_02");
             session.set_storage_group("root.sg_test_03");
@@ -111,6 +112,8 @@ namespace iotdb_client_csharp.client
         public void TestGetTimeZone(){
            var session = new Session("localhost", 6667);
            session.open(false);
+           session.execute_query_statement("delete storage group root.*");
+
            System.Diagnostics.Debug.Assert(session.is_open());
            var time_zone = session.get_time_zone(); 
            Console.WriteLine("TestGetTimeZone Passed!");
@@ -119,64 +122,71 @@ namespace iotdb_client_csharp.client
            var session = new Session("localhost", 6667);
            int status = 0;
            session.open(false);
+           session.execute_query_statement("delete storage group root.*");
+
            System.Diagnostics.Debug.Assert(session.is_open());
-           session.delete_storage_group("root.test_group");
-           status = session.set_storage_group("root.test_group");
+           session.delete_time_series("root.test_group.test_device.str1");
+           session.delete_time_series("root.test_group.test_device.str2");
+           status = session.create_time_series("root.test_group.test_device.str1", TSDataType.TEXT, TSEncoding.PLAIN, Compressor.UNCOMPRESSED);
+           status = session.create_time_series("root.test_group.test_device.str2", TSDataType.TEXT, TSEncoding.PLAIN, Compressor.UNCOMPRESSED);
+
            System.Diagnostics.Debug.Assert(status == 0);
-           session.delete_time_series("root.test_group.test_series");
-           status = session.create_time_series("root.test_group.test_series", TSDataType.TEXT, TSEncoding.PLAIN, Compressor.UNCOMPRESSED);
-           System.Diagnostics.Debug.Assert(status == 0);
-           var measures = new List<string>{"s_01", "s_02"};
+           var measures = new List<string>{"str1", "str2"};
            var values = new List<string>{"test_record", "test_record"};
            status = session.insert_record("root.test_group.test_device", measures, values, 1);
            System.Diagnostics.Debug.Assert(status == 0);
+           var res = session.execute_query_statement("select * from root.test_group.test_device.str* where time<2");
+           res.show_table_names();
+           while(res.has_next()){
+               Console.WriteLine(res.next());
+           }
            Console.WriteLine("TestInsertStrRecord Passed!");
         }
         public void TestInsertRecord(){
            var session = new Session("localhost", 6667);
            int status = 0;
            session.open(false);
+           session.execute_query_statement("delete storage group root.*");
            System.Diagnostics.Debug.Assert(session.is_open());
-           session.delete_storage_group("root.test_group");
-           status = session.set_storage_group("root.test_group");
+           session.delete_time_series("root.test_group.test_device.ts1");
+           session.delete_time_series("root.test_group.test_device.ts3");
+           session.delete_time_series("root.test_group.test_device.ts2");
+        
+           status = session.create_time_series("root.test_group.test_device.ts1", TSDataType.TEXT, TSEncoding.PLAIN, Compressor.UNCOMPRESSED);
+           status = session.create_time_series("root.test_group.test_device.ts2", TSDataType.BOOLEAN, TSEncoding.PLAIN, Compressor.UNCOMPRESSED);
+           status = session.create_time_series("root.test_group.test_device.ts3", TSDataType.INT32, TSEncoding.PLAIN, Compressor.UNCOMPRESSED);
            System.Diagnostics.Debug.Assert(status == 0);
-           session.delete_time_series("root.test_group.test_series");
-           session.delete_time_series("root.test_group.test_device.test_series");
-           status = session.create_time_series("root.test_group.test_device.test_series", TSDataType.TEXT, TSEncoding.PLAIN, Compressor.UNCOMPRESSED);
-           System.Diagnostics.Debug.Assert(status == 0);
-           var measures = new List<string>{"s_01"};
-           var values = new List<string>{12.ToString()};
-           var types = new List<TSDataType>{TSDataType.INT32};
+           var measures = new List<string>{"ts1", "ts2", "ts3"};
+           var values = new List<string>{"test_text", true.ToString(), 123.ToString()};
+           var types = new List<TSDataType>{TSDataType.TEXT, TSDataType.BOOLEAN, TSDataType.INT32};
            status = session.insert_record("root.test_group.test_device", measures, values, types, 1);
+           status = session.insert_record("root.test_group.test_device", measures, values, types, 2);
+           status = session.insert_record("root.test_group.test_device", measures, values, types, 3);
+           status = session.insert_record("root.test_group.test_device", measures, values, types, 4);
            System.Diagnostics.Debug.Assert(status == 0);
            Console.WriteLine("TestInsertRecord Passed!");
         }
         public void TestNonSql(){
            var session = new Session("localhost", 6667);
            session.open(false);
+           session.execute_query_statement("delete storage group root.*");
            System.Diagnostics.Debug.Assert(session.is_open());
-           session.execute_non_query_statement("delete timeseries root.test_group.test_series");
-           session.execute_non_query_statement("delete timeseries root.test_group.test_device.test_series");
            session.execute_non_query_statement("create timeseries root.ln.wf01.wt01.status with datatype=BOOLEAN,encoding=PLAIN");
-           session.execute_non_query_statement("create timeseries root.ln.wf01.wt01.temperature with datatype=FLOAT,encoding=RLE");
-           session.execute_non_query_statement("create timeseries root.ln.wf01.wt01.hardware with datatype=TEXT,encoding=RLE");
+           session.execute_non_query_statement("create timeseries root.ln.wf01.wt01.temperature with datatype=FLOAT,encoding=PLAIN");
+           session.execute_non_query_statement("create timeseries root.ln.wf01.wt01.hardware with datatype=TEXT,encoding=PLAIN");
            session.execute_non_query_statement("insert into root.ln.wf01.wt01(timestamp, status, temperature, hardware) VALUES (4, false, 20, 'yxl')");
            session.execute_non_query_statement("insert into root.ln.wf01.wt01(timestamp, status, temperature, hardware) VALUES (5, true, 12, 'myy')");
            session.execute_non_query_statement("insert into root.ln.wf01.wt01(timestamp, status, temperature, hardware) VALUES (6, true, 21, 'lz')");
+           session.execute_non_query_statement("insert into root.ln.wf01.wt01(timestamp, status, hardware) VALUES (7, true,'lz')");
+           session.execute_non_query_statement("insert into root.ln.wf01.wt01(timestamp, status, hardware) VALUES (7, true,'lz')");
 
 
         }
         public void TestSqlQuery(){
            var session = new Session("localhost", 6667);
-           int status = 0;
            session.open(false);
+           session.execute_query_statement("delete storage group root.*");
            System.Diagnostics.Debug.Assert(session.is_open());
-           session.delete_storage_group("root.test_group");
-           status = session.set_storage_group("root.test_group");
-           System.Diagnostics.Debug.Assert(status == 0);
-           session.delete_time_series("root.test_group.test_series");
-           status = session.create_time_series("root.test_group.test_series", TSDataType.TEXT, TSEncoding.PLAIN, Compressor.UNCOMPRESSED);
-           System.Diagnostics.Debug.Assert(status == 0);
            var res = session.execute_query_statement("show timeseries root");
            res.show_table_names();
            while(res.has_next()){
@@ -201,6 +211,13 @@ namespace iotdb_client_csharp.client
                Console.WriteLine(res.next());
            }
            Console.WriteLine("SELECT sql Passed");
+           res=session.execute_query_statement("select * from root.test_group.test_device where time<10");
+           res.show_table_names();
+           while(res.has_next()){
+               Console.WriteLine(res.next());
+           }
+           Console.WriteLine("SELECT sql Passed");
+
         }
 
 
