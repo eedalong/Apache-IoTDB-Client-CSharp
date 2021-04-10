@@ -383,9 +383,6 @@ namespace iotdb_client_csharp.client
             }
             session.execute_non_query_statement("delete storage group root.97209_TEST_CSHARP_CLIENT_GROUP");
             session.close();
-
-
-
             Console.WriteLine("TestDeleteData Passed!");
         }
         public void TestNonSql(){
@@ -445,27 +442,27 @@ namespace iotdb_client_csharp.client
 
         static void Main(){
             SessionTest session_test = new SessionTest();
-            // session_test.TestOpen();
-            // session_test.TestOpenFailure();
-            // session_test.TestClose();
-            // session_test.TestSetStorageGroup();
-            // session_test.TestDeleteStorageGroup();
-            // session_test.TestCreateTimeSeries();
-            // session_test.TestDeleteTimeSeries();
-            // session_test.TestCreateMultiTimeSeries();
-            // session_test.TestDeleteStorageGroups();
-            // session_test.TestGetTimeZone();
-            // session_test.TestInsertStrRecord();
-            // session_test.TestInsertRecord();
-            // session_test.TestTestInsertRecord();
-            // session_test.TestTestInsertRecords();
-            // session_test.TestInsertRecordsOfOneDevice();
-            // session_test.TestCheckTimeSeriesExists();
-            // session_test.TestSetTimeZone();
+            session_test.TestOpen();
+            session_test.TestOpenFailure();
+            session_test.TestClose();
+            session_test.TestSetStorageGroup();
+            session_test.TestDeleteStorageGroup();
+            session_test.TestCreateTimeSeries();
+            session_test.TestDeleteTimeSeries();
+            session_test.TestCreateMultiTimeSeries();
+            session_test.TestDeleteStorageGroups();
+            session_test.TestGetTimeZone();
+            session_test.TestInsertStrRecord();
+            session_test.TestInsertRecord();
+            session_test.TestTestInsertRecord();
+            session_test.TestTestInsertRecords();
+            session_test.TestInsertRecordsOfOneDevice();
+            session_test.TestCheckTimeSeriesExists();
+            session_test.TestSetTimeZone();
             session_test.TestDeleteData();
-            // session_test.TestNonSql();
-            // session_test.TestSqlQuery();
-            // session_test.TestInsertRecords();
+            session_test.TestNonSql();
+            session_test.TestSqlQuery();
+            session_test.TestInsertRecords();
             System.Console.WriteLine("TEST PASSED");
 
         }
