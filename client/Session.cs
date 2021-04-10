@@ -492,7 +492,7 @@ namespace iotdb_client_csharp.client
             Console.WriteLine(message);
             return verify_success(status);
         }
-        public int insert_records_of_one_device(long device_id, List<long> timestamp_lst, List<List<string>> measurements_lst, List<List<TSDataType>> data_types_lst, List<List<string>> values_lst){
+        public int insert_records_of_one_device(string device_id, List<long> timestamp_lst, List<List<string>> measurements_lst, List<List<TSDataType>> data_types_lst, List<List<string>> values_lst){
             var sorted = timestamp_lst.Select((x, index) => (timestamp: x, measurements:measurements_lst[index], data_types:data_types_lst[index], values:values_lst[index])).OrderBy(x => x.timestamp).ToList();
             List<long> sorted_timestamp_lst = sorted.Select(x => x.timestamp).ToList();
             List<List<string>> sorted_measurements_lst = sorted.Select(x => x.measurements).ToList();
@@ -509,7 +509,7 @@ namespace iotdb_client_csharp.client
             }
             return true;
         }
-        public TSInsertRecordsOfOneDeviceReq gen_insert_records_of_one_device_request(long device_id, List<long> timestamp_lst, List<List<string>> measurements_lst,  List<List<string>> values_lst, List<List<TSDataType>> data_types_lst){
+        public TSInsertRecordsOfOneDeviceReq gen_insert_records_of_one_device_request(string device_id, List<long> timestamp_lst, List<List<string>> measurements_lst,  List<List<string>> values_lst, List<List<TSDataType>> data_types_lst){
             List<byte[]> binary_value_lst = new List<byte[]>(){};
             for(int i = 0; i < values_lst.Count(); i++){
                 List<TSDataType> data_type_values = data_types_lst[i];
@@ -523,9 +523,9 @@ namespace iotdb_client_csharp.client
                 var value_in_bytes = value_to_bytes(data_type_values, values_lst[i]);
                 binary_value_lst.Add(value_in_bytes);
             }
-            return new TSInsertRecordsOfOneDeviceReq(sessionId, device_id.ToString(), measurements_lst, binary_value_lst, timestamp_lst);
+            return new TSInsertRecordsOfOneDeviceReq(sessionId, device_id, measurements_lst, binary_value_lst, timestamp_lst);
         }
-        public int insert_records_of_one_device_sorted(long device_id, List<long> timestamp_lst, List<List<string>> measurements_lst, List<List<TSDataType>> data_types_lst, List<List<string>> values_lst){
+        public int insert_records_of_one_device_sorted(string device_id, List<long> timestamp_lst, List<List<string>> measurements_lst, List<List<TSDataType>> data_types_lst, List<List<string>> values_lst){
             // TBD by Luzhan
             var size = timestamp_lst.Count();
             if(size != measurements_lst.Count() || size != data_types_lst.Count() || size != values_lst.Count()){
@@ -600,15 +600,6 @@ namespace iotdb_client_csharp.client
             return -1;
         }
 
-        // 这个函数可能会用到，C++里面验证成功的时候不是返回值，而是throw一个exception
-        private void verify_success_(TSStatus status){
-            if(status.Code == SUCCESS_CODE){
-                return;
-            }
-            var message = String.Format("error status is {0}, {1}", status.Code, status.Message);
-            Console.WriteLine(message);
-            throw new TException();
-        }
          
         public void set_time_zone(string zoneId){
             var req = new TSSetTimeZoneReq(sessionId, zoneId);
