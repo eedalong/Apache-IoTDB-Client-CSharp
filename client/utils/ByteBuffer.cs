@@ -128,9 +128,6 @@ namespace iotdb_client_csharp.client.utils
         public void add_str(string value){
             add_int(value.Length);
             var str_buf = System.Text.Encoding.UTF8.GetBytes(value);
-            if(is_little_endian){
-                str_buf = str_buf.Reverse().ToArray();
-            } 
             write_buffer.AddRange(str_buf);
             buffer = write_buffer.ToArray();
             total_length = buffer.Length;
