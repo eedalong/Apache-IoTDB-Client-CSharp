@@ -510,7 +510,7 @@ namespace iotdb_client_csharp.client
             session_test.TestSetAndDeleteStorageGroup();
             session_test.TestCreateTimeSeries();
             session_test.TestDeleteTimeSeries();
-            //session_test.TestCreateMultiTimeSeries();
+            session_test.TestCreateMultiTimeSeries();
             //session_test.TestDeleteStorageGroups();
             //session_test.TestGetTimeZone();
             //session_test.TestInsertStrRecord();
@@ -524,7 +524,7 @@ namespace iotdb_client_csharp.client
             //session_test.TestNonSql();
             //session_test.TestSqlQuery();
             //session_test.TestInsertRecords();
-            //session_test.TestInsertTablet();
+            session_test.TestInsertTablet();
             System.Console.WriteLine("TEST PASSED");
 
         }
