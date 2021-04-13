@@ -520,6 +520,7 @@ namespace iotdb_client_csharp.client
 
         static void Main(){
             SessionTest session_test = new SessionTest();
+            
             session_test.TestOpen();
             session_test.TestClose();
             session_test.TestSetAndDeleteStorageGroup();

@@ -592,6 +592,17 @@ namespace iotdb_client_csharp.client
         }
 
         private int verify_success(TSStatus status){
+            if(status.__isset.subStatus){
+                foreach(var sub_status in status.SubStatus){
+                    if(verify_success(sub_status) != 0){
+                        if(debug_mode){
+                            _logger.Error("error status is {0}, server message is {1}", status.Code, status);
+                        }
+                        return -1;
+                    }
+                }
+                return 0;
+            }
             if (status.Code == SUCCESS_CODE){
                 return 0;
             }
