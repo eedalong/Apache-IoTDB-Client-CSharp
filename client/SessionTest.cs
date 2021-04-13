@@ -335,7 +335,7 @@ namespace iotdb_client_csharp.client
             List<long> timestamp_lst = new List<long>(){1, 2, 3};
 
             status = session.insert_records_of_one_device(device_id, timestamp_lst, measurements_lst, datatype_lst, values_lst);
-            // System.Diagnostics.Debug.Assert(status == 0);
+            System.Diagnostics.Debug.Assert(status == 0);
             var res=session.execute_query_statement("select * from root.97209_TEST_CSHARP_CLIENT_GROUP.TEST_CSHARP_CLIENT_DEVICE where time<10");
             res.show_table_names();
             while(res.has_next()){
@@ -536,7 +536,7 @@ namespace iotdb_client_csharp.client
                 Console.WriteLine(res.next());
             }
             session.delete_storage_group("root.97209_TEST_CSHARP_CLIENT_GROUP");
-            // System.Diagnostics.Debug.Assert(status == 0);
+            System.Diagnostics.Debug.Assert(status == 0);
             session.close();
             Console.WriteLine("TestTestInsertTablet Passed!");
         }
