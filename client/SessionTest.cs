@@ -538,14 +538,14 @@ namespace iotdb_client_csharp.client
             //session_test.TestInsertStrRecord();
             //session_test.TestInsertRecord();
             //session_test.TestTestInsertRecord();
-            //session_test.TestTestInsertRecords();
+            session_test.TestTestInsertRecords();
             //session_test.TestInsertRecordsOfOneDevice();
             //session_test.TestCheckTimeSeriesExists();
             //session_test.TestSetTimeZone();
             //session_test.TestDeleteData();
             //session_test.TestNonSql();
             //session_test.TestSqlQuery();
-            //session_test.TestInsertRecords();
+            session_test.TestInsertRecords();
             session_test.TestInsertTablet();
             System.Console.WriteLine("TEST PASSED");
 

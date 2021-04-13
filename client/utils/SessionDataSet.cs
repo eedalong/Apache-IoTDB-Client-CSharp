@@ -234,9 +234,8 @@ namespace iotdb_client_csharp.client.utils
                 return resp.HasResultSet;
             }
             catch(TException e){
-                var message = string.Format("Cannot fetch result from server, because of network connection:{0}", e);
-                Console.WriteLine(message);
-                throw;
+                var message = string.Format("Cannot fetch result from server, because of network connection");
+                throw new TException(message, e);
             }
         }
         public void close_operation_handle(){

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Thrift;
 namespace iotdb_client_csharp.client.utils
 {
     public class Field
@@ -18,12 +19,6 @@ namespace iotdb_client_csharp.client.utils
         public Field(TSDataType data_type){
             this.type = data_type;
         }
-        public void valid_data_type(){
-            if(type == TSDataType.NONE){
-                throw new Exception("CanNot Set A None Type");
-            }
-        }
-
 
         public void set(string value){
             str_val = value;
@@ -85,8 +80,7 @@ namespace iotdb_client_csharp.client.utils
                     break;
                 case TSDataType.NONE:
                     var err_msg = string.Format("NONE type does not support get bytes");
-                    Console.WriteLine(err_msg);
-                    throw new Exception(err_msg);
+                    throw new TException(err_msg, null);
             }
             return buffer.get_buffer();
         }

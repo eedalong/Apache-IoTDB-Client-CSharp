@@ -339,8 +339,9 @@ namespace iotdb_client_csharp.client
                 var err_msg = String.Format("Record insertion failed");
                 throw new TException(err_msg, e);
             }
-            var message = String.Format("insert one record to device {0} message: {1}", device_id, status.Message);
-            Console.WriteLine(message);
+            if(debug_mode){
+                _logger.Info("insert one record to device {0}， server message: {1}", device_id, status.Message);
+            }
             return verify_success(status);
         }
         public TSInsertRecordsReq gen_insert_records_req(List<string> device_id, List<List<string>> measurements_lst, List<List<string>> values_lst, List<List<TSDataType>> data_types_lst, List<long> timestamp_lst){
@@ -379,8 +380,9 @@ namespace iotdb_client_csharp.client
                 var err_msg = String.Format("Multiple records insertion failed");
                 throw new TException(err_msg, e);
             }
-            var message = String.Format("insert multiple records to devices {0} message: {1}", device_id, status.Message);
-            Console.WriteLine(message);
+            if(debug_mode){
+                _logger.Info("insert multiple records to devices {0}, server message: {1}", device_id, status.Message);
+            }
             return verify_success(status);
         }
         public int test_insert_record(string device_id, List<string> measurements, List<string> values, List<TSDataType> data_types, long timestamp){
@@ -396,8 +398,10 @@ namespace iotdb_client_csharp.client
                 var err_msg = String.Format("Testing record insertion failed");
                 throw new TException(err_msg, e);
             }
-            var message = String.Format("testing! insert one record to device {0} message: {1}", device_id, status.Message);
-            Console.WriteLine(message);
+            if(debug_mode){
+                _logger.Info("testing! insert one record to device {0}, server message: {1}", device_id, status.Message);
+            }
+    
             return verify_success(status);
         }
         public int test_insert_records(List<string> device_id, List<List<string>> measurements_lst, List<List<string>> values_lst, List<List<TSDataType>> data_types_lst, List<long> timestamp_lst){
@@ -413,8 +417,9 @@ namespace iotdb_client_csharp.client
                 var err_msg = String.Format("Testing multiple records insertion failed");
                 throw new TException(err_msg, e);
             }
-            var message = String.Format("testing! insert multiple records, message: {0}", status.Message);
-            Console.WriteLine(message);
+            if(debug_mode){
+                _logger.Info("testing! insert multiple records, server message: {0}", status.Message);
+            }
             return verify_success(status);
         }
         public TSInsertTabletReq gen_insert_tablet_req(Tablet tablet){
@@ -437,9 +442,11 @@ namespace iotdb_client_csharp.client
             catch(TException e){
                 var err_msg = String.Format("Tablet insertion failed");
                 throw new TException(err_msg, e);
+            }
+            if(debug_mode){
+                _logger.Info("insert one tablet to device {0}, server message: {1}", tablet.device_id, status.Message);
             }            
-            var message = String.Format("insert one tablet to device {0} message: {1}", tablet.device_id, status.Message);
-            Console.WriteLine(message);
+            
             return verify_success(status);
         }
         public TSInsertTabletsReq gen_insert_tablets_req(List<Tablet> tablet_lst){
@@ -478,8 +485,9 @@ namespace iotdb_client_csharp.client
                 var err_msg = String.Format("Multiple tablets insertion failed");
                 throw new TException(err_msg, e);
             }
-            var message = String.Format("insert multiple tablets, message: {0}", status.Message);
-            Console.WriteLine(message);
+            if(debug_mode){
+                _logger.Info("insert multiple tablets, message: {0}", status.Message);
+            }
             return verify_success(status);
         }
         public int insert_records_of_one_device(string device_id, List<long> timestamp_lst, List<List<string>> measurements_lst, List<List<TSDataType>> data_types_lst, List<List<string>> values_lst){
@@ -537,8 +545,9 @@ namespace iotdb_client_csharp.client
                 var err_msg = String.Format("Sorted records of one device insertion failed");
                 throw new TException(err_msg, e);
             }
-            var message = String.Format("insert records of one device, message: {0}", status.Message);
-            Console.WriteLine(message);
+            if(debug_mode){
+                _logger.Info("insert records of one device, message: {0}", status.Message);
+            }
             return verify_success(status);
         }
 
@@ -555,8 +564,9 @@ namespace iotdb_client_csharp.client
                 var err_msg = String.Format("Testing tablet insertion failed");
                 throw new TException(err_msg, e);
             }
-            var message = String.Format("testing! insert one tablet to device {0} message: {1}", tablet.device_id, status.Message);
-            Console.WriteLine(message);
+            if(debug_mode){
+                _logger.Info("testing! insert one tablet to device {0} message: {1}", tablet.device_id, status.Message);
+            }
             return verify_success(status);            
         }
         public int test_insert_tablets(List<Tablet> tablet_lst){
@@ -572,8 +582,9 @@ namespace iotdb_client_csharp.client
                 var err_msg = String.Format("Testing multiple tablets insertion failed");
                 throw new TException(err_msg, e);
             }
-            var message = String.Format("testing! insert multiple tablets, message: {0}", status.Message);
-            Console.WriteLine(message);
+            if(debug_mode){
+                _logger.Info("testing! insert multiple tablets, message: {0}", status.Message);
+            }
             return verify_success(status);
         }
 
@@ -581,9 +592,9 @@ namespace iotdb_client_csharp.client
             if (status.Code == SUCCESS_CODE){
                 return 0;
             }
-
-            var message = String.Format("error status is {0}", status);
-            Console.WriteLine(message);
+            if(debug_mode){
+                _logger.Error("error status is {0}, server message is {1}", status.Code, status);
+            }
             return -1;
         }
 
@@ -593,8 +604,9 @@ namespace iotdb_client_csharp.client
             try{
                 var task = client.setTimeZoneAsync(req);
                 task.Wait();
-                var message = String.Format("setting time zone_id as {0}, message:{1}", zoneId, task.Result.Message);
-                Console.WriteLine(message);
+                if(debug_mode){
+                    _logger.Info("setting time zone_id as {0}, server message:{1}", zoneId, task.Result.Message);
+                }
             }
             catch(TException e ){
                 var message = String.Format("could not set time zone");
@@ -653,8 +665,9 @@ namespace iotdb_client_csharp.client
                 var err_msg = String.Format("execution of non-query statement failed");
                 throw new TException(err_msg, e);
             }
-            var message = String.Format("execute non-query statement {0} message: {1}", sql, status.Message);
-            Console.WriteLine(message);
+            if(debug_mode){
+                _logger.Info("execute non-query statement {0} message: {1}", sql, status.Message);
+            }
             return verify_success(status);
         }
 

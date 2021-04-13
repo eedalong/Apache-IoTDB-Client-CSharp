@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Thrift;
 namespace iotdb_client_csharp.client.utils
 {
     /*
@@ -31,13 +32,11 @@ namespace iotdb_client_csharp.client.utils
        public Tablet(string device_id, List<string> measurement_lst, List<TSDataType> data_type_lst, List<List<string>> value_lst, List<long> timestamp_lst){
             if(timestamp_lst.Count != value_lst.Count){
                 var err_msg = String.Format("Input error! len(timestamp_lst) does not equal to len(value_lst)!");
-                Console.WriteLine(err_msg);
-                throw new Exception("input length not matched");
+                throw new TException(err_msg, null);
             }
             if(measurement_lst.Count != data_type_lst.Count){
                 var err_msg = string.Format("Input Error, len(measurement_lst) does not equal to len(data_type_lst)");
-                Console.WriteLine(err_msg);
-                throw new Exception("input length not matched");
+                throw new TException(err_msg, null);
             }
             if(!check_timestamp_lst_sorted(timestamp_lst)){
                 var sorted = timestamp_lst.Select((x, index) => (timestamp:x, values:value_lst[index])).OrderBy(x => x.timestamp).ToList();
@@ -77,13 +76,11 @@ namespace iotdb_client_csharp.client.utils
                 switch(data_type_lst[i]){
                     case TSDataType.BOOLEAN:
                         for(int j=0; j< row_number; j++){
-                            Console.WriteLine(value_lst[j][i]);
                             buffer.add_bool(bool.Parse(value_lst[j][i]));
                         }
                         break;
                     case TSDataType.INT32:
                         for(int j=0; j<row_number; j++){
-                            Console.WriteLine(value_lst[j][i]);
                             buffer.add_int(int.Parse(value_lst[j][i]));
                         }
                         break;
@@ -105,18 +102,15 @@ namespace iotdb_client_csharp.client.utils
                     case TSDataType.TEXT:
 
                         for(int j=0; j<row_number; j++){
-                            Console.WriteLine(value_lst[j][i]);
                             buffer.add_str(value_lst[j][i]);
                         }
                         break;
                     default:
                         var message = String.Format("Unsupported data type {0}", data_type_lst[i]);
-                        Console.WriteLine(message);
-                        break;
+                        throw new TException(message, null);
                 }
            }
            var buf = buffer.get_buffer();
-           Console.WriteLine(string.Format("check buf length {0}", buf.Length));
            return buf;
        }
     }
