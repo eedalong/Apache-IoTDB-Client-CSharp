@@ -1,26 +1,11 @@
-using System.Net.Mime;
 using Thrift;
 using Thrift.Transport;
 using Thrift.Protocol;
-using Thrift.Server;
 using System;
 using System.Linq;
-using System.Net.Sockets;
-using System.Collections;
 using System.Collections.Generic;
-using System.Text;
-using System.IO;
 using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
-using Thrift.Collections;
-
-
-using Thrift.Protocol.Entities;
-using Thrift.Protocol.Utilities;
 using Thrift.Transport.Client;
-using Thrift.Transport.Server;
-using Thrift.Processor;
 using iotdb_client_csharp.client.utils;
 
 namespace iotdb_client_csharp.client
@@ -38,7 +23,6 @@ namespace iotdb_client_csharp.client
        private int port, fetch_size;
        private long sessionId, statementId;
        private bool is_close = true;
-
        private TSIService.Client client; 
        private TFramedTransport transport;
        private static TSProtocolVersion protocol_version = TSProtocolVersion.IOTDB_SERVICE_PROTOCOL_V3;
@@ -88,12 +72,8 @@ namespace iotdb_client_csharp.client
                     var task = transport.OpenAsync(new CancellationToken());
                     task.Wait();
                 }
-                catch(TTransportException e){
-                    //TODO, should define our own Exception
-                    // here we just print the exception
-                    Console.Write(e);
-                    // logging.Error("open failed")
-                    throw e;
+                catch(TTransportException){
+                    throw;
                 }
             }
             if(enableRPCCompression){
@@ -111,7 +91,6 @@ namespace iotdb_client_csharp.client
                 var open_resp = task.Result;
                 if(open_resp.ServerProtocolVersion != protocol_version){
                     var message = String.Format("Protocol Differ, Client version is {0} but Server version is {1}", protocol_version, open_resp.ServerProtocolVersion);
-                    Console.WriteLine(message);
                     throw new TException(message, null);
                 }
                 if (open_resp.ServerProtocolVersion == 0){
@@ -124,8 +103,7 @@ namespace iotdb_client_csharp.client
             }
             catch(Exception e){
                 transport.Close();
-                Console.WriteLine("session closed because ", e);
-                throw e;
+                throw;
             }
             if(zoneId != ""){
                 set_time_zone(zoneId);
@@ -148,9 +126,8 @@ namespace iotdb_client_csharp.client
                 task.Wait();
             }
             catch(TException e){
-                var message = String.Format("Error occurs when closing session at server. Maybe server is down. Error message:{0}", e);
-                Console.WriteLine(message);
-                throw e;
+                var message = String.Format("Error occurs when closing session at server. Maybe server is down");
+                throw new TException(message, e);
             }
             finally{
                 is_close = true;
@@ -168,11 +145,10 @@ namespace iotdb_client_csharp.client
                 status = task.Result;
             }
             catch(TException e){
-                var err_msg = String.Format("set storage group {0} failed, beacuse {1}", group_name, e);
-                Console.WriteLine(err_msg);
-                throw e;
+                var err_msg = String.Format("set storage group {0} failed", group_name);
+                throw new TException(err_msg, e);
             }
-            var message = String.Format("set storage group {0} message: {1}", group_name, status.Message);
+            var message = String.Format("set storage group {0} successfully", group_name);
             Console.WriteLine(message);
             return verify_success(status);
         }
@@ -185,11 +161,10 @@ namespace iotdb_client_csharp.client
                 status = task.Result;
             }
             catch(TException e){
-                var err_msg = String.Format("delete storage group {0} failed, beacuse {1}", group_name, e);
-                Console.WriteLine(err_msg);
-                throw e;
+                var err_msg = String.Format("delete storage group {0} failed", group_name);
+                throw new TException(err_msg, e);
             }
-            var message = String.Format("delete storage group {0} message: {1}", group_name, status.Message);
+            var message = String.Format("delete storage group {0} successfully", group_name);
             Console.WriteLine(message);
             return verify_success(status);
         }
@@ -201,11 +176,10 @@ namespace iotdb_client_csharp.client
                 status = task.Result;
             }
             catch(TException e){
-                var err_msg = String.Format("delete storage group(s) {0} failed, beacuse {1}", group_names, e);
-                Console.WriteLine(err_msg);
-                throw e;                
+                var err_msg = String.Format("delete storage group(s) {0} failed", group_names);
+                throw new TException(err_msg, e);           
             }
-            var message = String.Format("delete storage group(s) {0} message: {1}", group_names, status.Message);
+            var message = String.Format("delete storage group(s) {0} successfully", group_names);
             Console.WriteLine(message);
             return verify_success(status);
         }
@@ -219,11 +193,10 @@ namespace iotdb_client_csharp.client
                 status = task.Result;
             }
             catch(TException e){
-                var err_msg = String.Format("create time series {0} failed, beacuse {1}", ts_path, e);
-                Console.WriteLine(err_msg);
-                throw e;
+                var err_msg = String.Format("create time series {0} failed", ts_path);    
+                throw new TException(err_msg, e);
             }
-            var message = String.Format("creating time series {0} message: {1}", ts_path, status.Message);
+            var message = String.Format("creating time series {0} successfully", ts_path);
             Console.WriteLine(message);
             return verify_success(status); 
         }
@@ -240,11 +213,10 @@ namespace iotdb_client_csharp.client
                 status = task.Result;
             }
             catch(TException e){
-                var err_msg = String.Format("create multiple time series {0} failed, beacuse {1}", ts_path_lst, e);
-                Console.WriteLine(err_msg);
-                throw e;             
+                var err_msg = String.Format("create multiple time series {0} failed", ts_path_lst);
+                throw new TException(err_msg, e);             
             }
-            var message = String.Format("creating multiple time series {0} message: {1}", ts_path_lst, status.Message);
+            var message = String.Format("creating multiple time series {0}", ts_path_lst);
             Console.WriteLine(message);
             return verify_success(status);
         }
@@ -256,11 +228,10 @@ namespace iotdb_client_csharp.client
                 status = task.Result;
             }
             catch(TException e){
-                var err_msg = String.Format("delete time series {0} failed, beacuse {1}", path_list, e);
-                Console.WriteLine(err_msg);
-                throw e;             
+                var err_msg = String.Format("delete time series {0} failed", path_list);
+                throw new TException(err_msg, e);             
             }
-            var message = String.Format("deleting multiple time series {0} message: {1}", path_list, status.Message);
+            var message = String.Format("deleting multiple time series {0}", path_list);
             Console.WriteLine(message);
             return verify_success(status);
         }
@@ -274,9 +245,8 @@ namespace iotdb_client_csharp.client
                 return execute_query_statement(sql).has_next();
             }
             catch(TException e){
-                var err_msg = String.Format("could not check if certain time series exists because {0}", e);
-                Console.WriteLine(err_msg);
-                throw e;
+                var err_msg = String.Format("could not check if certain time series exists");
+                throw new TException(err_msg, e);
             }
         }
         public int delete_data(List<string> ts_path_lst, long start_time, long end_time){
@@ -288,11 +258,10 @@ namespace iotdb_client_csharp.client
                 status = task.Result;
             }
             catch(TException e){
-                var message_local = String.Format("data deletion fails because: {0}", e);
-                Console.WriteLine(message_local);
-                throw e;
+                var err_msg = String.Format("data deletion fails because");
+                throw new TException(err_msg, e);
             }
-            var message = String.Format("delete data from {0}, message: {1}", ts_path_lst, status.Message);
+            var message = String.Format("delete data from {0}", ts_path_lst);
             Console.WriteLine(message);
             return verify_success(status);
         }
@@ -314,11 +283,10 @@ namespace iotdb_client_csharp.client
                 status = task.Result;
             }
             catch(TException e){
-                var message_local = String.Format("String insertion fails because: {0}", e);
-                Console.WriteLine(message_local);
-                throw e;
+                var err_msg = String.Format("record insertion failed");
+                throw new TException(err_msg, e);
             }
-            var message = String.Format("insert one record to device {0} message: {1}", device_id, status.Message);
+            var message = String.Format("insert one record to device {0} successfully", device_id);
             Console.WriteLine(message);
             return verify_success(status);
         }
@@ -340,9 +308,8 @@ namespace iotdb_client_csharp.client
                 status = task.Result;
             }
             catch(TException e){
-                var message_local = String.Format("Record insertion fails because: {0}", e);
-                Console.WriteLine(message_local);
-                throw e;
+                var err_msg = String.Format("Record insertion failed");
+                throw new TException(err_msg, e);
             }
             var message = String.Format("insert one record to device {0} message: {1}", device_id, status.Message);
             Console.WriteLine(message);
@@ -381,9 +348,8 @@ namespace iotdb_client_csharp.client
                 status = task.Result;
             }
             catch(TException e){
-                var message_local = String.Format("Multiple records insertion fails because: {0}", e);
-                Console.WriteLine(message_local);
-                throw e;
+                var err_msg = String.Format("Multiple records insertion failed");
+                throw new TException(err_msg, e);
             }
             var message = String.Format("insert multiple records to devices {0} message: {1}", device_id, status.Message);
             Console.WriteLine(message);
@@ -399,9 +365,8 @@ namespace iotdb_client_csharp.client
                 status = task.Result;
             }
             catch(TException e){
-                var message_local = String.Format("Testing record insertion fails because: {0}", e);
-                Console.WriteLine(message_local);
-                throw e;
+                var err_msg = String.Format("Testing record insertion failed");
+                throw new TException(err_msg, e);
             }
             var message = String.Format("testing! insert one record to device {0} message: {1}", device_id, status.Message);
             Console.WriteLine(message);
@@ -417,9 +382,8 @@ namespace iotdb_client_csharp.client
                 status = task.Result;
             }
             catch(TException e){
-                var message_local = String.Format("Testing multiple records insertion fails because: {0}", e);
-                Console.WriteLine(message_local);
-                throw e;
+                var err_msg = String.Format("Testing multiple records insertion failed");
+                throw new TException(err_msg, e);
             }
             var message = String.Format("testing! insert multiple records, message: {0}", status.Message);
             Console.WriteLine(message);
@@ -443,9 +407,8 @@ namespace iotdb_client_csharp.client
                 status = task.Result;
             }
             catch(TException e){
-                var message_local = String.Format("Tablet insertion fails because: {0}", e);
-                Console.WriteLine(message_local);
-                throw e;
+                var err_msg = String.Format("Tablet insertion failed");
+                throw new TException(err_msg, e);
             }            
             var message = String.Format("insert one tablet to device {0} message: {1}", tablet.device_id, status.Message);
             Console.WriteLine(message);
@@ -484,9 +447,8 @@ namespace iotdb_client_csharp.client
                 status = task.Result;
             }
             catch(TException e){
-                var message_local = String.Format("Multiple tablets insertion fails because: {0}", e);
-                Console.WriteLine(message_local);
-                throw e;
+                var err_msg = String.Format("Multiple tablets insertion failed");
+                throw new TException(err_msg, e);
             }
             var message = String.Format("insert multiple tablets, message: {0}", status.Message);
             Console.WriteLine(message);
@@ -544,9 +506,8 @@ namespace iotdb_client_csharp.client
                 status = task.Result;
             }
             catch(TException e){
-                var message_local = String.Format("Sorted records of one device insertion fails because: {0}", e);
-                Console.WriteLine(message_local);
-                throw e;
+                var err_msg = String.Format("Sorted records of one device insertion failed");
+                throw new TException(err_msg, e);
             }
             var message = String.Format("insert records of one device, message: {0}", status.Message);
             Console.WriteLine(message);
@@ -563,9 +524,8 @@ namespace iotdb_client_csharp.client
                 status = task.Result;
             }
             catch(TException e){
-                var message_local = String.Format("Testing tablet insertion fails because: {0}", e);
-                Console.WriteLine(message_local);
-                throw e;
+                var err_msg = String.Format("Testing tablet insertion failed");
+                throw new TException(err_msg, e);
             }
             var message = String.Format("testing! insert one tablet to device {0} message: {1}", tablet.device_id, status.Message);
             Console.WriteLine(message);
@@ -581,9 +541,8 @@ namespace iotdb_client_csharp.client
                 status = task.Result;
             }
             catch(TException e){
-                var message_local = String.Format("Testing multiple tablets insertion fails because: {0}", e);
-                Console.WriteLine(message_local);
-                throw e;
+                var err_msg = String.Format("Testing multiple tablets insertion failed");
+                throw new TException(err_msg, e);
             }
             var message = String.Format("testing! insert multiple tablets, message: {0}", status.Message);
             Console.WriteLine(message);
@@ -610,9 +569,8 @@ namespace iotdb_client_csharp.client
                 Console.WriteLine(message);
             }
             catch(TException e ){
-                var message = String.Format("could not set time zone because {0}", e);
-                Console.WriteLine(message);
-                throw e; 
+                var message = String.Format("could not set time zone");
+                throw new TException(message, e); 
             }
             this.zoneId = zoneId;
         }
@@ -627,9 +585,8 @@ namespace iotdb_client_csharp.client
                 resp = task.Result;
             }
             catch(TException e){
-                var message = String.Format("counld not get time zone beacuse {0}", e);
-                Console.WriteLine(message);
-                throw e; 
+                var message = String.Format("counld not get time zone");
+                throw new TException(message, e); 
             }
             return resp.TimeZone;
         }
@@ -645,9 +602,8 @@ namespace iotdb_client_csharp.client
                 status = resp.Status;
             }
             catch(TException e){
-                var err_msg = String.Format("could not execute query statement because {0}", e);
-                Console.WriteLine(err_msg);
-                throw e;
+                var err_msg = String.Format("could not execute query statement");
+                throw new TException(err_msg, e);
             }
             if(verify_success(status) == -1){
                 throw new TException("execute query failed", null);
@@ -666,9 +622,8 @@ namespace iotdb_client_csharp.client
                 status = resp.Status;
             }
             catch(TException e){
-                var err_msg = String.Format("execution of non-query statement fails because: {0}", e);
-                Console.WriteLine(err_msg);
-                throw e;
+                var err_msg = String.Format("execution of non-query statement failed");
+                throw new TException(err_msg, e);
             }
             var message = String.Format("execute non-query statement {0} message: {1}", sql, status.Message);
             Console.WriteLine(message);
@@ -702,8 +657,7 @@ namespace iotdb_client_csharp.client
                         break;
                     default:
                         var message = String.Format("Unsupported data type:{0}",data_types[i]);
-                        Console.WriteLine(message);
-                        break;
+                        throw new TException(message, null);
                 }
             }
             var buf = buffer.get_buffer();
