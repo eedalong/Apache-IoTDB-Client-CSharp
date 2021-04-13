@@ -516,8 +516,95 @@ namespace iotdb_client_csharp.client
             session.close();
             Console.WriteLine("TestInsertTablet Passed!");
         }
-
-
+        public void TestTestInsertTablet(){
+            var session = new Session("localhost", 6667);
+            session.open(false);
+            System.Diagnostics.Debug.Assert(session.is_open());
+            int status = 0;
+            status = session.delete_storage_group("root.97209_TEST_CSHARP_CLIENT_GROUP");
+            string device_id = "root.97209_TEST_CSHARP_CLIENT_GROUP.TEST_CSHARP_CLIENT_DEVICE";
+            List<string> measurement_lst = new List<string>{"TS1", "TS2", "TS3"};
+            List<TSDataType> datatype_lst  = new List<TSDataType>{TSDataType.TEXT, TSDataType.BOOLEAN, TSDataType.INT32};
+            List<List<string>> value_lst = new List<List<string>>{new List<string>{"iotdb", true.ToString(), 12.ToString()}, new List<string>{"c#", false.ToString(), 13.ToString()}, new List<string>{"client", true.ToString(), 14.ToString()}};
+            List<long> timestamp_lst = new List<long>{2, 1, 3};
+            var tablet = new Tablet(device_id, measurement_lst, datatype_lst, value_lst, timestamp_lst);
+            status = session.test_insert_tablet(tablet);
+            System.Diagnostics.Debug.Assert(status == 0);
+            var res=session.execute_query_statement("select * from root.97209_TEST_CSHARP_CLIENT_GROUP.TEST_CSHARP_CLIENT_DEVICE where time<15");
+            res.show_table_names();
+            while(res.has_next()){
+                Console.WriteLine(res.next());
+            }
+            session.delete_storage_group("root.97209_TEST_CSHARP_CLIENT_GROUP");
+            // System.Diagnostics.Debug.Assert(status == 0);
+            session.close();
+            Console.WriteLine("TestTestInsertTablet Passed!");
+        }
+        public void TestInsertTablets(){
+            var session = new Session("localhost", 6667);
+            session.open(false);
+            System.Diagnostics.Debug.Assert(session.is_open());
+            int status = 0;
+            status = session.delete_storage_group("root.97209_TEST_CSHARP_CLIENT_GROUP");
+            List<string> device_id = new List<string>(){"root.97209_TEST_CSHARP_CLIENT_GROUP.TEST_CSHARP_CLIENT_DEVICE1", "root.97209_TEST_CSHARP_CLIENT_GROUP.TEST_CSHARP_CLIENT_DEVICE2"};
+            List<List<string>> measurements_lst = new List<List<string>>(){new List<string>(){"TS1", "TS2", "TS3"}, new List<string>(){"TS1", "TS2", "TS3"}};
+            List<List<TSDataType>> datatypes_lst = new List<List<TSDataType>>(){new List<TSDataType>(){TSDataType.TEXT, TSDataType.BOOLEAN, TSDataType.INT32 }, new List<TSDataType>(){TSDataType.TEXT, TSDataType.BOOLEAN, TSDataType.INT32 }};
+            List<List<List<string>>> values_lst = new List<List<List<string>>>(){new List<List<string>>(){new List<string>{"iotdb", true.ToString(), 12.ToString()}, new List<string>{"c#", false.ToString(), 13.ToString()}, new List<string>{"client", true.ToString(), 14.ToString()}}, new List<List<string>>(){new List<string>{"iotdb_2", true.ToString(), 1.ToString()}, new List<string>{"c#_2", false.ToString(), 2.ToString()}, new List<string>{"client_2", true.ToString(), 3.ToString()}}};
+            List<List<long>> timestamp_lst = new List<List<long>>(){new List<long>(){2, 1, 3}, new List<long>(){3, 1, 2}};
+            List<Tablet> tablets = new List<Tablet>(){};
+            for(int i = 0;i < device_id.Count; i++){
+                var tablet = new Tablet(device_id[i], measurements_lst[i], datatypes_lst[i], values_lst[i], timestamp_lst[i]);
+                tablets.Add(tablet);
+            }
+            status = session.insert_tablets(tablets);
+            // System.Diagnostics.Debug.Assert(status == 0);
+            var res=session.execute_query_statement("select * from root.97209_TEST_CSHARP_CLIENT_GROUP.TEST_CSHARP_CLIENT_DEVICE1 where time<15");
+            res.show_table_names();
+            while(res.has_next()){
+                Console.WriteLine(res.next());
+            }
+            res = session.execute_query_statement("select * from root.97209_TEST_CSHARP_CLIENT_GROUP.TEST_CSHARP_CLIENT_DEVICE2 where time<15");
+            res.show_table_names();
+            while(res.has_next()){
+                Console.WriteLine(res.next());
+            }
+            status = session.delete_storage_group("root.97209_TEST_CSHARP_CLIENT_GROUP");
+            System.Diagnostics.Debug.Assert(status == 0);
+            session.close();
+            Console.WriteLine("TestInsertTablets Passed!");
+        }
+        public void TestTestInsertTablets(){
+            var session = new Session("localhost", 6667);
+            session.open(false);
+            System.Diagnostics.Debug.Assert(session.is_open());
+            int status = 0;
+            status = session.delete_storage_group("root.97209_TEST_CSHARP_CLIENT_GROUP");
+            List<string> device_id = new List<string>(){"root.97209_TEST_CSHARP_CLIENT_GROUP.TEST_CSHARP_CLIENT_DEVICE1", "root.97209_TEST_CSHARP_CLIENT_GROUP.TEST_CSHARP_CLIENT_DEVICE2"};
+            List<List<string>> measurements_lst = new List<List<string>>(){new List<string>(){"TS1", "TS2", "TS3"}, new List<string>(){"TS1", "TS2", "TS3"}};
+            List<List<TSDataType>> datatypes_lst = new List<List<TSDataType>>(){new List<TSDataType>(){TSDataType.TEXT, TSDataType.BOOLEAN, TSDataType.INT32 }, new List<TSDataType>(){TSDataType.TEXT, TSDataType.BOOLEAN, TSDataType.INT32 }};
+            List<List<List<string>>> values_lst = new List<List<List<string>>>(){new List<List<string>>(){new List<string>{"iotdb", true.ToString(), 12.ToString()}, new List<string>{"c#", false.ToString(), 13.ToString()}, new List<string>{"client", true.ToString(), 14.ToString()}}, new List<List<string>>(){new List<string>{"iotdb_2", true.ToString(), 1.ToString()}, new List<string>{"c#_2", false.ToString(), 2.ToString()}, new List<string>{"client_2", true.ToString(), 3.ToString()}}};
+            List<List<long>> timestamp_lst = new List<List<long>>(){new List<long>(){2, 1, 3}, new List<long>(){3, 1, 2}};
+            List<Tablet> tablets = new List<Tablet>(){};
+            for(int i = 0;i < device_id.Count; i++){
+                var tablet = new Tablet(device_id[i], measurements_lst[i], datatypes_lst[i], values_lst[i], timestamp_lst[i]);
+                tablets.Add(tablet);
+            }
+            status = session.test_insert_tablets(tablets);
+            System.Diagnostics.Debug.Assert(status == 0);
+            var res=session.execute_query_statement("select * from root.97209_TEST_CSHARP_CLIENT_GROUP.TEST_CSHARP_CLIENT_DEVICE1 where time<15");
+            res.show_table_names();
+            while(res.has_next()){
+                Console.WriteLine(res.next());
+            }
+            res = session.execute_query_statement("select * from root.97209_TEST_CSHARP_CLIENT_GROUP.TEST_CSHARP_CLIENT_DEVICE2 where time<15");
+            res.show_table_names();
+            while(res.has_next()){
+                Console.WriteLine(res.next());
+            }
+            session.delete_storage_group("root.97209_TEST_CSHARP_CLIENT_GROUP");
+            session.close();
+            Console.WriteLine("TestTestInsertTablets Passed!");
+        }
         static void Main(){
             SessionTest session_test = new SessionTest();
             
@@ -541,6 +628,9 @@ namespace iotdb_client_csharp.client
             session_test.TestSqlQuery();
             session_test.TestInsertRecords();
             session_test.TestInsertTablet();
+            session_test.TestTestInsertTablet();
+            session_test.TestInsertTablets();
+            session_test.TestTestInsertTablets();
             System.Console.WriteLine("TEST PASSED");
 
         }
