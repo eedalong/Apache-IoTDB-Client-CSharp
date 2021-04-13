@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Threading;
 using Thrift.Transport.Client;
 using iotdb_client_csharp.client.utils;
+using NLog;
 
 namespace iotdb_client_csharp.client
 {
@@ -21,10 +22,12 @@ namespace iotdb_client_csharp.client
            get{return 200;}
        }
        private int port, fetch_size;
+       private bool debug_mode = false;
        private long sessionId, statementId;
        private bool is_close = true;
        private TSIService.Client client; 
        private TFramedTransport transport;
+       private NLog.Logger _logger;
        private static TSProtocolVersion protocol_version = TSProtocolVersion.IOTDB_SERVICE_PROTOCOL_V3;
 
 
@@ -44,6 +47,7 @@ namespace iotdb_client_csharp.client
            this.username = username;
            this.zoneId = "UTC+08:00";
            this.fetch_size = 1024;
+           this.debug_mode = false;
        }
        public Session(string host, int port, string username, string password, int fetch_size){
            this.host = host;
@@ -52,6 +56,7 @@ namespace iotdb_client_csharp.client
            this.password = password;
            this.fetch_size = fetch_size;
            this.zoneId = "UTC+08:00";
+           this.debug_mode = false;
 
        }
         public Session(string host, int port, string username="root", string password="root", int fetch_size=10000, string zoneId = "UTC+08:00"){
@@ -61,6 +66,20 @@ namespace iotdb_client_csharp.client
             this.password = password;
             this.zoneId = zoneId;
             this.fetch_size = fetch_size;
+            this.debug_mode = false;
+        }
+        public void open_debug_mode(NLog.Config.LoggingConfiguration config=null){
+            this.debug_mode = true;
+            if(config == null){
+                config = new NLog.Config.LoggingConfiguration();
+                var logconsole = new NLog.Targets.ConsoleTarget("logconsole");
+                config.AddRule(LogLevel.Debug, LogLevel.Fatal, logconsole);
+                NLog.LogManager.Configuration = config;
+                _logger = NLog.LogManager.GetCurrentClassLogger();
+            }else{
+                NLog.LogManager.Configuration = config;
+                _logger = NLog.LogManager.GetCurrentClassLogger();
+            }
         }
         public void open(bool enableRPCCompression){
             if(!is_close){
@@ -101,7 +120,7 @@ namespace iotdb_client_csharp.client
                 statement_task.Wait();
                 statementId = statement_task.Result;
             }
-            catch(Exception e){
+            catch(Exception){
                 transport.Close();
                 throw;
             }
@@ -148,8 +167,9 @@ namespace iotdb_client_csharp.client
                 var err_msg = String.Format("set storage group {0} failed", group_name);
                 throw new TException(err_msg, e);
             }
-            var message = String.Format("set storage group {0} successfully", group_name);
-            Console.WriteLine(message);
+            if(debug_mode){
+                _logger.Info("set storage group {0} successfully, server message is {1}", group_name, status.Message);
+            }
             return verify_success(status);
         }
 
@@ -164,8 +184,10 @@ namespace iotdb_client_csharp.client
                 var err_msg = String.Format("delete storage group {0} failed", group_name);
                 throw new TException(err_msg, e);
             }
-            var message = String.Format("delete storage group {0} successfully", group_name);
-            Console.WriteLine(message);
+            if(debug_mode){
+                var message = String.Format("delete storage group {0} successfully, server message is {1}", group_name, status.Message);
+                _logger.Info(message);
+            }
             return verify_success(status);
         }
         public int delete_storage_groups(List<string> group_names){
@@ -179,8 +201,9 @@ namespace iotdb_client_csharp.client
                 var err_msg = String.Format("delete storage group(s) {0} failed", group_names);
                 throw new TException(err_msg, e);           
             }
-            var message = String.Format("delete storage group(s) {0} successfully", group_names);
-            Console.WriteLine(message);
+            if(debug_mode){
+                _logger.Info("delete storage group(s) {0} successfully, server message is {1}", group_names, status.Message);
+            }
             return verify_success(status);
         }
 
@@ -196,8 +219,9 @@ namespace iotdb_client_csharp.client
                 var err_msg = String.Format("create time series {0} failed", ts_path);    
                 throw new TException(err_msg, e);
             }
-            var message = String.Format("creating time series {0} successfully", ts_path);
-            Console.WriteLine(message);
+            if(debug_mode){
+                _logger.Info("creating time series {0} successfully, server message is {1}", ts_path, status.Message);
+            }
             return verify_success(status); 
         }
 
@@ -216,8 +240,9 @@ namespace iotdb_client_csharp.client
                 var err_msg = String.Format("create multiple time series {0} failed", ts_path_lst);
                 throw new TException(err_msg, e);             
             }
-            var message = String.Format("creating multiple time series {0}", ts_path_lst);
-            Console.WriteLine(message);
+            if(debug_mode){
+                _logger.Info("creating multiple time series {0}, server message is {1}", ts_path_lst, status.Message);
+            }
             return verify_success(status);
         }
         public int delete_time_series(List<string> path_list){
@@ -231,8 +256,9 @@ namespace iotdb_client_csharp.client
                 var err_msg = String.Format("delete time series {0} failed", path_list);
                 throw new TException(err_msg, e);             
             }
-            var message = String.Format("deleting multiple time series {0}", path_list);
-            Console.WriteLine(message);
+            if(debug_mode){
+                _logger.Info("deleting multiple time series {0}, server message is {1}", path_list, status.Message);
+            }
             return verify_success(status);
         }
         public int delete_time_series(string ts_path){
@@ -261,8 +287,9 @@ namespace iotdb_client_csharp.client
                 var err_msg = String.Format("data deletion fails because");
                 throw new TException(err_msg, e);
             }
-            var message = String.Format("delete data from {0}", ts_path_lst);
-            Console.WriteLine(message);
+            if(debug_mode){
+                _logger.Info("delete data from {0}, server message is {1}", ts_path_lst, status.Message);
+            }
             return verify_success(status);
         }
         public TSInsertStringRecordReq gen_insert_str_record_req(string device_id, List<string> measurements, List<string> values, long timestamp){
@@ -286,8 +313,9 @@ namespace iotdb_client_csharp.client
                 var err_msg = String.Format("record insertion failed");
                 throw new TException(err_msg, e);
             }
-            var message = String.Format("insert one record to device {0} successfully", device_id);
-            Console.WriteLine(message);
+            if(debug_mode){
+                _logger.Info("insert one record to device {0} successfully, server message is {1}", device_id, status.Message);
+            }
             return verify_success(status);
         }
         public TSInsertRecordReq gen_insert_record_req(string device_id, List<string> measurements, List<string> values, List<TSDataType> data_types, long timestamp){

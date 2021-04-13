@@ -15,6 +15,7 @@ namespace iotdb_client_csharp.client
         
         public void TestOpen(){
             Session session = new Session("localhost", 6667, "root", "root");
+            session.open_debug_mode();
             session.open(false);
             System.Diagnostics.Debug.Assert(session.is_open());
             session.close();
@@ -33,6 +34,7 @@ namespace iotdb_client_csharp.client
             // by Luzhan
             var session = new Session("localhost", 6667, "root", "root");
             session.open(false);
+            session.open_debug_mode();
             session.delete_storage_group("root.97209_TEST_CSHARP_CLIENT_GROUP");
             System.Diagnostics.Debug.Assert(session.set_storage_group("root.97209_TEST_CSHARP_CLIENT_GROUP")==0);
             System.Diagnostics.Debug.Assert(session.delete_storage_group("root.97209_TEST_CSHARP_CLIENT_GROUP")==0);
@@ -43,6 +45,7 @@ namespace iotdb_client_csharp.client
             // by Luzhan
             var session = new Session("localhost", 6667, "root", "root");
             session.open(false);
+            session.open_debug_mode();
             session.delete_storage_group("root.97209_TEST_CSHARP_CLIENT_GROUP");
             System.Diagnostics.Debug.Assert(session.create_time_series(("root.97209_TEST_CSHARP_CLIENT_GROUP.TEST_CSHARP_CLIENT_DEVICE.TEST_CSHARP_CLIENT_TS1"), TSDataType.BOOLEAN, TSEncoding.PLAIN, Compressor.SNAPPY)==0);
             System.Diagnostics.Debug.Assert(session.create_time_series(("root.97209_TEST_CSHARP_CLIENT_GROUP.TEST_CSHARP_CLIENT_DEVICE.TEST_CSHARP_CLIENT_TS2"), TSDataType.INT32, TSEncoding.PLAIN, Compressor.SNAPPY)==0);
@@ -58,6 +61,8 @@ namespace iotdb_client_csharp.client
             // by Luzhan
             var session = new Session("localhost", 6667, "root", "root");
             session.open(false);
+            session.open_debug_mode();
+
             session.delete_storage_group("root.97209_TEST_CSHARP_CLIENT_GROUP");
             List<string> ts_path_lst = new List<string>(){"root.97209_TEST_CSHARP_CLIENT_GROUP.TEST_CSHARP_CLIENT_DEVICE.TEST_CSHARP_CLIENT_TS1", "root.97209_TEST_CSHARP_CLIENT_GROUP.TEST_CSHARP_CLIENT_DEVICE.TEST_CSHARP_CLIENT_TS2", "root.97209_TEST_CSHARP_CLIENT_GROUP.TEST_CSHARP_CLIENT_DEVICE.TEST_CSHARP_CLIENT_TS3", "root.97209_TEST_CSHARP_CLIENT_GROUP.TEST_CSHARP_CLIENT_DEVICE.TEST_CSHARP_CLIENT_TS4", "root.97209_TEST_CSHARP_CLIENT_GROUP.TEST_CSHARP_CLIENT_DEVICE.TEST_CSHARP_CLIENT_TS5", "root.97209_TEST_CSHARP_CLIENT_GROUP.TEST_CSHARP_CLIENT_DEVICE.TEST_CSHARP_CLIENT_TS6"};
             List<TSDataType> data_type_lst = new List<TSDataType>(){TSDataType.BOOLEAN, TSDataType.INT32, TSDataType.INT64, TSDataType.FLOAT, TSDataType.DOUBLE, TSDataType.TEXT};
@@ -73,6 +78,7 @@ namespace iotdb_client_csharp.client
             // by Luzhan
             var session = new Session("localhost", 6667, "root", "root");
             session.open(false);
+            session.open_debug_mode();
             session.delete_storage_group("root.97209_TEST_CSHARP_CLIENT_GROUP");
             List<string> ts_path_lst = new List<string>(){"root.97209_TEST_CSHARP_CLIENT_GROUP.TEST_CSHARP_CLIENT_DEVICE.TEST_CSHARP_CLIENT_TS1", "root.97209_TEST_CSHARP_CLIENT_GROUP.TEST_CSHARP_CLIENT_DEVICE.TEST_CSHARP_CLIENT_TS2", "root.97209_TEST_CSHARP_CLIENT_GROUP.TEST_CSHARP_CLIENT_DEVICE.TEST_CSHARP_CLIENT_TS3", "root.97209_TEST_CSHARP_CLIENT_GROUP.TEST_CSHARP_CLIENT_DEVICE.TEST_CSHARP_CLIENT_TS4", "root.97209_TEST_CSHARP_CLIENT_GROUP.TEST_CSHARP_CLIENT_DEVICE.TEST_CSHARP_CLIENT_TS5", "root.97209_TEST_CSHARP_CLIENT_GROUP.TEST_CSHARP_CLIENT_DEVICE.TEST_CSHARP_CLIENT_TS6"};
             List<TSDataType> data_type_lst = new List<TSDataType>(){TSDataType.BOOLEAN, TSDataType.INT32, TSDataType.INT64, TSDataType.FLOAT, TSDataType.DOUBLE, TSDataType.TEXT};
@@ -87,7 +93,9 @@ namespace iotdb_client_csharp.client
         public void TestDeleteStorageGroups(){
             // by Luzhan
             var session = new Session("localhost", 6667, "root", "root");
-            session.open(false);            
+            session.open(false); 
+            session.open_debug_mode();
+           
             session.set_storage_group("root.97209_TEST_CSHARP_CLIENT_GROUP_01");
             session.set_storage_group("root.97209_TEST_CSHARP_CLIENT_GROUP_02");
             session.set_storage_group("root.97209_TEST_CSHARP_CLIENT_GROUP_03");
@@ -104,6 +112,7 @@ namespace iotdb_client_csharp.client
         public void TestGetTimeZone(){
            var session = new Session("localhost", 6667);
            session.open(false);
+           session.open_debug_mode();
            session.delete_storage_group("root.97209_TEST_CSHARP_CLIENT_GROUP");
            System.Diagnostics.Debug.Assert(session.is_open());
            var time_zone = session.get_time_zone();
@@ -114,6 +123,7 @@ namespace iotdb_client_csharp.client
            var session = new Session("localhost", 6667);
            int status = 0;
            session.open(false);
+           session.open_debug_mode();
            System.Diagnostics.Debug.Assert(session.is_open());
            session.delete_storage_group("root.97209_TEST_CSHARP_CLIENT_GROUP");
 
@@ -139,6 +149,7 @@ namespace iotdb_client_csharp.client
             var session = new Session("localhost", 6667);
             int status = 0;
             session.open(false);
+            session.open_debug_mode();
             System.Diagnostics.Debug.Assert(session.is_open());
             session.delete_storage_group("root.97209_TEST_CSHARP_CLIENT_GROUP");
 
@@ -171,6 +182,7 @@ namespace iotdb_client_csharp.client
         public void TestInsertRecords(){
             var session = new Session("localhost", 6667);
             session.open(false);
+            session.open_debug_mode();
             System.Diagnostics.Debug.Assert(session.is_open());
             int status = 0;
             status = session.delete_storage_group("root.97209_TEST_CSHARP_CLIENT_GROUP");
@@ -221,6 +233,7 @@ namespace iotdb_client_csharp.client
             var session = new Session("localhost", 6667);
             int status = 0;
             session.open(false);
+            session.open_debug_mode();
             System.Diagnostics.Debug.Assert(session.is_open());
             status = session.delete_storage_group("root.97209_TEST_CSHARP_CLIENT_GROUP");
             System.Diagnostics.Debug.Assert(status == 0);
@@ -253,6 +266,7 @@ namespace iotdb_client_csharp.client
         public void TestTestInsertRecords(){
             var session = new Session("localhost", 6667);
             session.open(false);
+            session.open_debug_mode();
             System.Diagnostics.Debug.Assert(session.is_open());
             int status = 0;
             status = session.delete_storage_group("root.97209_TEST_CSHARP_CLIENT_GROUP");
@@ -296,6 +310,7 @@ namespace iotdb_client_csharp.client
         public void TestInsertRecordsOfOneDevice(){
             var session = new Session("localhost", 6667);
             session.open(false);
+            session.open_debug_mode();
             System.Diagnostics.Debug.Assert(session.is_open());
             int status = 0;
             status = session.delete_storage_group("root.97209_TEST_CSHARP_CLIENT_GROUP");
@@ -335,6 +350,7 @@ namespace iotdb_client_csharp.client
         public void TestCheckTimeSeriesExists(){
             var session = new Session("localhost", 6667);
             session.open(false);
+            session.open_debug_mode();
             System.Diagnostics.Debug.Assert(session.is_open());
             int status = 0;
             status = session.delete_storage_group("root.97209_TEST_CSHARP_CLIENT_GROUP");
@@ -351,6 +367,7 @@ namespace iotdb_client_csharp.client
         public void TestSetTimeZone(){
             var session = new Session("localhost", 6667);
             session.open(false);
+            session.open_debug_mode();
             session.set_time_zone("GMT+8:00");
             System.Diagnostics.Debug.Assert(session.get_time_zone() == "GMT+8:00");
             session.close();
@@ -360,6 +377,7 @@ namespace iotdb_client_csharp.client
             var session = new Session("localhost", 6667);
             int status = 0;
             session.open(false);
+            session.open_debug_mode();
             System.Diagnostics.Debug.Assert(session.is_open());
             status = session.delete_storage_group("root.97209_TEST_CSHARP_CLIENT_GROUP");
             System.Diagnostics.Debug.Assert(status == 0);
@@ -402,6 +420,7 @@ namespace iotdb_client_csharp.client
         public void TestNonSql(){
             var session = new Session("localhost", 6667);
             session.open(false);
+            session.open_debug_mode();
             System.Diagnostics.Debug.Assert(session.is_open());
             int status = 0;
             status = session.delete_storage_group("root.97209_TEST_CSHARP_CLIENT_GROUP");
@@ -427,6 +446,7 @@ namespace iotdb_client_csharp.client
         public void TestSqlQuery(){
             var session = new Session("localhost", 6667);
             session.open(false);
+            session.open_debug_mode();
             System.Diagnostics.Debug.Assert(session.is_open());
             int status = 0;
             status = session.delete_storage_group("root.97209_TEST_CSHARP_CLIENT_GROUP");
@@ -479,6 +499,7 @@ namespace iotdb_client_csharp.client
         public void TestInsertTablet(){
             var session = new Session("localhost", 6667);
             session.open(false);
+            session.open_debug_mode();
             System.Diagnostics.Debug.Assert(session.is_open());
             int status = 0;
             status = session.delete_storage_group("root.97209_TEST_CSHARP_CLIENT_GROUP");
@@ -505,12 +526,13 @@ namespace iotdb_client_csharp.client
         static void Main(){
             SessionTest session_test = new SessionTest();
             
-            session_test.TestOpen();
-            session_test.TestClose();
+            
+            //session_test.TestOpen();
+            //session_test.TestClose();
             session_test.TestSetAndDeleteStorageGroup();
-            session_test.TestCreateTimeSeries();
-            session_test.TestDeleteTimeSeries();
-            session_test.TestCreateMultiTimeSeries();
+            //session_test.TestCreateTimeSeries();
+            //session_test.TestDeleteTimeSeries();
+            //session_test.TestCreateMultiTimeSeries();
             //session_test.TestDeleteStorageGroups();
             //session_test.TestGetTimeZone();
             //session_test.TestInsertStrRecord();
