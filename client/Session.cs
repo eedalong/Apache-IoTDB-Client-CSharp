@@ -81,6 +81,9 @@ namespace iotdb_client_csharp.client
                 _logger = NLog.LogManager.GetCurrentClassLogger();
             }
         }
+        public void close_debug_mode(){
+            this.debug_mode = false;
+        }
         public void open(bool enableRPCCompression){
             if(!is_close){
                 return ;

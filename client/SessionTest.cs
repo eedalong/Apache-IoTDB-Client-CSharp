@@ -236,7 +236,6 @@ namespace iotdb_client_csharp.client
             session.open_debug_mode();
             System.Diagnostics.Debug.Assert(session.is_open());
             status = session.delete_storage_group("root.97209_TEST_CSHARP_CLIENT_GROUP");
-            System.Diagnostics.Debug.Assert(status == 0);
             
             status = session.create_time_series("root.97209_TEST_CSHARP_CLIENT_GROUP.TEST_CSHARP_CLIENT_DEVICE.TEST_CSHARP_CLIENT_TS1", TSDataType.TEXT, TSEncoding.PLAIN, Compressor.UNCOMPRESSED);
             System.Diagnostics.Debug.Assert(status == 0);
@@ -354,7 +353,6 @@ namespace iotdb_client_csharp.client
             System.Diagnostics.Debug.Assert(session.is_open());
             int status = 0;
             status = session.delete_storage_group("root.97209_TEST_CSHARP_CLIENT_GROUP");
-            System.Diagnostics.Debug.Assert(status == 0);
             session.create_time_series("root.97209_TEST_CSHARP_CLIENT_GROUP.TEST_CSHARP_CLIENT_DEVICE.TEST_CSHARP_CLIENT_TS1", TSDataType.BOOLEAN, TSEncoding.PLAIN, Compressor.SNAPPY);
             var ifExist_1 = session.check_time_series_exists("root.97209_TEST_CSHARP_CLIENT_GROUP.TEST_CSHARP_CLIENT_DEVICE.TEST_CSHARP_CLIENT_TS1");
             var ifExist_2 = session.check_time_series_exists("root.97209_TEST_CSHARP_CLIENT_GROUP.TEST_CSHARP_CLIENT_DEVICE.TEST_CSHARP_CLIENT_TS2");
@@ -380,7 +378,6 @@ namespace iotdb_client_csharp.client
             session.open_debug_mode();
             System.Diagnostics.Debug.Assert(session.is_open());
             status = session.delete_storage_group("root.97209_TEST_CSHARP_CLIENT_GROUP");
-            System.Diagnostics.Debug.Assert(status == 0);
             
             status = session.create_time_series("root.97209_TEST_CSHARP_CLIENT_GROUP.TEST_CSHARP_CLIENT_DEVICE.TEST_CSHARP_CLIENT_TS1", TSDataType.TEXT, TSEncoding.PLAIN, Compressor.UNCOMPRESSED);
             System.Diagnostics.Debug.Assert(status == 0);
@@ -424,7 +421,6 @@ namespace iotdb_client_csharp.client
             System.Diagnostics.Debug.Assert(session.is_open());
             int status = 0;
             status = session.delete_storage_group("root.97209_TEST_CSHARP_CLIENT_GROUP");
-            System.Diagnostics.Debug.Assert(status == 0);
             session.execute_non_query_statement("create timeseries root.97209_TEST_CSHARP_CLIENT_GROUP.TEST_CSHARP_CLIENT_DEVICE.status with datatype=BOOLEAN,encoding=PLAIN");
             session.execute_non_query_statement("create timeseries root.97209_TEST_CSHARP_CLIENT_GROUP.TEST_CSHARP_CLIENT_DEVICE.temperature with datatype=FLOAT,encoding=PLAIN");
             session.execute_non_query_statement("create timeseries root.97209_TEST_CSHARP_CLIENT_GROUP.TEST_CSHARP_CLIENT_DEVICE.hardware with datatype=TEXT,encoding=PLAIN");
@@ -450,7 +446,6 @@ namespace iotdb_client_csharp.client
             System.Diagnostics.Debug.Assert(session.is_open());
             int status = 0;
             status = session.delete_storage_group("root.97209_TEST_CSHARP_CLIENT_GROUP");
-            System.Diagnostics.Debug.Assert(status == 0);
             session.execute_non_query_statement("create timeseries root.97209_TEST_CSHARP_CLIENT_GROUP.TEST_CSHARP_CLIENT_DEVICE.status with datatype=BOOLEAN,encoding=PLAIN");
             session.execute_non_query_statement("create timeseries root.97209_TEST_CSHARP_CLIENT_GROUP.TEST_CSHARP_CLIENT_DEVICE.temperature with datatype=FLOAT,encoding=PLAIN");
             session.execute_non_query_statement("create timeseries root.97209_TEST_CSHARP_CLIENT_GROUP.TEST_CSHARP_CLIENT_DEVICE.hardware with datatype=TEXT,encoding=PLAIN");
@@ -525,26 +520,24 @@ namespace iotdb_client_csharp.client
 
         static void Main(){
             SessionTest session_test = new SessionTest();
-            
-            
-            //session_test.TestOpen();
-            //session_test.TestClose();
+            session_test.TestOpen();
+            session_test.TestClose();
             session_test.TestSetAndDeleteStorageGroup();
-            //session_test.TestCreateTimeSeries();
-            //session_test.TestDeleteTimeSeries();
-            //session_test.TestCreateMultiTimeSeries();
-            //session_test.TestDeleteStorageGroups();
-            //session_test.TestGetTimeZone();
-            //session_test.TestInsertStrRecord();
-            //session_test.TestInsertRecord();
-            //session_test.TestTestInsertRecord();
+            session_test.TestCreateTimeSeries();
+            session_test.TestDeleteTimeSeries();
+            session_test.TestCreateMultiTimeSeries();
+            session_test.TestDeleteStorageGroups();
+            session_test.TestGetTimeZone();
+            session_test.TestInsertStrRecord();
+            session_test.TestInsertRecord();
+            session_test.TestTestInsertRecord();
             session_test.TestTestInsertRecords();
-            //session_test.TestInsertRecordsOfOneDevice();
-            //session_test.TestCheckTimeSeriesExists();
-            //session_test.TestSetTimeZone();
-            //session_test.TestDeleteData();
-            //session_test.TestNonSql();
-            //session_test.TestSqlQuery();
+            session_test.TestInsertRecordsOfOneDevice();
+            session_test.TestCheckTimeSeriesExists();
+            session_test.TestSetTimeZone();
+            session_test.TestDeleteData();
+            session_test.TestNonSql();
+            session_test.TestSqlQuery();
             session_test.TestInsertRecords();
             session_test.TestInsertTablet();
             System.Console.WriteLine("TEST PASSED");
