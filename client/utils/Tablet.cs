@@ -39,7 +39,7 @@ namespace iotdb_client_csharp.client.utils
                 Console.WriteLine(err_msg);
                 throw new Exception("input length not matched");
             }
-            if(!check_timestamp_lst_sorted()){
+            if(!check_timestamp_lst_sorted(timestamp_lst)){
                 var sorted = timestamp_lst.Select((x, index) => (timestamp:x, values:value_lst[index])).OrderBy(x => x.timestamp).ToList();
                 this.timestamp_lst = sorted.Select(x => x.timestamp).ToList();
                 this.value_lst = sorted.Select(x => x.values).ToList();
@@ -47,7 +47,7 @@ namespace iotdb_client_csharp.client.utils
                 this.value_lst = value_lst;
                 this.timestamp_lst = timestamp_lst;
             }
-
+           
            this.device_id = device_id;
            this.measurement_lst = measurement_lst;
            this.data_type_lst = data_type_lst;
@@ -55,7 +55,7 @@ namespace iotdb_client_csharp.client.utils
            this.col_number = measurement_lst.Count;
        }
 
-       private bool check_timestamp_lst_sorted(){
+       private bool check_timestamp_lst_sorted(List<long> timestamp_lst){
            for(int index = 1; index < timestamp_lst.Count; index++){
                if(timestamp_lst[index] < timestamp_lst[index-1]){
                    return false;
@@ -77,11 +77,13 @@ namespace iotdb_client_csharp.client.utils
                 switch(data_type_lst[i]){
                     case TSDataType.BOOLEAN:
                         for(int j=0; j< row_number; j++){
+                            Console.WriteLine(value_lst[j][i]);
                             buffer.add_bool(bool.Parse(value_lst[j][i]));
                         }
                         break;
                     case TSDataType.INT32:
                         for(int j=0; j<row_number; j++){
+                            Console.WriteLine(value_lst[j][i]);
                             buffer.add_int(int.Parse(value_lst[j][i]));
                         }
                         break;
@@ -101,7 +103,9 @@ namespace iotdb_client_csharp.client.utils
                         }
                         break;
                     case TSDataType.TEXT:
+
                         for(int j=0; j<row_number; j++){
+                            Console.WriteLine(value_lst[j][i]);
                             buffer.add_str(value_lst[j][i]);
                         }
                         break;
@@ -111,11 +115,9 @@ namespace iotdb_client_csharp.client.utils
                         break;
                 }
            }
-           return buffer.get_buffer();
+           var buf = buffer.get_buffer();
+           Console.WriteLine(string.Format("check buf length {0}", buf.Length));
+           return buf;
        }
-
-
-
-
     }
 }

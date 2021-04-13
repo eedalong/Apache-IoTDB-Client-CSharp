@@ -34,7 +34,7 @@ namespace iotdb_client_csharp.client.utils
         public int fetch_size{get;set;}
         private int row_index;
 
-        private bool has_catched_result, empty_result;
+        private bool has_catched_result;
         private RowRecord cached_row_record;
 
         
@@ -49,6 +49,7 @@ namespace iotdb_client_csharp.client.utils
             this.column_size = column_name_lst.Count;
             this.time_buffer = new ByteBuffer(query_data_set.Time);
             this.client = client;
+            this.session_id = session_id;
             this.column_name_index_map = new Dictionary<string, int>{};
             this.column_type_lst = new List<string>{};
             this.duplicate_location = new Dictionary<int, int>{};
@@ -235,7 +236,7 @@ namespace iotdb_client_csharp.client.utils
             catch(TException e){
                 var message = string.Format("Cannot fetch result from server, because of network connection:{0}", e);
                 Console.WriteLine(message);
-                throw e;
+                throw;
             }
         }
         public void close_operation_handle(){
@@ -251,7 +252,7 @@ namespace iotdb_client_csharp.client.utils
             catch(TException e){
                 var message = string.Format("close session {0} failed because:{1} ", session_id, e);
                 Console.WriteLine(message);
-                throw e;
+                throw;
             }
             
             
