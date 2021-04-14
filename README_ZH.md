@@ -24,33 +24,35 @@
 
 ## 概览
 
-本仓库是Apache IoTDB的C#语言客户端.
+本仓库是Apache IoTDB的C#语言客户端,与其他语言支持相同语义的用户接口。
 
 Apache IoTDB website: https://iotdb.apache.org
+
 Apache IoTDB Github: https://github.com/apache/iotdb
 
-## 如何编译
+## 如何安装
+### 从Nuget Package安装
+
+我们为CSharp用户准备了NuGet包，用户可直接通过.NET CLI进行客户端安装，[NuGet包链接如下](https://www.nuget.org/packages/iotdb_client_csharp/0.12.0),命令行中运行如下命令即可完成安装
+    
+    dotnet add package iotdb_client_csharp --version 0.12.0
+
 
 ## 环境准备
 
-    dotnet
+    .NET SDK Version == 5.0 
 
 ## 如何使用 (快速上手)
+用户可参考[SessionTest.cs](https://github.com/eedalong/iotdb-client-csharp/blob/main/client/SessionTest.cs)中的测试代码了解各个接口使用方式
 
 
 
-```sh
-
-```
-
-
-
-```sh
-# get thrift 0.13.0
-
-```
 
 ## iotdb-client-csharp的开发者环境要求
+    .NET SDK Version == 5.0
+    ApacheThrift >= 0.14.1
+    NLog >= 4.7.9
+    
 
 ### 操作系统
 
@@ -58,8 +60,3 @@ Apache IoTDB Github: https://github.com/apache/iotdb
 * Windows+bash(WSL、cygwin、Git Bash)
 
 ### 命令行工具
-
-* 
-* 
-* 
-* thrift 0.13.x
