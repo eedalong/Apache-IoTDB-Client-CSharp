@@ -31,28 +31,31 @@ This is the C# client of Apache IoTDB.
 Apache IoTDB website: https://iotdb.apache.org
 Apache IoTDB Github: https://github.com/apache/iotdb
 
-## How to Compile the Client
+## Installation
+
+### Install from NuGet Package
+
+We have prepared Nuget Package for C# users. Users can directly install the client through .NET CLI. [The link of our NuGet Package is here](https://www.nuget.org/packages/iotdb_client_csharp/0.12.0). Run the following command in the command line to complete installation
+
+```sh
+dotnet add package iotdb_client_csharp --version 0.12.0
+```
 
 ## Prerequisites
 
-    csharp
+    .NET SDK Version == 5.0 
 
 ## How to Use the Client (Quick Start)
 
-
-
-```sh
-
-```
-
-
-
-```sh
-# get thrift 0.13.0
-
-```
+Users can refer to the test code in [SessionTest.cs](https://github.com/eedalong/iotdb-client-csharp/blob/main/client/SessionTest.cs) to understand the usage mode of each interface.
 
 ## Developer environment requirements for iotdb-client-csharp
+
+```
+.NET SDK Version == 5.0
+ApacheThrift >= 0.14.1
+NLog >= 4.7.9
+```
 
 ### OS
 
@@ -60,8 +63,3 @@ Apache IoTDB Github: https://github.com/apache/iotdb
 * Windows+bash(WSL, cygwin, Git Bash)
 
 ### Command Line Tools
-
-* 
-* 
-* 
-* thrift 0.13.x

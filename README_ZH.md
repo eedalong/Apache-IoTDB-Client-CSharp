@@ -31,11 +31,13 @@ Apache IoTDB website: https://iotdb.apache.org
 Apache IoTDB Github: https://github.com/apache/iotdb
 
 ## 如何安装
-### 从Nuget Package安装
+### 从NuGet Package安装
 
 我们为CSharp用户准备了NuGet包，用户可直接通过.NET CLI进行客户端安装，[NuGet包链接如下](https://www.nuget.org/packages/iotdb_client_csharp/0.12.0),命令行中运行如下命令即可完成安装
     
-    dotnet add package iotdb_client_csharp --version 0.12.0
+```sh
+dotnet add package iotdb_client_csharp --version 0.12.0
+```
 
 
 ## 环境准备
@@ -46,13 +48,11 @@ Apache IoTDB Github: https://github.com/apache/iotdb
 用户可参考[SessionTest.cs](https://github.com/eedalong/iotdb-client-csharp/blob/main/client/SessionTest.cs)中的测试代码了解各个接口使用方式
 
 
-
-
 ## iotdb-client-csharp的开发者环境要求
     .NET SDK Version == 5.0
     ApacheThrift >= 0.14.1
     NLog >= 4.7.9
-    
+
 
 ### 操作系统
 
