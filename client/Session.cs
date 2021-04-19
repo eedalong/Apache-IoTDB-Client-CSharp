@@ -310,7 +310,6 @@ namespace iotdb_client_csharp.client
         public int insert_record(string device_id, List<string> measurements, List<string> values, long timestamp){
             // TBD by Luzhan
             var req = gen_insert_str_record_req(device_id, measurements, values, timestamp);
-            Console.WriteLine(req);
             TSStatus status;
             try{
                 var task = client.insertStringRecordAsync(req);
