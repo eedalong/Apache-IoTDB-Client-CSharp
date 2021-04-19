@@ -8,6 +8,7 @@ using System.Threading;
 using Thrift.Transport.Client;
 using iotdb_client_csharp.client.utils;
 using NLog;
+using System.Net.Sockets;
 
 namespace iotdb_client_csharp.client
 {
@@ -88,7 +89,10 @@ namespace iotdb_client_csharp.client
             if(!is_close){
                 return ;
             }
-            this.transport = new TFramedTransport(new TSocketTransport(this.host, this.port, new TConfiguration()));
+
+            TcpClient tcp_client = new TcpClient(this.host, this.port);
+            this.transport = new TFramedTransport(new TSocketTransport(tcp_client, null));
+            //this.transport = new TFramedTransport(new TSocketTransport(this.host, this.port, new TConfiguration()));
             if(!transport.IsOpen){
                 try{
                     var task = transport.OpenAsync(new CancellationToken());
