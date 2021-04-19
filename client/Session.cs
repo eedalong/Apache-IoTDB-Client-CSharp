@@ -667,7 +667,9 @@ namespace iotdb_client_csharp.client
             if(verify_success(status) == -1){
                 throw new TException("execute query failed", null);
             }
-            return new SessionDataSet(sql, resp.Columns, resp.DataTypeList, resp.ColumnNameIndexMap, resp.QueryId, client, sessionId, resp.QueryDataSet);
+            var session_dataset = new SessionDataSet(sql, resp.Columns, resp.DataTypeList, resp.ColumnNameIndexMap, resp.QueryId, client, sessionId, resp.QueryDataSet);
+            session_dataset.fetch_size = fetch_size;
+            return session_dataset;
 
         }
         public int execute_non_query_statement(string sql){
