@@ -16,7 +16,7 @@ namespace iotdb_client_csharp.client
         public string user = "root";
         public string passwd = "root";
         public void TestOpen(){
-            Session session = new Session(host, port, "root", "root");
+            Session session = new Session(host, port, user, passwd);
             session.open_debug_mode();
             session.open(false);
             System.Diagnostics.Debug.Assert(session.is_open());
@@ -25,7 +25,7 @@ namespace iotdb_client_csharp.client
         }
 
         public void TestClose(){
-            var session = new Session(host, port, "root", "root");
+            var session = new Session(host, port, user, passwd);
             session.open(false);
             session.close();
             System.Diagnostics.Debug.Assert(!session.is_open());
@@ -34,7 +34,7 @@ namespace iotdb_client_csharp.client
         }
         public void TestSetAndDeleteStorageGroup(){
             // by Luzhan
-            var session = new Session(host, port, "root", "root");
+            var session = new Session(host, port, user, passwd);
             session.open(false);
             session.open_debug_mode();
             session.delete_storage_group("root.97209_TEST_CSHARP_CLIENT_GROUP");
@@ -45,7 +45,7 @@ namespace iotdb_client_csharp.client
         }
         public void TestCreateTimeSeries(){
             // by Luzhan
-            var session = new Session(host, port, "root", "root");
+            var session = new Session(host, port, user, passwd);
             session.open(false);
             session.open_debug_mode();
             session.delete_storage_group("root.97209_TEST_CSHARP_CLIENT_GROUP");
@@ -61,7 +61,7 @@ namespace iotdb_client_csharp.client
         }
         public void TestCreateMultiTimeSeries(){
             // by Luzhan
-            var session = new Session(host, port, "root", "root");
+            var session = new Session(host, port, user, passwd);
             session.open(false);
             session.open_debug_mode();
 
@@ -78,7 +78,7 @@ namespace iotdb_client_csharp.client
         }
         public void TestDeleteTimeSeries(){
             // by Luzhan
-            var session = new Session(host, port, "root", "root");
+            var session = new Session(host, port, user, passwd);
             session.open(false);
             session.open_debug_mode();
             session.delete_storage_group("root.97209_TEST_CSHARP_CLIENT_GROUP");
@@ -94,7 +94,7 @@ namespace iotdb_client_csharp.client
         }
         public void TestDeleteStorageGroups(){
             // by Luzhan
-            var session = new Session(host, port, "root", "root");
+            var session = new Session(host, port, user, passwd);
             session.open(false); 
             session.open_debug_mode();
            
