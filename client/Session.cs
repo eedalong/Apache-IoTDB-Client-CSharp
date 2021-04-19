@@ -92,6 +92,7 @@ namespace iotdb_client_csharp.client
 
             TcpClient tcp_client = new TcpClient(this.host, this.port);
             this.transport = new TFramedTransport(new TSocketTransport(tcp_client, null));
+            // this will fail remote server access
             //this.transport = new TFramedTransport(new TSocketTransport(this.host, this.port, new TConfiguration()));
             if(!transport.IsOpen){
                 try{
