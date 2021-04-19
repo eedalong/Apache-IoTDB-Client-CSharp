@@ -217,7 +217,7 @@ namespace iotdb_client_csharp.client.utils
             try{
                 var task = client.fetchResultsAsync(req);
                 task.Wait();
-                var resp = task.Result;            
+                var resp = task.Result;
                 if(resp.HasResultSet){
                     this.query_dataset = resp.QueryDataSet;
                     // reset buffer

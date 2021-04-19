@@ -15,6 +15,7 @@ namespace iotdb_client_csharp.client
         public int port = 6667;
         public string user = "root";
         public string passwd = "root";
+        public int fetch_size = 10;
         public void TestOpen(){
             Session session = new Session(host, port, user, passwd);
             session.open_debug_mode();
@@ -607,6 +608,29 @@ namespace iotdb_client_csharp.client
             session.close();
             Console.WriteLine("TestTestInsertTablets Passed!");
         }
+        void TestLargeData(){
+            var session = new Session(host, port, user, passwd, fetch_size);
+            session.open(false);
+            System.Diagnostics.Debug.Assert(session.is_open());
+            int status = 0;
+            status = session.delete_storage_group("root.97209_TEST_CSHARP_CLIENT_GROUP");
+            for(var timestamp = 0; timestamp < fetch_size * 4; timestamp++){
+                var measures = new List<string>{"TEST_CSHARP_CLIENT_TS1", "TEST_CSHARP_CLIENT_TS2"};
+                var values = new List<string>{"test_record", "test_record"};
+                status = session.insert_record("root.97209_TEST_CSHARP_CLIENT_GROUP.TEST_CSHARP_CLIENT_DEVICE", measures, values, timestamp);
+                System.Diagnostics.Debug.Assert(status == 0);
+            }
+            var res=session.execute_query_statement("select * from root.97209_TEST_CSHARP_CLIENT_GROUP.TEST_CSHARP_CLIENT_DEVICE");
+            res.show_table_names();
+            while(res.has_next()){
+                Console.WriteLine(res.next());
+            }
+            session.delete_storage_group("root.97209_TEST_CSHARP_CLIENT_GROUP");
+            System.Diagnostics.Debug.Assert(status == 0);
+            session.close();
+            Console.WriteLine("TestTestInsertTablet Passed!");
+
+        }
         static void Main(){
             SessionTest session_test = new SessionTest();
             
@@ -633,6 +657,7 @@ namespace iotdb_client_csharp.client
             session_test.TestTestInsertTablet();
             session_test.TestInsertTablets();
             session_test.TestTestInsertTablets();
+            session_test.TestLargeData();
             System.Console.WriteLine("TEST PASSED");
 
         }
