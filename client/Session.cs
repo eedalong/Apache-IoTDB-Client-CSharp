@@ -694,7 +694,7 @@ namespace iotdb_client_csharp.client
 
         public byte[] value_to_bytes(List<TSDataType> data_types, List<string> values){
 
-            ByteBuffer buffer = new ByteBuffer(new byte[]{});
+            ByteBuffer buffer = new ByteBuffer(values.Count);
             for(int i = 0;i < data_types.Count(); i++){
                 buffer.add_char((char)data_types[i]);
                 switch(data_types[i]){

@@ -69,9 +69,38 @@ namespace iotdb_client_csharp.client.utils
            }
            return buffer.get_buffer();
        }
+       public int estimate_buffer_size(){
+           var estimate_size = 0;
+           // estimate one row size
+           foreach(var data_type in data_type_lst){
+               switch(data_type){
+                    case TSDataType.BOOLEAN:
+                        estimate_size += 1;
+                        break;
+                    case TSDataType.INT32:
+                        estimate_size += 4;
+                        break;
+                    case TSDataType.INT64:
+                        estimate_size += 8;
+                        break;
+                    case TSDataType.FLOAT:
+                        estimate_size += 4;
+                        break;
+                    case TSDataType.DOUBLE:
+                        estimate_size += 8;
+                        break;
+                    case TSDataType.TEXT:
+                        estimate_size += 1;
+                        break;
+               }
+           }
+           estimate_size *= timestamp_lst.Count;
+           return estimate_size;
+       }
        
        public byte[] get_binary_values(){
-           ByteBuffer buffer = new ByteBuffer(new byte[]{});
+           var estimate_size = estimate_buffer_size();
+           ByteBuffer buffer = new ByteBuffer(estimate_size);
            for(int i = 0; i < col_number; i++){
                 switch(data_type_lst[i]){
                     case TSDataType.BOOLEAN:
