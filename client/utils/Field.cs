@@ -6,35 +6,93 @@ namespace iotdb_client_csharp.client.utils
     public class Field
     {
         // TBD By Zengz
-        private object val;
+        public object val;
         public TSDataType type{get;set;}
         public Field(TSDataType data_type){
             this.type = data_type;
+        }
+        public Field(TSDataType data_type, object val){
+            this.type = data_type;
+            this.val = val;
         }
         public void set<T>(T value){
             val = value;
         }
         public double get_double(){
-            return type==TSDataType.TEXT?double.Parse((string)val):(double)val;
+            switch(type){
+                case TSDataType.TEXT:
+                    return double.Parse((string)val);
+                case TSDataType.BOOLEAN:
+                    return (bool)val?1.0:0;
+                case TSDataType.NONE:
+                    return 0.0;
+                default:
+                    return Convert.ToDouble(val);
+                
+            }
         }
         public Int32 get_int(){
-            return type==TSDataType.TEXT?Int32.Parse((string)val):(Int32)val;
+            switch(type){
+                case TSDataType.TEXT:
+                    return Int32.Parse((string)val);
+                case TSDataType.BOOLEAN:
+                    return (bool)val?1:0;
+                case TSDataType.NONE:
+                    return 0;
+                default:
+                    return Convert.ToInt32(val);
+            }
         }
         public Int64 get_long(){
-            return type==TSDataType.TEXT?Int64.Parse((string)val):(Int64)val;
+            switch(type){
+                case TSDataType.TEXT:
+                    return Int64.Parse((string)val);
+                case TSDataType.BOOLEAN:
+                    return (bool)val?1:0;
+                case TSDataType.NONE:
+                    return 0;
+                default:
+                    return Convert.ToInt64(val);
+            }
         }
+
         public float get_float(){
-            return type==TSDataType.TEXT?float.Parse((string)val):(float)val;
+            switch(type){
+                case TSDataType.TEXT:
+                    return float.Parse((string)val);
+                case TSDataType.BOOLEAN:
+                    return (bool)val?1:0;
+                case TSDataType.NONE:
+                    return 0;
+                default:
+                    return Convert.ToSingle(val);
+            }
+        }
+        public bool get_bool(){
+            switch(type){
+                case TSDataType.TEXT:
+                    try{
+                        return Convert.ToBoolean((string)val);
+                    }
+                    catch(System.FormatException){
+                        return ((string)val).Length > 0;
+                    }
+                case TSDataType.NONE:
+                    return false;
+                default:
+                    return Convert.ToBoolean(val);
+            }
+            
         }
         public string get_str(){
             return val.ToString();
         }
-        public T get<T>(){
+        public object get(){
             switch(type){
                 case TSDataType.NONE :
-                    return (T)(object)null;
+                    return null;
                 default:
-                    return (T)val;
+                    return val;
             }
         }
         
