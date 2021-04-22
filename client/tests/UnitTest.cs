@@ -66,7 +66,7 @@ namespace iotdb_client_csharp.client.test
             double_val_get = field.get_double();
             System.Diagnostics.Debug.Assert(double_val_get == Convert.ToDouble(bool_val_set));
             
-            System.Console.WriteLine("Filed Test Passed!");
+            System.Console.WriteLine("Field Test Passed!");
         }
         public void TestRowRecord(){
             var save_datetime = DateTime.Now.ToLocalTime();
