@@ -7,7 +7,7 @@ using iotdb_client_csharp.client.utils;
 group: root.97209_TEST_CSHARP_CLIENT_GROUP
 timeseries: root.97209_TEST_CSHARP_CLIENT_GROUP.TEST_CSHARP_CLIENT_DEVICE.TEST_CSHARP_CLIENT_TSX;
 */
-namespace iotdb_client_csharp.client
+namespace iotdb_client_csharp.client.test
 {
     public class SessionTest
     {
@@ -659,12 +659,16 @@ namespace iotdb_client_csharp.client
             // large data test
             value_lst = new List<List<string>>(){};
             timestamp_lst = new List<long>(){};
+            
             for (int timestamp = 4; timestamp <= fetch_size * 4; timestamp++){
                 timestamp_lst.Add(timestamp);
                 value_lst.Add(new List<string>(){"iotdb", true.ToString(), timestamp.ToString()});
             }
             tablet = new Tablet(device_id, measurement_lst, datatype_lst, value_lst, timestamp_lst);
+            long start_ms= (DateTime.Now.Ticks / 10000);
             status = session.insert_tablet(tablet);
+            long end_ms = (DateTime.Now.Ticks / 10000);
+            Console.WriteLine(string.Format("total tablet insert time is {0}", end_ms - start_ms));
             res = session.execute_query_statement("select * from root.97209_TEST_CSHARP_CLIENT_GROUP.TEST_CSHARP_CLIENT_DEVICE");
             res.show_table_names();
             int res_count = 0;
@@ -838,6 +842,7 @@ namespace iotdb_client_csharp.client
             session.close();
             Console.WriteLine("TestTestInsertTablets Passed!");
         }
+    
         void TestLargeData(){
             var session = new Session(host, port, user, passwd, fetch_size);
             session.open(false);
@@ -858,42 +863,38 @@ namespace iotdb_client_csharp.client
                 res.next();
                 res_count += 1;
             }
-
+        
             session.delete_storage_group("root.97209_TEST_CSHARP_CLIENT_GROUP");
             System.Diagnostics.Debug.Assert(status == 0);
             System.Diagnostics.Debug.Assert(record_inserted_count == res_count);
             session.close();
             Console.WriteLine("TestTestInsertTablet Passed!");
         }
-        static void Main(){
-            SessionTest session_test = new SessionTest();
-            
-            session_test.TestOpen();
-            session_test.TestClose();
-            session_test.TestSetAndDeleteStorageGroup();
-            session_test.TestCreateTimeSeries();
-            session_test.TestDeleteTimeSeries();
-            session_test.TestCreateMultiTimeSeries();
-            session_test.TestDeleteStorageGroups();
-            session_test.TestGetTimeZone();
-            session_test.TestInsertStrRecord();
-            session_test.TestInsertRecord();
-            session_test.TestTestInsertRecord();
-            session_test.TestTestInsertRecords();
-            session_test.TestInsertRecordsOfOneDevice();
-            session_test.TestCheckTimeSeriesExists();
-            session_test.TestSetTimeZone();
-            session_test.TestDeleteData();
-            session_test.TestNonSql();
-            session_test.TestSqlQuery();
-            session_test.TestInsertRecords();
-            session_test.TestInsertTablet();
-            session_test.TestTestInsertTablet();
-            session_test.TestInsertTablets();
-            session_test.TestTestInsertTablets();
-            session_test.TestLargeData();
-            Console.WriteLine("TEST PASSED");
-
+        public void Test(){
+            TestOpen();
+            TestClose();
+            TestSetAndDeleteStorageGroup();
+            TestCreateTimeSeries();
+            TestDeleteTimeSeries();
+            TestCreateMultiTimeSeries();
+            TestDeleteStorageGroups();
+            TestGetTimeZone();
+            TestInsertStrRecord();
+            TestInsertRecord();
+            TestTestInsertRecord();
+            TestTestInsertRecords();
+            TestInsertRecordsOfOneDevice();
+            TestCheckTimeSeriesExists();
+            TestSetTimeZone();
+            TestDeleteData();
+            TestNonSql();
+            TestSqlQuery();
+            TestInsertRecords();
+            TestInsertTablet();
+            TestTestInsertTablet();
+            TestInsertTablets();
+            TestTestInsertTablets();
+            TestLargeData();     
         }
     }
 

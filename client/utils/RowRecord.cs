@@ -25,7 +25,7 @@ namespace iotdb_client_csharp.client.utils
             get => field_lst[index];
             set => field_lst[index] = value;
         }
-        public DateTime TimeStampAsDateTime(){
+        public DateTime get_date_time(){
             return DateTime.UnixEpoch.AddMilliseconds(timestamp);
         }
         public override string ToString()
