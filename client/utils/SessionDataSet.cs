@@ -106,9 +106,7 @@ namespace iotdb_client_csharp.client.utils
             foreach(var name in name_lst){
                 str += name + "\t\t";
             }
-            if(debug_mode){
-                _logger.Info(str);
-            }
+            Console.WriteLine(str);
         }
         public bool has_next(){
             if(has_catched_result){
@@ -195,9 +193,6 @@ namespace iotdb_client_csharp.client.utils
                                 break;
                             default:
                                 string err_msg = string.Format("value format not supported");
-                                if(debug_mode){
-                                    _logger.Error(err_msg);
-                                }
                                 throw new TException(err_msg, null);
                         }
                         field_lst.Add(local_field);
@@ -254,17 +249,10 @@ namespace iotdb_client_csharp.client.utils
                 var task = client.closeOperationAsync(req);
                 task.Wait();
                 var status = task.Result;
-                var message = string.Format("close session {0}, message: {1}", session_id, status.Message);
-                if(debug_mode){
-                _logger.Info(message);
-                }
             }
             catch(TException e){
                 var message = string.Format("close session {0} failed because:{1} ", session_id, e);
-                if(debug_mode){
-                    _logger.Error(message);
-                }
-                throw;
+                throw new TException(message, e);
             }
             
             

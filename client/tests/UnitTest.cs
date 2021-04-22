@@ -7,10 +7,18 @@ namespace iotdb_client_csharp.client.test
 {
     public class UnitTest
     {
+        public string host = "81.69.18.71";
+        public int port = 8888;
+        public string user = "root";
+        public string passwd = "root";
+        public int fetch_size = 5000;
+        public bool debug = false;
+
         public UnitTest(){}
         public void Test(){
             TestField();
             TestRowRecord();
+            TestSessionDataSet();
         }
         public void TestField(){
             double double_val_set = 12.3, double_val_get;
@@ -61,8 +69,8 @@ namespace iotdb_client_csharp.client.test
             System.Console.WriteLine("Filed Test Passed!");
         }
         public void TestRowRecord(){
-            var save_datetime = DateTime.Now;
-            TimeSpan ts = save_datetime - DateTime.UnixEpoch;
+            var save_datetime = DateTime.Now.ToLocalTime();
+            TimeSpan ts = save_datetime - DateTime.UnixEpoch.ToLocalTime();
             var row_reord = new RowRecord(Convert.ToInt64(ts.TotalMilliseconds), new List<Field>{});
 
             // test append
@@ -87,10 +95,10 @@ namespace iotdb_client_csharp.client.test
             var datetime = row_reord.get_date_time();
             Console.WriteLine(datetime.ToString() == save_datetime.ToString());
             System.Console.WriteLine("RowRecord Test Passed!");
+        }
 
-
-
-
+        public void TestSessionDataSet(){
+            
         }
 
 
