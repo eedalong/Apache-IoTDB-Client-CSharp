@@ -2,12 +2,15 @@ using System;
 using System.Collections.Generic;
 using Thrift;
 using System.Linq;
+using NLog;
 namespace iotdb_client_csharp.client.utils
 {
     public class SessionDataSet
     {
         private long session_id, query_id;
         private string sql;
+        private NLog.Logger _logger;
+        private bool debug_mode = false;
         List<string> column_name_lst;
         Dictionary<string, int> column_name_index_map;
         Dictionary<int, int> duplicate_location;
@@ -39,10 +42,12 @@ namespace iotdb_client_csharp.client.utils
 
         
 
-        public SessionDataSet(string sql, List<string> column_name_lst, List<string> column_type_lst, Dictionary<string, int> column_name_index, long query_id, TSIService.Client client, long session_id, TSQueryDataSet query_data_set){
+        public SessionDataSet(string sql, List<string> column_name_lst, List<string> column_type_lst, Dictionary<string, int> column_name_index, long query_id, TSIService.Client client, long session_id, TSQueryDataSet query_data_set, bool debug_mode){
             this.sql = sql;
             this.query_dataset = query_data_set;
             this.query_id = query_id;
+            this.debug_mode = debug_mode;
+            this._logger = NLog.LogManager.GetCurrentClassLogger();
             this.current_bitmap = new byte[column_name_lst.Count];
             this.column_size = column_name_lst.Count;
             this.column_name_lst = new List<string>{};
@@ -188,7 +193,6 @@ namespace iotdb_client_csharp.client.utils
                                 break;
                             default:
                                 string err_msg = string.Format("value format not supported");
-                                Console.WriteLine(err_msg);
                                 throw new TException(err_msg, null);
                         }
                         field_lst.Add(local_field);
@@ -245,13 +249,10 @@ namespace iotdb_client_csharp.client.utils
                 var task = client.closeOperationAsync(req);
                 task.Wait();
                 var status = task.Result;
-                var message = string.Format("close session {0}, message: {1}", session_id, status.Message);
-                Console.WriteLine(message);
             }
             catch(TException e){
                 var message = string.Format("close session {0} failed because:{1} ", session_id, e);
-                Console.WriteLine(message);
-                throw;
+                throw new TException(message, e);
             }
             
             
