@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Thrift;
 using Thrift.Transport;
 using Thrift.Protocol;
@@ -9,6 +10,7 @@ using Thrift.Transport.Client;
 using iotdb_client_csharp.client.utils;
 using NLog;
 using System.Net.Sockets;
+using System.Threading.Tasks;
 
 namespace iotdb_client_csharp.client
 {
@@ -358,8 +360,24 @@ namespace iotdb_client_csharp.client
                    var err_msg = String.Format("deviceIds, times, measurementsList and valueList's size should be equal");
                    throw new TException(err_msg,null);
             }
-            
-            List<byte[]> values_lst_in_bytes = new List<byte[]>();
+            var count = values_lst.Count;
+            List<byte[]> values_lst_in_bytes = new List<byte[]>(new byte[count][]);
+            ParallelOptions opts = new ParallelOptions(){};
+            opts.MaxDegreeOfParallelism = 100;
+            if(count >= 1000){
+            Parallel.For(0, count,opts, i =>{
+                var values = values_lst[i];
+                var data_types = data_types_lst[i];
+                var measurements = measurements_lst[i];
+                if(values.Count() != data_types.Count() || values.Count() != measurements.Count()){
+                    var err_msg = String.Format("deviceIds, times, measurementsList and valueList's size should be equal");
+                    throw new TException(err_msg, null);
+                }
+                var values_in_bytes = value_to_bytes(data_types, values);
+                values_lst_in_bytes[i] = values_in_bytes;
+            });
+            }
+            else {
             for(int i = 0;i < values_lst.Count(); i++){
                 var values = values_lst[i];
                 var data_types = data_types_lst[i];
@@ -369,28 +387,46 @@ namespace iotdb_client_csharp.client
                     throw new TException(err_msg, null);
                 }
                 var values_in_bytes = value_to_bytes(data_types, values);
-                values_lst_in_bytes.Add(values_in_bytes);
+                values_lst_in_bytes[i] = values_in_bytes;
             }
-
+            }
             return new TSInsertRecordsReq(sessionId, device_id, measurements_lst, values_lst_in_bytes, timestamp_lst);
         }
         public int insert_records(List<string> device_id, List<List<string>> measurements_lst, List<List<string>> values_lst, List<List<TSDataType>> data_types_lst, List<long> timestamp_lst){
             // TBD by Luzhan
-            var req = gen_insert_records_req(device_id, measurements_lst, values_lst, data_types_lst, timestamp_lst);
+            int STEP = 4000;
             TSStatus status;
-            try{
-                var task = client.insertRecordsAsync(req);
-                task.Wait();
-                status = task.Result;
+            var device_id_slice = new List<string>(){};
+            var measurements_lst_slice = new List<List<string>>(){};
+            var values_lst_slice = new List<List<string>>(){};
+            var data_types_lst_slice = new List<List<TSDataType>>(){};
+            var timestamp_lst_slice = new List<long>(){};
+            for(var i = 0; i < device_id.Count; i+= STEP){
+                int items_num = (device_id.Count - i) < STEP? (device_id.Count - i) : STEP;
+                device_id_slice = device_id.GetRange(i, items_num);
+                measurements_lst_slice = measurements_lst.GetRange(i ,items_num);
+                values_lst_slice = values_lst.GetRange(i, items_num);
+                data_types_lst_slice = data_types_lst.GetRange(i, items_num);
+                timestamp_lst_slice = timestamp_lst.GetRange(i, items_num); 
+                var req = gen_insert_records_req(device_id_slice, measurements_lst_slice, values_lst_slice, data_types_lst_slice, timestamp_lst_slice);
+                try{
+                    var task = client.insertRecordsAsync(req);
+                    task.Wait();
+                    status = task.Result;
+                }
+                catch(TException e){
+                    var err_msg = String.Format("Multiple records insertion failed");
+                    throw new TException(err_msg, e);
+                }
+                if(debug_mode){
+                    _logger.Info("insert multiple records to devices {0}, server message: {1}", device_id, status.Message);
+                }
+                if(verify_success(status) == -1){
+                    return -1;
+                }
             }
-            catch(TException e){
-                var err_msg = String.Format("Multiple records insertion failed");
-                throw new TException(err_msg, e);
-            }
-            if(debug_mode){
-                _logger.Info("insert multiple records to devices {0}, server message: {1}", device_id, status.Message);
-            }
-            return verify_success(status);
+
+            return 0;
         }
         public int test_insert_record(string device_id, List<string> measurements, List<string> values, List<TSDataType> data_types, long timestamp){
             // TBD by Luzhan
