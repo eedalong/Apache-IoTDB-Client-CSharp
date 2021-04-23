@@ -32,8 +32,7 @@ namespace iotdb_client_csharp.client
        private TFramedTransport transport;
        private NLog.Logger _logger;
        private static TSProtocolVersion protocol_version = TSProtocolVersion.IOTDB_SERVICE_PROTOCOL_V3;
-
-
+       public int SLICE_SIZE{get;set;} = 4000;
        public Session(string host, int port){
            // init success code 
            this.host = host;
@@ -394,15 +393,14 @@ namespace iotdb_client_csharp.client
         }
         public int insert_records(List<string> device_id, List<List<string>> measurements_lst, List<List<string>> values_lst, List<List<TSDataType>> data_types_lst, List<long> timestamp_lst){
             // TBD by Luzhan
-            int STEP = 4000;
             TSStatus status;
             var device_id_slice = new List<string>(){};
             var measurements_lst_slice = new List<List<string>>(){};
             var values_lst_slice = new List<List<string>>(){};
             var data_types_lst_slice = new List<List<TSDataType>>(){};
             var timestamp_lst_slice = new List<long>(){};
-            for(var i = 0; i < device_id.Count; i+= STEP){
-                int items_num = (device_id.Count - i) < STEP? (device_id.Count - i) : STEP;
+            for(var i = 0; i < device_id.Count; i+= SLICE_SIZE){
+                int items_num = (device_id.Count - i) < SLICE_SIZE? (device_id.Count - i) : SLICE_SIZE;
                 device_id_slice = device_id.GetRange(i, items_num);
                 measurements_lst_slice = measurements_lst.GetRange(i ,items_num);
                 values_lst_slice = values_lst.GetRange(i, items_num);
