@@ -10,7 +10,6 @@ namespace iotdb_client_csharp.client.utils
         private long session_id, query_id;
         private string sql;
         private NLog.Logger _logger;
-        private bool debug_mode = false;
         List<string> column_name_lst;
         Dictionary<string, int> column_name_index_map;
         Dictionary<int, int> duplicate_location;
@@ -42,11 +41,10 @@ namespace iotdb_client_csharp.client.utils
 
         
 
-        public SessionDataSet(string sql, List<string> column_name_lst, List<string> column_type_lst, Dictionary<string, int> column_name_index, long query_id, TSIService.Client client, long session_id, TSQueryDataSet query_data_set, bool debug_mode){
+        public SessionDataSet(string sql, List<string> column_name_lst, List<string> column_type_lst, Dictionary<string, int> column_name_index, long query_id, TSIService.Client client, long session_id, TSQueryDataSet query_data_set){
             this.sql = sql;
             this.query_dataset = query_data_set;
             this.query_id = query_id;
-            this.debug_mode = debug_mode;
             this._logger = NLog.LogManager.GetCurrentClassLogger();
             this.current_bitmap = new byte[column_name_lst.Count];
             this.column_size = column_name_lst.Count;
