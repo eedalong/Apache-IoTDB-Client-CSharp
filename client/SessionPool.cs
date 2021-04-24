@@ -589,7 +589,7 @@ namespace iotdb_client_csharp.client{
                 throw new TException("execute query failed", null);
             }
             client_lst.Add(client);
-            var session_dataset = new SessionDataSet(sql, resp.Columns, resp.DataTypeList, resp.ColumnNameIndexMap, resp.QueryId, client.client, client.sessionId, resp.QueryDataSet);
+            var session_dataset = new SessionDataSet(sql, resp.Columns, resp.DataTypeList, resp.ColumnNameIndexMap, resp.QueryId, client_lst, resp.QueryDataSet);
             session_dataset.fetch_size = fetch_size;
             return session_dataset;
         }
