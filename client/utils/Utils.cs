@@ -24,9 +24,7 @@ namespace iotdb_client_csharp.client.utils
             }
             if (status.Code == SUCCESS_CODE){
                 return 0;
-            }
-            Console.WriteLine(status.Message);
-            
+            }            
             return -1;
         }
         public byte[] value_to_bytes(List<TSDataType> data_types, List<string> values){

@@ -22,7 +22,6 @@ namespace iotdb_client_csharp.client{
         private bool debug_mode = false;
         private bool is_close = true;
         private ConcurentClientQueue client_lst;
-        private TFramedTransport transport;
         private NLog.Logger _logger;
         public Utils util_functions = new Utils();
         private static TSProtocolVersion protocol_version = TSProtocolVersion.IOTDB_SERVICE_PROTOCOL_V3;
@@ -58,7 +57,7 @@ namespace iotdb_client_csharp.client{
            this.pool_size = pool_size;
 
        }
-        public SessionPool(string host, int port, string username="root", string password="root", int fetch_size=10000, string zoneId = "UTC+08:00", int pool_size=8){
+        public SessionPool(string host, int port, string username="root", string password="root", int fetch_size=1000, string zoneId = "UTC+08:00", int pool_size=8){
             this.host = host;
             this.port = port;
             this.username = username;
@@ -110,8 +109,8 @@ namespace iotdb_client_csharp.client{
                 }
                 finally{
                     is_close = true;
-                    if (transport != null){
-                        transport.Close();
+                    if (client.transport != null){
+                        client.transport.Close();
                     }
                 }
             }
@@ -157,7 +156,7 @@ namespace iotdb_client_csharp.client{
             TcpClient tcp_client = new TcpClient(this.host, this.port);
             TSIService.Client client;
             long sessionId, statementId;
-            this.transport = new TFramedTransport(new TSocketTransport(tcp_client, null));
+            var transport = new TFramedTransport(new TSocketTransport(tcp_client, null));
             // this will fail remote server access
             //this.transport = new TFramedTransport(new TSocketTransport(this.host, this.port, new TConfiguration()));
             if(!transport.IsOpen){
@@ -202,6 +201,7 @@ namespace iotdb_client_csharp.client{
             return_client.client = client;
             return_client.sessionId = sessionId;
             return_client.statementId = statementId;
+            return_client.transport = transport;
             return return_client;       
         }
         public async Task<int> set_storage_group_async(string group_name){
@@ -258,6 +258,98 @@ namespace iotdb_client_csharp.client{
             client_lst.Add(client);
             return util_functions.verify_success(status, SUCCESS_CODE);
         }
+        public async Task<int> delete_storage_groups_async(List<string> group_names){
+            var client = client_lst.Take();
+
+            TSStatus status;
+            try{
+                status = await client.client.deleteStorageGroupsAsync(client.sessionId, group_names);
+                
+            }
+            catch(TException e){
+                client_lst.Add(client);
+                var err_msg = String.Format("delete storage group(s) {0} failed", group_names);
+                throw new TException(err_msg, e);           
+            }
+            if(debug_mode){
+                _logger.Info("delete storage group(s) {0} successfully, server message is {1}", group_names, status.Message);
+            }
+            client_lst.Add(client);
+            return util_functions.verify_success(status, SUCCESS_CODE);
+        }
+        public async Task<int> create_multi_time_series_async(List<string> ts_path_lst, List<TSDataType> data_type_lst, List<TSEncoding> encoding_lst, List<Compressor> compressor_lst){
+            var client = client_lst.Take();
+            var data_types = data_type_lst.ConvertAll<int>(x => (int)x);
+            var encodings = encoding_lst.ConvertAll<int>(x => (int)x);
+            var compressors = compressor_lst.ConvertAll<int>(x => (int)x);
+            TSStatus status;
+            var req = new TSCreateMultiTimeseriesReq(client.sessionId, ts_path_lst, data_types, encodings, compressors);
+            try{
+                status = await client.client.createMultiTimeseriesAsync(req);
+                
+            }
+            catch(TException e){
+                client_lst.Add(client);
+                var err_msg = String.Format("create multiple time series {0} failed", ts_path_lst);
+                throw new TException(err_msg, e);             
+            }
+            if(debug_mode){
+                _logger.Info("creating multiple time series {0}, server message is {1}", ts_path_lst, status.Message);
+            }
+            client_lst.Add(client);
+            return util_functions.verify_success(status, SUCCESS_CODE);
+        }
+        public async Task<int> delete_time_series_async(List<string> path_list){
+            TSStatus status;
+            var client = client_lst.Take();
+            try{
+                status = await client.client.deleteTimeseriesAsync(client.sessionId, path_list);
+            }
+            catch(TException e){
+                client_lst.Add(client);
+                var err_msg = String.Format("delete time series {0} failed", path_list);
+                throw new TException(err_msg, e);             
+            }
+            if(debug_mode){
+                _logger.Info("deleting multiple time series {0}, server message is {1}", path_list, status.Message);
+            }
+            client_lst.Add(client);
+            return util_functions.verify_success(status, SUCCESS_CODE);
+        }
+        public async Task<int> delete_time_series_async(string ts_path){
+            return await delete_time_series_async(new List<string>{ts_path});
+        }
+        public async Task<bool> check_time_series_exists_async(string ts_path){
+            // TBD by dalong
+            try{
+                string sql = "SHOW TIMESERIES " + ts_path;
+                var session_dataset = await execute_query_statement_async(sql);
+                return session_dataset.has_next();
+            }
+            catch(TException e){
+                var err_msg = String.Format("could not check if certain time series exists");
+                throw new TException(err_msg, e);
+            }
+        }
+        public async Task<int> delete_data_async(List<string> ts_path_lst, long start_time, long end_time){
+            var client = client_lst.Take();
+            var req = new TSDeleteDataReq(client.sessionId, ts_path_lst, start_time, end_time);
+            TSStatus status;
+            try{
+                status = await client.client.deleteDataAsync(req);
+            }
+            catch(TException e){
+                client_lst.Add(client);
+                var err_msg = String.Format("data deletion fails because");
+                throw new TException(err_msg, e);
+            }
+            if(debug_mode){
+                _logger.Info("delete data from {0}, server message is {1}", ts_path_lst, status.Message);
+            }
+            client_lst.Add(client);
+            return util_functions.verify_success(status, SUCCESS_CODE);
+        }
+
         public TSInsertRecordReq gen_insert_record_req(string device_id, List<string> measurements, List<string> values, List<TSDataType> data_types, long timestamp, long session_id){
             if(values.Count() != data_types.Count() || values.Count() != measurements.Count()){
                 var err_msg = "length of data types does not equal to length of values!";
@@ -285,6 +377,32 @@ namespace iotdb_client_csharp.client{
             }
             client_lst.Add(client);
 
+            return util_functions.verify_success(status, SUCCESS_CODE);
+        }
+         public TSInsertStringRecordReq gen_insert_str_record_req(string device_id, List<string> measurements, List<string> values, long timestamp, long session_id){
+            if(values.Count() != measurements.Count()){
+                var err_msg = "length of data types does not equal to length of values!";
+                throw new TException(err_msg, null);
+            }
+            return new TSInsertStringRecordReq(session_id, device_id, measurements, values, timestamp);
+        }
+        public async Task<int> insert_record_async(string device_id, List<string> measurements, List<string> values, long timestamp){
+
+            var client = client_lst.Take();
+            var req = gen_insert_str_record_req(device_id, measurements, values, timestamp, client.sessionId);
+            TSStatus status;
+            try{
+                status = await client.client.insertStringRecordAsync(req);
+            }
+            catch(TException e){
+                client_lst.Add(client);
+                var err_msg = String.Format("record insertion failed");
+                throw new TException(err_msg, e);
+            }
+            if(debug_mode){
+                _logger.Info("insert one record to device {0} successfully, server message is {1}", device_id, status.Message);
+            }
+            client_lst.Add(client);
             return util_functions.verify_success(status, SUCCESS_CODE);
         }
         public TSInsertRecordsReq gen_insert_records_req(List<string> device_id, List<List<string>> measurements_lst, List<List<string>> values_lst, List<List<TSDataType>> data_types_lst, List<long> timestamp_lst, long session_id){
@@ -396,6 +514,61 @@ namespace iotdb_client_csharp.client{
             }
             return util_functions.verify_success(status, SUCCESS_CODE);
         }
+        public async Task<int> insert_records_of_one_device_async(string device_id, List<long> timestamp_lst, List<List<string>> measurements_lst, List<List<TSDataType>> data_types_lst, List<List<string>> values_lst){
+            var sorted = timestamp_lst.Select((x, index) => (timestamp: x, measurements:measurements_lst[index], data_types:data_types_lst[index], values:values_lst[index])).OrderBy(x => x.timestamp).ToList();
+            List<long> sorted_timestamp_lst = sorted.Select(x => x.timestamp).ToList();
+            List<List<string>> sorted_measurements_lst = sorted.Select(x => x.measurements).ToList();
+            List<List<TSDataType>> sorted_datatye_lst = sorted.Select(x => x.data_types).ToList();
+            List<List<string>> sorted_value_lst = sorted.Select(x => x.values).ToList();
+            return await insert_records_of_one_device_sorted_async(device_id, sorted_timestamp_lst, sorted_measurements_lst, sorted_datatye_lst, sorted_value_lst);
+
+        }
+
+        public TSInsertRecordsOfOneDeviceReq gen_insert_records_of_one_device_request(string device_id, List<long> timestamp_lst, List<List<string>> measurements_lst,  List<List<string>> values_lst, List<List<TSDataType>> data_types_lst, long session_id){
+            List<byte[]> binary_value_lst = new List<byte[]>(){};
+            for(int i = 0; i < values_lst.Count(); i++){
+                List<TSDataType> data_type_values = data_types_lst[i];
+                for(int j = 0;j < data_types_lst[i].Count(); j++){
+                    var data_type_value = (int)data_types_lst[i][j];
+                }
+                if(values_lst[i].Count() != data_type_values.Count() || values_lst[i].Count() != measurements_lst[i].Count()){
+                    var err_msg = "insert records of one device error: deviceIds, times, measurementsList and valuesList's size should be equal";
+                    throw new TException(err_msg, null);
+                }
+                var value_in_bytes = util_functions.value_to_bytes(data_type_values, values_lst[i]);
+                binary_value_lst.Add(value_in_bytes);
+            }
+            return new TSInsertRecordsOfOneDeviceReq(session_id, device_id, measurements_lst, binary_value_lst, timestamp_lst);
+        }
+        public async Task<int> insert_records_of_one_device_sorted_async(string device_id, List<long> timestamp_lst, List<List<string>> measurements_lst, List<List<TSDataType>> data_types_lst, List<List<string>> values_lst){
+            var client = client_lst.Take();
+            var size = timestamp_lst.Count();
+            if(size != measurements_lst.Count() || size != data_types_lst.Count() || size != values_lst.Count()){
+                var err_msg = "insert records of one device error: types, times, measurementsList and valuesList's size should be equal";
+                throw new TException(err_msg, null);
+            }
+            if( util_functions.check_sorted(timestamp_lst)){
+                var err_msg = "insert records of one device error: timestamp not sorted";
+                throw new TException(err_msg, null);
+            }
+            var req = gen_insert_records_of_one_device_request(device_id, timestamp_lst, measurements_lst, values_lst, data_types_lst, client.sessionId);
+            TSStatus status;
+            try{
+                status = await client.client.insertRecordsOfOneDeviceAsync(req);
+            }
+            catch(TException e){
+                client_lst.Add(client);
+                var err_msg = String.Format("Sorted records of one device insertion failed");
+                throw new TException(err_msg, e);
+            }
+            if(debug_mode){
+                _logger.Info("insert records of one device, message: {0}", status.Message);
+            }
+            client_lst.Add(client);
+            return util_functions.verify_success(status, SUCCESS_CODE);
+        }
+
+
         public async Task<SessionDataSet>  execute_query_statement_async(string sql){
             TSExecuteStatementResp resp;
             TSStatus status;
