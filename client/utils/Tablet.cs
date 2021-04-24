@@ -29,6 +29,8 @@ namespace iotdb_client_csharp.client.utils
        public int row_number{get;}
        private int col_number;
 
+       private Utils util_functions = new Utils();
+
        public Tablet(string device_id, List<string> measurement_lst, List<TSDataType> data_type_lst, List<List<string>> value_lst, List<long> timestamp_lst){
             if(timestamp_lst.Count != value_lst.Count){
                 var err_msg = String.Format("Input error! len(timestamp_lst) does not equal to len(value_lst)!");
@@ -38,7 +40,7 @@ namespace iotdb_client_csharp.client.utils
                 var err_msg = string.Format("Input Error, len(measurement_lst) does not equal to len(data_type_lst)");
                 throw new TException(err_msg, null);
             }
-            if(!check_timestamp_lst_sorted(timestamp_lst)){
+            if(!util_functions.check_sorted(timestamp_lst)){
                 var sorted = timestamp_lst.Select((x, index) => (timestamp:x, values:value_lst[index])).OrderBy(x => x.timestamp).ToList();
                 this.timestamp_lst = sorted.Select(x => x.timestamp).ToList();
                 this.value_lst = sorted.Select(x => x.values).ToList();
@@ -53,15 +55,7 @@ namespace iotdb_client_csharp.client.utils
            this.row_number = timestamp_lst.Count;
            this.col_number = measurement_lst.Count;
        }
-
-       private bool check_timestamp_lst_sorted(List<long> timestamp_lst){
-           for(int index = 1; index < timestamp_lst.Count; index++){
-               if(timestamp_lst[index] < timestamp_lst[index-1]){
-                   return false;
-               }
-           }
-           return true ;
-       }
+       
        public byte[] get_binary_timestamps(){
            ByteBuffer buffer = new ByteBuffer(new byte[]{});
            foreach(var timestamp in timestamp_lst){
