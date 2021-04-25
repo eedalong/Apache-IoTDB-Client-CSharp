@@ -8,7 +8,6 @@ namespace iotdb_client_csharp.client
             // Unit Test
             UnitTest unit_test = new UnitTest();
             unit_test.Test();
-            Session Test
             SessionTest session_test = new SessionTest();
             session_test.Test();
 
