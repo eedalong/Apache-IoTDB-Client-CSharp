@@ -13,9 +13,9 @@ namespace iotdb_client_csharp.client.test
         public int port = 6667;
         public string user = "root";
         public string passwd = "root";
-        public int fetch_size = 5000;
+        public int fetch_size = 40000;
         public bool debug = false;
-        int pool_size = 50;
+        int pool_size = 20;
 
         public void Test(){
             var task = TestInsertRecord();
@@ -233,14 +233,23 @@ namespace iotdb_client_csharp.client.test
             measurements_lst = new List<List<string>>(){};
             datatype_lst = new List<List<TSDataType>>(){};
             timestamp_lst = new List<long>(){};
+            var tasks = new List<Task<int>>();
             for(int timestamp = 4;timestamp <= fetch_size * 4;timestamp++){
                 device_id.Add("root.97209_TEST_CSHARP_CLIENT_GROUP.TEST_CSHARP_CLIENT_DEVICE");
                 values_lst.Add(new List<string>(){"true", 123.ToString()});
                 measurements_lst.Add(new List<string>(){"TEST_CSHARP_CLIENT_TS1", "TEST_CSHARP_CLIENT_TS2"});
                 datatype_lst.Add(new List<TSDataType>(){TSDataType.BOOLEAN, TSDataType.INT32});
                 timestamp_lst.Add(timestamp);
+                if(timestamp % fetch_size == 0){
+                    tasks.Add(session_pool.insert_records_async(device_id, measurements_lst, values_lst, datatype_lst, timestamp_lst));
+                    device_id = new List<string>(){};
+                    values_lst = new List<List<string>>(){};
+                    measurements_lst = new List<List<string>>(){};
+                    datatype_lst = new List<List<TSDataType>>(){};
+                    timestamp_lst = new List<long>(){};
+                }
             }
-            status = await session_pool.insert_records_async(device_id, measurements_lst, values_lst, datatype_lst, timestamp_lst);
+            Task.WaitAll(tasks.ToArray());
             res = await session_pool.execute_query_statement_async("select * from root.97209_TEST_CSHARP_CLIENT_GROUP.TEST_CSHARP_CLIENT_DEVICE");
             res.show_table_names();
             int record_count = fetch_size * 4;
@@ -298,13 +307,23 @@ namespace iotdb_client_csharp.client.test
             values_lst = new List<List<string>>(){};
             datatype_lst = new List<List<TSDataType>>(){};
             timestamp_lst = new List<long>(){};
+            var tasks = new List<Task<int>>();
             for(int timestamp = 4; timestamp <= fetch_size * 4;timestamp++){
                 measurements_lst.Add(new List<string>(){"TEST_CSHARP_CLIENT_TS1", "TEST_CSHARP_CLIENT_TS2", "TEST_CSHARP_CLIENT_TS3", "TEST_CSHARP_CLIENT_TS4", "TEST_CSHARP_CLIENT_TS5", "TEST_CSHARP_CLIENT_TS6"});
                 values_lst.Add(new List<string>(){"true", 123.ToString(), 456.ToString(), 1.1.ToString(), 10001.1.ToString(), "test_record"});
                 datatype_lst.Add(new List<TSDataType>(){TSDataType.BOOLEAN, TSDataType.INT32, TSDataType.INT64, TSDataType.DOUBLE, TSDataType.FLOAT, TSDataType.TEXT});
                 timestamp_lst.Add(timestamp);
+                if(timestamp % fetch_size == 0){
+                    tasks.Add(session_pool.insert_records_of_one_device_async(device_id, timestamp_lst, measurements_lst, datatype_lst, values_lst));
+                    measurements_lst = new List<List<string>>(){};
+                    values_lst = new List<List<string>>(){};
+                    datatype_lst = new List<List<TSDataType>>(){};
+                    timestamp_lst = new List<long>(){};
+
+                }
+
             }
-            await session_pool.insert_records_of_one_device_async(device_id, timestamp_lst, measurements_lst, datatype_lst, values_lst);
+            Task.WaitAll(tasks.ToArray());
             res = await session_pool.execute_query_statement_async("select * from root.97209_TEST_CSHARP_CLIENT_GROUP.TEST_CSHARP_CLIENT_DEVICE");
             int res_count = 0;
             while(res.has_next()){
@@ -342,14 +361,20 @@ namespace iotdb_client_csharp.client.test
             // large data test
             value_lst = new List<List<string>>(){};
             timestamp_lst = new List<long>(){};
-            
+            var tasks = new List<Task<int>>();
             for (int timestamp = 4; timestamp <= fetch_size * 4; timestamp++){
                 timestamp_lst.Add(timestamp);
                 value_lst.Add(new List<string>(){"iotdb", true.ToString(), timestamp.ToString()});
+                if(timestamp % fetch_size == 0){
+                    tablet = new Tablet(device_id, measurement_lst, datatype_lst, value_lst, timestamp_lst);
+                    tasks.Add(session_pool.insert_tablet_async(tablet));
+                    value_lst = new List<List<string>>(){};
+                    timestamp_lst = new List<long>(){};
+
+                }
             }
-            tablet = new Tablet(device_id, measurement_lst, datatype_lst, value_lst, timestamp_lst);
             long start_ms= (DateTime.Now.Ticks / 10000);
-            status = await session_pool.insert_tablet_async(tablet);
+            Task.WaitAll(tasks.ToArray());
             long end_ms = (DateTime.Now.Ticks / 10000);
             Console.WriteLine(string.Format("total tablet insert time is {0}", end_ms - start_ms));
             res = await session_pool.execute_query_statement_async("select * from root.97209_TEST_CSHARP_CLIENT_GROUP.TEST_CSHARP_CLIENT_DEVICE");
@@ -405,6 +430,7 @@ namespace iotdb_client_csharp.client.test
             datatypes_lst = new List<List<TSDataType>>(){};
             timestamp_lst = new List<List<long>>(){};
             tablets = new List<Tablet>(){};
+            var tasks = new List<Task<int>>();
             for(int timestamp = 4;timestamp <= 4 * fetch_size; timestamp++){
                 device_id.Add("root.97209_TEST_CSHARP_CLIENT_GROUP.TEST_CSHARP_CLIENT_DEVICE1");
                 measurements_lst.Add(new List<string>(){"TS1", "TS2", "TS3"});
@@ -413,8 +439,18 @@ namespace iotdb_client_csharp.client.test
                 timestamp_lst.Add(new List<long>(){timestamp});
                 Tablet tablet = new Tablet(device_id[timestamp-4], measurements_lst[timestamp-4], datatypes_lst[timestamp-4], values_lst[timestamp-4], timestamp_lst[timestamp-4]);
                 tablets.Add(tablet);
+                if(timestamp % fetch_size == 0){
+                    tasks.Add(session_pool.insert_tablets_async(tablets));
+                    device_id = new List<string>(){};
+                    measurements_lst = new List<List<string>>(){};
+                    values_lst = new List<List<List<string>>>(){};
+                    datatypes_lst = new List<List<TSDataType>>(){};
+                    timestamp_lst = new List<List<long>>(){};
+                    tablets = new List<Tablet>(){};
+
+                }
             }
-            await session_pool.insert_tablets_async(tablets);
+            Task.WaitAll(tasks.ToArray()s);
             res = await session_pool.execute_query_statement_async("select * from root.97209_TEST_CSHARP_CLIENT_GROUP.TEST_CSHARP_CLIENT_DEVICE1");
             res.show_table_names();
             int res_count = 0;
