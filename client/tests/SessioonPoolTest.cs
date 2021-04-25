@@ -450,7 +450,7 @@ namespace iotdb_client_csharp.client.test
 
                 }
             }
-            Task.WaitAll(tasks.ToArray()s);
+            Task.WaitAll(tasks.ToArray());
             res = await session_pool.execute_query_statement_async("select * from root.97209_TEST_CSHARP_CLIENT_GROUP.TEST_CSHARP_CLIENT_DEVICE1");
             res.show_table_names();
             int res_count = 0;
