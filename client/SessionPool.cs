@@ -547,7 +547,7 @@ namespace iotdb_client_csharp.client{
                 var err_msg = "insert records of one device error: types, times, measurementsList and valuesList's size should be equal";
                 throw new TException(err_msg, null);
             }
-            if( util_functions.check_sorted(timestamp_lst)){
+            if(!util_functions.check_sorted(timestamp_lst)){
                 var err_msg = "insert records of one device error: timestamp not sorted";
                 throw new TException(err_msg, null);
             }
