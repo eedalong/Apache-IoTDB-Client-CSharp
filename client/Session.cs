@@ -33,6 +33,7 @@ namespace iotdb_client_csharp.client
        private NLog.Logger _logger;
        private static TSProtocolVersion protocol_version = TSProtocolVersion.IOTDB_SERVICE_PROTOCOL_V3;
        public int SLICE_SIZE{get;set;} = 4000;
+       public int num_parallel{get;set;} = 8;
        public Session(string host, int port){
            // init success code 
            this.host = host;
@@ -362,19 +363,19 @@ namespace iotdb_client_csharp.client
             var count = values_lst.Count;
             List<byte[]> values_lst_in_bytes = new List<byte[]>(new byte[count][]);
             ParallelOptions opts = new ParallelOptions(){};
-            opts.MaxDegreeOfParallelism = 100;
+            opts.MaxDegreeOfParallelism = num_parallel;
             if(count >= 1000){
-            Parallel.For(0, count,opts, i =>{
-                var values = values_lst[i];
-                var data_types = data_types_lst[i];
-                var measurements = measurements_lst[i];
-                if(values.Count() != data_types.Count() || values.Count() != measurements.Count()){
-                    var err_msg = String.Format("deviceIds, times, measurementsList and valueList's size should be equal");
-                    throw new TException(err_msg, null);
-                }
-                var values_in_bytes = value_to_bytes(data_types, values);
-                values_lst_in_bytes[i] = values_in_bytes;
-            });
+                Parallel.For(0, count,opts, i =>{
+                    var values = values_lst[i];
+                    var data_types = data_types_lst[i];
+                    var measurements = measurements_lst[i];
+                    if(values.Count() != data_types.Count() || values.Count() != measurements.Count()){
+                        var err_msg = String.Format("deviceIds, times, measurementsList and valueList's size should be equal");
+                        throw new TException(err_msg, null);
+                    }
+                    var values_in_bytes = value_to_bytes(data_types, values);
+                    values_lst_in_bytes[i] = values_in_bytes;
+                });
             }
             else {
             for(int i = 0;i < values_lst.Count(); i++){
@@ -549,18 +550,31 @@ namespace iotdb_client_csharp.client
             return true;
         }
         public TSInsertRecordsOfOneDeviceReq gen_insert_records_of_one_device_request(string device_id, List<long> timestamp_lst, List<List<string>> measurements_lst,  List<List<string>> values_lst, List<List<TSDataType>> data_types_lst){
-            List<byte[]> binary_value_lst = new List<byte[]>(){};
-            for(int i = 0; i < values_lst.Count(); i++){
-                List<TSDataType> data_type_values = data_types_lst[i];
-                for(int j = 0;j < data_types_lst[i].Count(); j++){
-                    var data_type_value = (int)data_types_lst[i][j];
+            var count = values_lst.Count;
+            List<byte[]> binary_value_lst = new List<byte[]>(new byte[count][]);
+            ParallelOptions opts = new ParallelOptions(){};
+            opts.MaxDegreeOfParallelism = num_parallel;
+            if(count >= 1000){
+                Parallel.For(0 ,count, opts, i =>{
+                    List<TSDataType> data_type_values = data_types_lst[i];
+                    if(values_lst[i].Count() != data_type_values.Count() || values_lst[i].Count() != measurements_lst[i].Count()){
+                        var err_msg = "insert records of one device error: deviceIds, times, measurementsList and valuesList's size should be equal";
+                        throw new TException(err_msg, null);
+                    }
+                    var value_in_bytes = value_to_bytes(data_type_values, values_lst[i]);
+                    binary_value_lst[i] = value_in_bytes;
+                });
+            }
+            else{
+                for(int i = 0; i < count; i++){
+                    List<TSDataType> data_type_values = data_types_lst[i];
+                    if(values_lst[i].Count() != data_type_values.Count() || values_lst[i].Count() != measurements_lst[i].Count()){
+                        var err_msg = "insert records of one device error: deviceIds, times, measurementsList and valuesList's size should be equal";
+                        throw new TException(err_msg, null);
+                    }
+                    var value_in_bytes = value_to_bytes(data_type_values, values_lst[i]);
+                    binary_value_lst[i] = value_in_bytes;
                 }
-                if(values_lst[i].Count() != data_type_values.Count() || values_lst[i].Count() != measurements_lst[i].Count()){
-                    var err_msg = "insert records of one device error: deviceIds, times, measurementsList and valuesList's size should be equal";
-                    throw new TException(err_msg, null);
-                }
-                var value_in_bytes = value_to_bytes(data_type_values, values_lst[i]);
-                binary_value_lst.Add(value_in_bytes);
             }
             return new TSInsertRecordsOfOneDeviceReq(sessionId, device_id, measurements_lst, binary_value_lst, timestamp_lst);
         }
@@ -575,21 +589,35 @@ namespace iotdb_client_csharp.client
                 var err_msg = "insert records of one device error: timestamp not sorted";
                 throw new TException(err_msg, null);
             }
-            var req = gen_insert_records_of_one_device_request(device_id, timestamp_lst, measurements_lst, values_lst, data_types_lst);
             TSStatus status;
-            try{
-                var task = client.insertRecordsOfOneDeviceAsync(req);
-                task.Wait();
-                status = task.Result;
+            var measurements_lst_slice = new List<List<string>>(){};
+            var values_lst_slice = new List<List<string>>(){};
+            var data_types_lst_slice = new List<List<TSDataType>>(){};
+            var timestamp_lst_slice = new List<long>(){};
+            for(var i = 0; i < size; i+= SLICE_SIZE){
+                int items_num = (size - i) < SLICE_SIZE? (size - i) : SLICE_SIZE;
+                measurements_lst_slice = measurements_lst.GetRange(i ,items_num);
+                values_lst_slice = values_lst.GetRange(i, items_num);
+                data_types_lst_slice = data_types_lst.GetRange(i, items_num);
+                timestamp_lst_slice = timestamp_lst.GetRange(i, items_num);
+                var req = gen_insert_records_of_one_device_request(device_id, timestamp_lst_slice, measurements_lst_slice, values_lst_slice, data_types_lst_slice);
+                try{
+                    var task = client.insertRecordsOfOneDeviceAsync(req);
+                    task.Wait();
+                    status = task.Result;
+                }
+                catch(TException e){
+                    var err_msg = String.Format("Sorted records of one device insertion failed");
+                    throw new TException(err_msg, e);
+                }
+                if(debug_mode){
+                    _logger.Info("insert records of one device, message: {0}", status.Message);
+                }
+                if(verify_success(status) == -1){
+                    return -1;
+                }
             }
-            catch(TException e){
-                var err_msg = String.Format("Sorted records of one device insertion failed");
-                throw new TException(err_msg, e);
-            }
-            if(debug_mode){
-                _logger.Info("insert records of one device, message: {0}", status.Message);
-            }
-            return verify_success(status);
+            return 0;
         }
 
         public int test_insert_tablet(Tablet tablet){
