@@ -7,10 +7,10 @@ namespace iotdb_client_csharp.client.utils
 {
     public class SessionDataSet
     {
-        private long session_id, query_id;
+        private long query_id, session_id;
+
         private string sql;
         private NLog.Logger _logger;
-        private bool debug_mode = false;
         List<string> column_name_lst;
         Dictionary<string, int> column_name_index_map;
         Dictionary<int, int> duplicate_location;
@@ -20,6 +20,7 @@ namespace iotdb_client_csharp.client.utils
         int column_size;
         List<ByteBuffer> value_buffer_lst, bitmap_buffer_lst;
         ByteBuffer time_buffer;
+        ConcurentClientQueue clientQueue;
         TSIService.Client client;
 
         private string TIMESTAMP_STR{
@@ -42,19 +43,27 @@ namespace iotdb_client_csharp.client.utils
 
         
 
-        public SessionDataSet(string sql, List<string> column_name_lst, List<string> column_type_lst, Dictionary<string, int> column_name_index, long query_id, TSIService.Client client, long session_id, TSQueryDataSet query_data_set, bool debug_mode){
+        public SessionDataSet(string sql, List<string> column_name_lst, List<string> column_type_lst, Dictionary<string, int> column_name_index, long query_id, ConcurentClientQueue clientQueue, TSQueryDataSet query_data_set){
+            this.clientQueue = clientQueue;
+            init(sql, column_name_lst, column_type_lst, column_name_index, query_id, clientQueue, query_data_set);
+
+        }
+        public SessionDataSet(string sql, List<string> column_name_lst, List<string> column_type_lst, Dictionary<string, int> column_name_index, long query_id, TSIService.Client client, long session_id, TSQueryDataSet query_data_set){
+            this.client = client;
+            this.session_id = session_id;
+            this.clientQueue = null;
+            init(sql, column_name_lst, column_type_lst, column_name_index, query_id, clientQueue, query_data_set);
+        }
+        public void init(string sql, List<string> column_name_lst, List<string> column_type_lst, Dictionary<string, int> column_name_index, long query_id, ConcurentClientQueue clientQueue, TSQueryDataSet query_data_set){
             this.sql = sql;
             this.query_dataset = query_data_set;
             this.query_id = query_id;
-            this.debug_mode = debug_mode;
             this._logger = NLog.LogManager.GetCurrentClassLogger();
             this.current_bitmap = new byte[column_name_lst.Count];
             this.column_size = column_name_lst.Count;
             this.column_name_lst = new List<string>{};
             this.column_size = column_name_lst.Count;
             this.time_buffer = new ByteBuffer(query_data_set.Time);
-            this.client = client;
-            this.session_id = session_id;
             this.column_name_index_map = new Dictionary<string, int>{};
             this.column_type_lst = new List<string>{};
             this.duplicate_location = new Dictionary<int, int>{};
@@ -91,7 +100,6 @@ namespace iotdb_client_csharp.client.utils
                 this.value_buffer_lst.Add(new ByteBuffer(query_data_set.ValueList[index]));
                 this.bitmap_buffer_lst.Add(new ByteBuffer(query_data_set.BitmapList[index]));
             }
-
 
         }
         
@@ -216,10 +224,21 @@ namespace iotdb_client_csharp.client.utils
         }
         private bool fetch_results(){
             row_index = 0;
-            var req = new TSFetchResultsReq(session_id, sql, fetch_size, query_id, true);
+            TSIService.Client local_client;
+            long local_session_id;
+            Client my_client = new Client();
+            if(clientQueue == null){
+                local_client = client;
+                local_session_id = session_id;
+            }else{
+                my_client = clientQueue.Take();
+                local_client = my_client.client;
+                local_session_id = my_client.sessionId;
+            }
+            var req = new TSFetchResultsReq(local_session_id, sql, fetch_size, query_id, true);
             req.Timeout = default_timeout;
             try{
-                var task = client.fetchResultsAsync(req);
+                var task = local_client.fetchResultsAsync(req);
                 task.Wait();
                 var resp = task.Result;
                 if(resp.HasResultSet){
@@ -235,27 +254,18 @@ namespace iotdb_client_csharp.client.utils
                     // reset row index
                     row_index = 0;
                 }
+                if(clientQueue!=null){
+                    clientQueue.Add(my_client);
+                }
                 return resp.HasResultSet;
             }
             catch(TException e){
+                if(clientQueue!=null){
+                    clientQueue.Add(my_client);
+                }
                 var message = string.Format("Cannot fetch result from server, because of network connection");
                 throw new TException(message, e);
             }
-        }
-        public void close_operation_handle(){
-            var req = new TSCloseOperationReq(session_id);
-            req.QueryId = query_id;
-            try{
-                var task = client.closeOperationAsync(req);
-                task.Wait();
-                var status = task.Result;
-            }
-            catch(TException e){
-                var message = string.Format("close session {0} failed because:{1} ", session_id, e);
-                throw new TException(message, e);
-            }
-            
-            
         }
     }
 }
