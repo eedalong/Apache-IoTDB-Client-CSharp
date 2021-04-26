@@ -84,24 +84,23 @@ namespace iotdb_client_csharp.client{
             this.debug_mode = false;
         }
 
-        public void open(bool enableRPCCompression){
+        public async Task open(bool enableRPCCompression){
             client_lst = new ConcurentClientQueue();
             for(int index = 0; index < pool_size; index++){
-                client_lst.Add(create_and_open(enableRPCCompression));
+                client_lst.Add(await create_and_open(enableRPCCompression));
             }
         }
         public bool is_open(){
             return !is_close;
         }
-        public void close(){
+        public async Task close(){
             if(is_close){
                 return;
             }
             foreach(var client in client_lst.client_queue.AsEnumerable()){
                 var req = new TSCloseSessionReq(client.sessionId);
                 try{
-                    var task = client.client.closeSessionAsync(req);
-                    task.Wait();
+                    await client.client.closeSessionAsync(req);
                 }
                 catch(TException e){
                     var message = String.Format("Error occurs when closing session at server. Maybe server is down");
@@ -115,15 +114,14 @@ namespace iotdb_client_csharp.client{
                 }
             }
         }
-        public void set_time_zone(string zoneId){
+        public async Task set_time_zone(string zoneId){
             this.zoneId = zoneId;
             foreach(var client in client_lst.client_queue.AsEnumerable()){
                 var req = new TSSetTimeZoneReq(client.sessionId, zoneId);
                 try{
-                    var task = client.client.setTimeZoneAsync(req);
-                    task.Wait();
+                    var resp = await client.client.setTimeZoneAsync(req);
                     if(debug_mode){
-                        _logger.Info("setting time zone_id as {0}, server message:{1}", zoneId, task.Result.Message);
+                        _logger.Info("setting time zone_id as {0}, server message:{1}", zoneId, resp.Message);
                     }
                 }
                 catch(TException e ){
@@ -132,16 +130,14 @@ namespace iotdb_client_csharp.client{
                 }
             }
         }
-        public string get_time_zone(){
+        public async Task<string> get_time_zone(){
             TSGetTimeZoneResp resp;
             if(zoneId != ""){
                 return zoneId;
             }
             var client = client_lst.Take();
             try{
-                var task = client.client.getTimeZoneAsync(client.sessionId);
-                task.Wait();
-                resp = task.Result;
+                resp = await client.client.getTimeZoneAsync(client.sessionId);
             }
             catch(TException e){
                 client_lst.Add(client);
@@ -152,7 +148,7 @@ namespace iotdb_client_csharp.client{
             return resp.TimeZone;
         }
 
-        public Client create_and_open(bool enableRPCCompression){          
+        public async Task<Client> create_and_open(bool enableRPCCompression){          
             TcpClient tcp_client = new TcpClient(this.host, this.port);
             TSIService.Client client;
             long sessionId, statementId;
@@ -161,8 +157,7 @@ namespace iotdb_client_csharp.client{
             //this.transport = new TFramedTransport(new TSocketTransport(this.host, this.port, new TConfiguration()));
             if(!transport.IsOpen){
                 try{
-                    var task = transport.OpenAsync(new CancellationToken());
-                    task.Wait();
+                    await transport.OpenAsync(new CancellationToken());
                 }
                 catch(TTransportException){
                     throw;
@@ -177,9 +172,7 @@ namespace iotdb_client_csharp.client{
             open_req.Username = username;
             open_req.Password = password;
             try{
-                var task = client.openSessionAsync(open_req);
-                task.Wait();
-                var open_resp = task.Result;
+                var open_resp = await client.openSessionAsync(open_req);
                 if(open_resp.ServerProtocolVersion != protocol_version){
                     var message = String.Format("Protocol Differ, Client version is {0} but Server version is {1}", protocol_version, open_resp.ServerProtocolVersion);
                     throw new TException(message, null);
@@ -188,9 +181,7 @@ namespace iotdb_client_csharp.client{
                     throw new TException("Protocol not supported", null);
                 }
                 sessionId = open_resp.SessionId;
-                var statement_task = client.requestStatementIdAsync(sessionId);
-                statement_task.Wait();
-                statementId = statement_task.Result;
+                statementId = await client.requestStatementIdAsync(sessionId);
             }
             catch(Exception){
                 transport.Close();
