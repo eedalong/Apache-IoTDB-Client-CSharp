@@ -374,7 +374,7 @@ namespace iotdb_client_csharp.client
                         var err_msg = String.Format("deviceIds, times, measurementsList and valueList's size should be equal");
                         throw new TException(err_msg, null);
                     }
-                    var values_in_bytes = value_to_bytes(data_types, values);
+                    var values_in_bytes = util_functions.value_to_bytes(data_types, values);
                     values_lst_in_bytes[i] = values_in_bytes;
                 });
             }
@@ -564,7 +564,7 @@ namespace iotdb_client_csharp.client
                         var err_msg = "insert records of one device error: deviceIds, times, measurementsList and valuesList's size should be equal";
                         throw new TException(err_msg, null);
                     }
-                    var value_in_bytes = value_to_bytes(data_type_values, values_lst[i]);
+                    var value_in_bytes = util_functions.value_to_bytes(data_type_values, values_lst[i]);
                     binary_value_lst[i] = value_in_bytes;
                 });
             }
@@ -575,7 +575,7 @@ namespace iotdb_client_csharp.client
                         var err_msg = "insert records of one device error: deviceIds, times, measurementsList and valuesList's size should be equal";
                         throw new TException(err_msg, null);
                     }
-                    var value_in_bytes = util_functions.util_functionsvalue_to_bytes(data_type_values, values_lst[i]);
+                    var value_in_bytes = util_functions.value_to_bytes(data_type_values, values_lst[i]);
                     binary_value_lst[i] = value_in_bytes;
                 }
             }
