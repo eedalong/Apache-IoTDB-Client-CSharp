@@ -61,8 +61,7 @@ namespace iotdb_client_csharp.client.utils
         }
         public byte[] value_to_bytes(List<object> values){
             // todo by Luzhan
-
-            ByteBuffer buffer = new ByteBuffer(values.Count);
+            ByteBuffer buffer = new ByteBuffer(values.Count * 8);
             foreach(var value in values){
                 if(value.GetType().Equals(typeof(bool))){
                     buffer.add_bool((bool)value);

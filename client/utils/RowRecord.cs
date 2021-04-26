@@ -29,13 +29,68 @@ namespace iotdb_client_csharp.client.utils
                 str += measurement.ToString();
             }
             str += "\n";
-            
+
             str += timestamp.ToString();
             foreach(var row_value in values){
                 str += "\t\t";
                 str += row_value.ToString();
             }
             return str;
+        }
+        public List<int> get_datatypes(){
+            List<int> data_type_values = new List<int>(){};
+            foreach(var value in values){
+                var value_type = value.GetType();
+                if(value_type.Equals(typeof(bool))){
+                    data_type_values.Add((int)TSDataType.BOOLEAN);
+                }
+                else if(value_type.Equals(typeof(Int32))){
+                    data_type_values.Add((int)TSDataType.INT32);
+                }
+                else if(value_type.Equals(typeof(Int64))){
+                    data_type_values.Add((int)TSDataType.INT64);
+                }
+                else if(value_type.Equals(typeof(float))){
+                    data_type_values.Add((int)TSDataType.FLOAT);
+                }
+                else if(value_type.Equals(typeof(double))){
+                    data_type_values.Add((int)TSDataType.DOUBLE);
+                }
+                else if(value_type.Equals(typeof(string))){
+                    data_type_values.Add((int)TSDataType.TEXT);
+                }
+            }
+            return data_type_values;
+
+        }
+        public byte[] ToBytes(){
+            ByteBuffer buffer = new ByteBuffer(values.Count * 8);
+            foreach(var value in values){
+                if(value.GetType().Equals(typeof(bool))){
+                    buffer.add_bool((bool)value);
+                }
+                else if((value.GetType().Equals(typeof(Int32)))){
+                    buffer.add_int((int)value);
+                }
+                else if((value.GetType().Equals(typeof(Int64)))){
+                    buffer.add_long((long)value);
+                }
+                else if((value.GetType().Equals(typeof(double)))){
+                    buffer.add_double((double)value);
+                }
+                else if((value.GetType().Equals(typeof(float)))){
+                    buffer.add_float((float)value);
+                }
+                else if((value.GetType().Equals(typeof(string)))){
+                    buffer.add_str((string)value);
+                }
+                else{
+                    var message = String.Format("Unsupported data type:{0}",value.GetType().ToString());
+                    throw new TException(message, null);
+                }
+            }
+            var buf = buffer.get_buffer();
+            return buf;
         }
         
 

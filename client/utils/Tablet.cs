@@ -22,13 +22,12 @@ namespace iotdb_client_csharp.client.utils
     {
        public string device_id{get;}
        public List<string> measurement_lst{get;}
-       private List<long> timestamp_lst;
-       private List<List<object>> value_lst;
-
+       public List<long> timestamp_lst;
+       public List<List<object>> value_lst;
        public int row_number{get;}
-       private int col_number;
+       public int col_number;
 
-       private Utils util_functions = new Utils();
+       public Utils util_functions = new Utils();
 
        public Tablet(string device_id, List<string> measurement_lst, List<List<object>> value_lst, List<long> timestamp_lst){
             if(timestamp_lst.Count != value_lst.Count){
@@ -57,6 +56,31 @@ namespace iotdb_client_csharp.client.utils
            }
            return buffer.get_buffer();
        }
+        public List<int> get_data_types(){
+            List<int> data_type_values = new List<int>(){};
+            foreach(var value in value_lst[0]){
+                var value_type = value.GetType();
+                if(value_type.Equals(typeof(bool))){
+                    data_type_values.Add((int)TSDataType.BOOLEAN);
+                }
+                else if(value_type.Equals(typeof(Int32))){
+                    data_type_values.Add((int)TSDataType.INT32);
+                }
+                else if(value_type.Equals(typeof(Int64))){
+                    data_type_values.Add((int)TSDataType.INT64);
+                }
+                else if(value_type.Equals(typeof(float))){
+                    data_type_values.Add((int)TSDataType.FLOAT);
+                }
+                else if(value_type.Equals(typeof(double))){
+                    data_type_values.Add((int)TSDataType.DOUBLE);
+                }
+                else if(value_type.Equals(typeof(string))){
+                    data_type_values.Add((int)TSDataType.TEXT);
+                }
+            }
+            return data_type_values;
+        }
        public int estimate_buffer_size(){
            var estimate_size = 0;
            // estimate one row size

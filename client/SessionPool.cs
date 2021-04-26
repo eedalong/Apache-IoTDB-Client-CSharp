@@ -423,12 +423,7 @@ namespace iotdb_client_csharp.client{
             return util_functions.verify_success(status, SUCCESS_CODE);
         }
         public TSInsertTabletReq gen_insert_tablet_req(Tablet tablet, long session_id){
-            List<int> data_type_values = new List<int>(){};
-            for(int i = 0; i < tablet.data_type_lst.Count(); i++){
-                var data_type_value = (int)tablet.data_type_lst[i];
-                data_type_values.Add(data_type_value);
-            }
-            return new TSInsertTabletReq(session_id, tablet.device_id, tablet.measurement_lst, tablet.get_binary_values(), tablet.get_binary_timestamps(), data_type_values, tablet.row_number);
+            return new TSInsertTabletReq(session_id, tablet.device_id, tablet.measurement_lst, tablet.get_binary_values(), tablet.get_binary_timestamps(), tablet.get_data_types(), tablet.row_number);
         }
         public async Task<int> insert_tablet_async(Tablet tablet){
             var client = client_lst.Take();
@@ -457,18 +452,14 @@ namespace iotdb_client_csharp.client{
             List<byte[]> timestamps_lst = new List<byte[]>(){};
             List<List<int>> type_lst = new List<List<int>>(){};
             List<int> size_lst = new List<int>(){};
-            for(int i = 0; i < tablet_lst.Count(); i++){
-                List<int> data_type_values = new List<int>(){};
-                for(int j = 0;j < tablet_lst[i].data_type_lst.Count(); j++){
-                    var data_type_value = (int)tablet_lst[i].data_type_lst[j];
-                    data_type_values.Add(data_type_value);
-                }
-                device_id_lst.Add(tablet_lst[i].device_id);
-                measurements_lst.Add(tablet_lst[i].measurement_lst);
-                values_lst.Add(tablet_lst[i].get_binary_values());
-                timestamps_lst.Add(tablet_lst[i].get_binary_timestamps());
+            foreach(var tablet in tablet_lst){
+                List<int> data_type_values = tablet.get_data_types();
+                device_id_lst.Add(tablet.device_id);
+                measurements_lst.Add(tablet.measurement_lst);
+                values_lst.Add(tablet.get_binary_values());
+                timestamps_lst.Add(tablet.get_binary_timestamps());
                 type_lst.Add(data_type_values);
-                size_lst.Add(tablet_lst[i].row_number);
+                size_lst.Add(tablet.row_number);
             }
             return new TSInsertTabletsReq(session_id, device_id_lst, measurements_lst, values_lst, timestamps_lst, type_lst, size_lst);
         }
@@ -489,44 +480,30 @@ namespace iotdb_client_csharp.client{
             }
             return util_functions.verify_success(status, SUCCESS_CODE);
         }
-        public async Task<int> insert_records_of_one_device_async(string device_id, List<long> timestamp_lst, List<List<string>> measurements_lst, List<List<TSDataType>> data_types_lst, List<List<string>> values_lst){
-            var sorted = timestamp_lst.Select((x, index) => (timestamp: x, measurements:measurements_lst[index], data_types:data_types_lst[index], values:values_lst[index])).OrderBy(x => x.timestamp).ToList();
-            List<long> sorted_timestamp_lst = sorted.Select(x => x.timestamp).ToList();
-            List<List<string>> sorted_measurements_lst = sorted.Select(x => x.measurements).ToList();
-            List<List<TSDataType>> sorted_datatye_lst = sorted.Select(x => x.data_types).ToList();
-            List<List<string>> sorted_value_lst = sorted.Select(x => x.values).ToList();
-            return await insert_records_of_one_device_sorted_async(device_id, sorted_timestamp_lst, sorted_measurements_lst, sorted_datatye_lst, sorted_value_lst);
+        public async Task<int> insert_records_of_one_device_async(string device_id, List<RowRecord> rowRecords){
+             
+            var sorted_row_records = rowRecords.OrderBy(x => x.timestamp).ToList();
+            return await insert_records_of_one_device_sorted_async(device_id, sorted_row_records);
 
         }
 
-        public TSInsertRecordsOfOneDeviceReq gen_insert_records_of_one_device_request(string device_id, List<long> timestamp_lst, List<List<string>> measurements_lst,  List<List<string>> values_lst, List<List<TSDataType>> data_types_lst, long session_id){
+        public TSInsertRecordsOfOneDeviceReq gen_insert_records_of_one_device_request(string device_id, List<RowRecord> rowRecords, long session_id){
             List<byte[]> binary_value_lst = new List<byte[]>(){};
-            for(int i = 0; i < values_lst.Count(); i++){
-                List<TSDataType> data_type_values = data_types_lst[i];
-                for(int j = 0;j < data_types_lst[i].Count(); j++){
-                    var data_type_value = (int)data_types_lst[i][j];
-                }
-                if(values_lst[i].Count() != data_type_values.Count() || values_lst[i].Count() != measurements_lst[i].Count()){
-                    var err_msg = "insert records of one device error: deviceIds, times, measurementsList and valuesList's size should be equal";
-                    throw new TException(err_msg, null);
-                }
-                var value_in_bytes = util_functions.value_to_bytes(data_type_values, values_lst[i]);
-                binary_value_lst.Add(value_in_bytes);
+            foreach(var row in rowRecords){
+                binary_value_lst.Add(row.ToBytes());
             }
+            var measurements_lst = rowRecords.Select(x => x.measurements).ToList();
+            var timestamp_lst = rowRecords.Select(x => x.timestamp).ToList();
             return new TSInsertRecordsOfOneDeviceReq(session_id, device_id, measurements_lst, binary_value_lst, timestamp_lst);
         }
-        public async Task<int> insert_records_of_one_device_sorted_async(string device_id, List<long> timestamp_lst, List<List<string>> measurements_lst, List<List<TSDataType>> data_types_lst, List<List<string>> values_lst){
+        public async Task<int> insert_records_of_one_device_sorted_async(string device_id, List<RowRecord> rowRecords){
             var client = client_lst.Take();
-            var size = timestamp_lst.Count();
-            if(size != measurements_lst.Count() || size != data_types_lst.Count() || size != values_lst.Count()){
-                var err_msg = "insert records of one device error: types, times, measurementsList and valuesList's size should be equal";
-                throw new TException(err_msg, null);
-            }
+            var timestamp_lst = rowRecords.Select(x => x.timestamp).ToList();
             if(!util_functions.check_sorted(timestamp_lst)){
                 var err_msg = "insert records of one device error: timestamp not sorted";
                 throw new TException(err_msg, null);
             }
-            var req = gen_insert_records_of_one_device_request(device_id, timestamp_lst, measurements_lst, values_lst, data_types_lst, client.sessionId);
+            var req = gen_insert_records_of_one_device_request(device_id,rowRecords, client.sessionId);
             TSStatus status;
             try{
                 status = await client.client.insertRecordsOfOneDeviceAsync(req);
