@@ -22,22 +22,17 @@ namespace iotdb_client_csharp.client.utils
     {
        public string device_id{get;}
        public List<string> measurement_lst{get;}
-       public List<TSDataType> data_type_lst{get;}
        private List<long> timestamp_lst;
-       private List<List<string>> value_lst;
+       private List<List<object>> value_lst;
 
        public int row_number{get;}
        private int col_number;
 
        private Utils util_functions = new Utils();
 
-       public Tablet(string device_id, List<string> measurement_lst, List<TSDataType> data_type_lst, List<List<object>> value_lst, List<long> timestamp_lst){
+       public Tablet(string device_id, List<string> measurement_lst, List<List<object>> value_lst, List<long> timestamp_lst){
             if(timestamp_lst.Count != value_lst.Count){
                 var err_msg = String.Format("Input error! len(timestamp_lst) does not equal to len(value_lst)!");
-                throw new TException(err_msg, null);
-            }
-            if(measurement_lst.Count != data_type_lst.Count){
-                var err_msg = string.Format("Input Error, len(measurement_lst) does not equal to len(data_type_lst)");
                 throw new TException(err_msg, null);
             }
             if(!util_functions.check_sorted(timestamp_lst)){
@@ -51,7 +46,6 @@ namespace iotdb_client_csharp.client.utils
            
            this.device_id = device_id;
            this.measurement_lst = measurement_lst;
-           this.data_type_lst = data_type_lst;
            this.row_number = timestamp_lst.Count;
            this.col_number = measurement_lst.Count;
        }
@@ -66,26 +60,25 @@ namespace iotdb_client_csharp.client.utils
        public int estimate_buffer_size(){
            var estimate_size = 0;
            // estimate one row size
-           foreach(var data_type in data_type_lst){
-               switch(data_type){
-                    case TSDataType.BOOLEAN:
-                        estimate_size += 1;
-                        break;
-                    case TSDataType.INT32:
-                        estimate_size += 4;
-                        break;
-                    case TSDataType.INT64:
-                        estimate_size += 8;
-                        break;
-                    case TSDataType.FLOAT:
-                        estimate_size += 4;
-                        break;
-                    case TSDataType.DOUBLE:
-                        estimate_size += 8;
-                        break;
-                    case TSDataType.TEXT:
-                        estimate_size += 1;
-                        break;
+           foreach(var value in value_lst[0]){
+               var value_type = value.GetType();
+               if(value_type.Equals(typeof(bool))){
+                   estimate_size += 1;
+               }
+               else if(value_type.Equals(typeof(Int32))){
+                    estimate_size += 4;
+               }
+               else if(value_type.Equals(typeof(Int64))){
+                    estimate_size += 8;
+               }
+               else if(value_type.Equals(typeof(float))){
+                    estimate_size += 4;
+               }
+               else if(value_type.Equals(typeof(double))){
+                    estimate_size += 8;
+               }
+               else if(value_type.Equals(typeof(string))){
+                    estimate_size += ((string)value).Length;
                }
            }
            estimate_size *= timestamp_lst.Count;
@@ -96,42 +89,41 @@ namespace iotdb_client_csharp.client.utils
            var estimate_size = estimate_buffer_size();
            ByteBuffer buffer = new ByteBuffer(estimate_size);
            for(int i = 0; i < col_number; i++){
-                switch(data_type_lst[i]){
-                    case TSDataType.BOOLEAN:
-                        for(int j=0; j< row_number; j++){
-                            buffer.add_bool(bool.Parse(value_lst[j][i]));
-                        }
-                        break;
-                    case TSDataType.INT32:
-                        for(int j=0; j<row_number; j++){
-                            buffer.add_int(int.Parse(value_lst[j][i]));
-                        }
-                        break;
-                    case TSDataType.INT64:
-                        for(int j=0; j<row_number; j++){
-                            buffer.add_long(long.Parse(value_lst[j][i]));
-                        }
-                        break;
-                    case TSDataType.FLOAT:
-                        for(int j=0; j<row_number; j++){
-                            buffer.add_float(float.Parse(value_lst[j][i]));
-                        }
-                        break;
-                    case TSDataType.DOUBLE:
-                        for(int j=0; j<row_number; j++){
-                            buffer.add_double(double.Parse(value_lst[j][i]));
-                        }
-                        break;
-                    case TSDataType.TEXT:
-
-                        for(int j=0; j<row_number; j++){
-                            buffer.add_str(value_lst[j][i]);
-                        }
-                        break;
-                    default:
-                        var message = String.Format("Unsupported data type {0}", data_type_lst[i]);
-                        throw new TException(message, null);
-                }
+               var value_type = value_lst[0][i].GetType();
+               if(value_type.Equals(typeof(bool))){
+                    for(int j=0; j< row_number; j++){
+                        buffer.add_bool((bool)value_lst[j][i]);
+                    }
+               }
+               else if(value_type.Equals(typeof(Int32))){
+                    for(int j=0; j< row_number; j++){
+                        buffer.add_int((Int32)value_lst[j][i]);
+                    }
+               }
+               else if(value_type.Equals(typeof(Int64))){
+                    for(int j=0; j< row_number; j++){
+                        buffer.add_long((Int64)value_lst[j][i]);
+                    }
+               }
+               else if(value_type.Equals(typeof(float))){
+                    for(int j=0; j< row_number; j++){
+                        buffer.add_float((float)value_lst[j][i]);
+                    }
+               }
+               else if(value_type.Equals(typeof(double))){
+                    for(int j=0; j< row_number; j++){
+                        buffer.add_double((double)value_lst[j][i]);
+                    }
+               }
+               else if(value_type.Equals(typeof(string))){
+                    for(int j=0; j< row_number; j++){
+                        buffer.add_str((string)value_lst[j][i]);
+                    }
+               }
+               else{
+                    var message = String.Format("Unsupported data type {0}", value_type);
+                    throw new TException(message, null);
+               }
            }
            var buf = buffer.get_buffer();
            return buf;

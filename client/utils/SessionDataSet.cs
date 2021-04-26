@@ -41,8 +41,6 @@ namespace iotdb_client_csharp.client.utils
         private bool has_catched_result;
         private RowRecord cached_row_record;
 
-        
-
         public SessionDataSet(string sql, List<string> column_name_lst, List<string> column_type_lst, Dictionary<string, int> column_name_index, long query_id, ConcurentClientQueue clientQueue, TSQueryDataSet query_data_set){
             this.clientQueue = clientQueue;
             init(sql, column_name_lst, column_type_lst, column_name_index, query_id, clientQueue, query_data_set);
@@ -69,8 +67,6 @@ namespace iotdb_client_csharp.client.utils
             this.duplicate_location = new Dictionary<int, int>{};
             this.value_buffer_lst = new List<ByteBuffer>{};
             this.bitmap_buffer_lst = new List<ByteBuffer>{};
-
-
             // some internal variable
             this.has_catched_result = false;
             this.row_index = 0;
@@ -160,7 +156,7 @@ namespace iotdb_client_csharp.client.utils
             }
         }
         public void construct_one_row(){
-            List<Field> field_lst = new List<Field>{};
+            List<object> field_lst = new List<Object>{};
             for(int i = 0; i < this.column_size; i++){
                 if(duplicate_location.ContainsKey(i)){
                     var field = field_lst[duplicate_location[i]];
@@ -171,33 +167,27 @@ namespace iotdb_client_csharp.client.utils
                     if(row_index % 8 == 0){
                         current_bitmap[i] = column_bitmap_buffer.get_byte();
                     }
+                    object local_field;
                     if(!is_null(i, row_index)){
                         TSDataType column_data_type = get_data_type_from_str(column_type_lst[i]);
-                        var local_field = new Field(column_data_type);
                         switch(column_data_type){
                             case TSDataType.BOOLEAN:
-                                var bool_val = column_value_buffer.get_bool();
-                                local_field.set(bool_val);
+                                local_field = column_value_buffer.get_bool();
                                 break;
                             case TSDataType.INT32:
-                                var int_val = column_value_buffer.get_int();
-                                local_field.set(int_val);
+                                local_field = column_value_buffer.get_int();
                                 break;
                             case TSDataType.INT64:
-                                var long_val = column_value_buffer.get_long();
-                                local_field.set(long_val);
+                                local_field = column_value_buffer.get_long();
                                 break;
                             case TSDataType.FLOAT:
-                                float float_val = column_value_buffer.get_float();
-                                local_field.set(float_val);
+                                local_field = column_value_buffer.get_float();
                                 break;
                             case TSDataType.DOUBLE:
-                                double double_val = column_value_buffer.get_double();
-                                local_field.set(double_val);
+                                local_field = column_value_buffer.get_double();
                                 break;
                             case TSDataType.TEXT:
-                                string str_val = column_value_buffer.get_str();
-                                local_field.set(str_val);
+                                local_field = column_value_buffer.get_str();
                                 break;
                             default:
                                 string err_msg = string.Format("value format not supported");
@@ -207,14 +197,14 @@ namespace iotdb_client_csharp.client.utils
 
                     }
                     else{
-                        var local_field = new Field(TSDataType.NONE);
+                        local_field = null;
                         field_lst.Add(local_field);
                     }
                 }
             }
             long timestamp = time_buffer.get_long();
             row_index += 1;
-            this.cached_row_record = new RowRecord(timestamp, field_lst);
+            this.cached_row_record = new RowRecord(timestamp, field_lst,column_name_lst);
         }
         private bool is_null(int loc, int row_index){
             byte bitmap = current_bitmap[loc];

@@ -350,14 +350,14 @@ namespace iotdb_client_csharp.client{
             return util_functions.verify_success(status, SUCCESS_CODE);
         }
 
-        public TSInsertRecordReq gen_insert_record_req(string device_id, List<string> measurements, List<object> values, long timestamp, long session_id){
-            var values_in_bytes = util_functions.value_to_bytes(values);
-            return new TSInsertRecordReq(session_id, device_id, measurements, values_in_bytes, timestamp);
+        public TSInsertRecordReq gen_insert_record_req(string device_id, RowRecord record,  long session_id){
+            var values_in_bytes = util_functions.value_to_bytes(record.values);
+            return new TSInsertRecordReq(session_id, device_id, record.measurements, values_in_bytes, record.timestamp);
         }
-        public async Task<int> insert_record_async(string device_id, List<string> measurements, List<object> values, long timestamp){
+        public async Task<int> insert_record_async(string device_id, RowRecord record){
             // TBD by Luzhan
             var client = client_lst.Take();
-            var req = gen_insert_record_req(device_id, measurements, values, timestamp, client.sessionId);
+            var req = gen_insert_record_req(device_id, record,client.sessionId);
             TSStatus status;
             try{
                status = await client.client.insertRecordAsync(req);

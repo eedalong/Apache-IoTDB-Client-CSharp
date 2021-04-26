@@ -6,29 +6,32 @@ namespace iotdb_client_csharp.client.utils
     public class RowRecord
     {
         public long timestamp{get;set;}
-        public List<Object> row {get;set;}
-        public RowRecord(long timestamp, List<Object> row){
+        public List<Object> values {get;set;}
+        public List<string> measurements{get;set;}
+        public RowRecord(long timestamp, List<Object> values, List<string> measurements){
             this.timestamp = timestamp;
-            this.row = row;
+            this.values = values;
+            this.measurements = measurements;
         }
-        public void append(Object value){
-            row.Add(value);
-        }
-
-        public void set_filed(int index, Object value){
-            row[index] = value;
-        }
-        public Object this[int index]{
-            get => row[index];
-            set => row[index] = value;
+        public void append(string measurement, Object value){
+            values.Add(value);
+            measurements.Add(measurement);
         }
         public DateTime get_date_time(){
             return DateTimeOffset.FromUnixTimeMilliseconds(timestamp).DateTime.ToLocalTime();;
         }
+
         public override string ToString()
         {
-            var str = timestamp.ToString();
-            foreach(var row_value in row){
+            var str = "TimeStamp";
+             foreach(var measurement in measurements){
+                str += "\t\t";
+                str += measurement.ToString();
+            }
+            str += "\n";
+            
+            str += timestamp.ToString();
+            foreach(var row_value in values){
                 str += "\t\t";
                 str += row_value.ToString();
             }
