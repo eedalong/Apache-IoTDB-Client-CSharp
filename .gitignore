@@ -3,3 +3,5 @@ obj/
 *.csproj
 .vscode/
 bin/
+nuget.config
+release-script.sh
