@@ -373,31 +373,20 @@ namespace iotdb_client_csharp.client{
             }
             return new TSInsertStringRecordReq(session_id, device_id, measurements, values, timestamp);
         }
-        public TSInsertRecordsReq gen_insert_records_req(List<string> device_id, List<List<string>> measurements_lst, List<List<object>> values_lst, List<long> timestamp_lst, long session_id){
+        public TSInsertRecordsReq gen_insert_records_req(List<string> device_id, List<RowRecord> rowRecords,long session_id){
             //TODO
-            if(device_id.Count() != timestamp_lst.Count()    || timestamp_lst.Count() != values_lst.Count()){
-                   var err_msg = String.Format("deviceIds, times, measurementsList and valueList's size should be equal");
-                   throw new TException(err_msg,null);
-            }
-            
+            var measurement_lst = rowRecords.Select(x => x.measurements).ToList();
+            var timestamp_lst = rowRecords.Select(x => x.timestamp).ToList();
             List<byte[]> values_lst_in_bytes = new List<byte[]>();
-            for(int i = 0;i < values_lst.Count(); i++){
-                var values = values_lst[i];
-                var measurements = measurements_lst[i];
-                if(values.Count() != measurements.Count()){
-                    var err_msg = String.Format("deviceIds, times, measurementsList and valueList's size should be equal");
-                    throw new TException(err_msg, null);
-                }
-                var values_in_bytes = util_functions.value_to_bytes(values);
-                values_lst_in_bytes.Add(values_in_bytes);
+            foreach(var row in rowRecords){
+                values_lst_in_bytes.Add(row.ToBytes());
             }
-
-            return new TSInsertRecordsReq(session_id, device_id, measurements_lst, values_lst_in_bytes, timestamp_lst);
+            return new TSInsertRecordsReq(session_id, device_id, measurement_lst, values_lst_in_bytes, timestamp_lst);
         }
-        public async Task<int> insert_records_async(List<string> device_id, List<List<string>> measurements_lst, List<List<object>> values_lst, List<long> timestamp_lst){
+        public async Task<int> insert_records_async(List<string> device_id,List<RowRecord> rowRecords){
            
             var client = client_lst.Take();
-            var req = gen_insert_records_req(device_id, measurements_lst, values_lst, timestamp_lst, client.sessionId);
+            var req = gen_insert_records_req(device_id, rowRecords, client.sessionId);
             TSStatus status;
             try{
                 status = await client.client.insertRecordsAsync(req);
