@@ -46,12 +46,6 @@ namespace iotdb_client_csharp.client.utils
             init(sql, column_name_lst, column_type_lst, column_name_index, query_id, clientQueue, query_data_set);
 
         }
-        public SessionDataSet(string sql, List<string> column_name_lst, List<string> column_type_lst, Dictionary<string, int> column_name_index, long query_id, TSIService.Client client, long session_id, TSQueryDataSet query_data_set){
-            this.client = client;
-            this.session_id = session_id;
-            this.clientQueue = null;
-            init(sql, column_name_lst, column_type_lst, column_name_index, query_id, clientQueue, query_data_set);
-        }
         public void init(string sql, List<string> column_name_lst, List<string> column_type_lst, Dictionary<string, int> column_name_index, long query_id, ConcurentClientQueue clientQueue, TSQueryDataSet query_data_set){
             this.sql = sql;
             this.query_dataset = query_data_set;
