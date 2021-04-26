@@ -350,18 +350,14 @@ namespace iotdb_client_csharp.client{
             return util_functions.verify_success(status, SUCCESS_CODE);
         }
 
-        public TSInsertRecordReq gen_insert_record_req(string device_id, List<string> measurements, List<string> values, List<TSDataType> data_types, long timestamp, long session_id){
-            if(values.Count() != data_types.Count() || values.Count() != measurements.Count()){
-                var err_msg = "length of data types does not equal to length of values!";
-                throw new TException(err_msg, null);
-            }
-            var values_in_bytes = util_functions.value_to_bytes(data_types, values);
+        public TSInsertRecordReq gen_insert_record_req(string device_id, List<string> measurements, List<object> values, long timestamp, long session_id){
+            var values_in_bytes = util_functions.value_to_bytes(values);
             return new TSInsertRecordReq(session_id, device_id, measurements, values_in_bytes, timestamp);
         }
-        public async Task<int> insert_record_async(string device_id, List<string> measurements, List<string> values, List<TSDataType> data_types, long timestamp){
+        public async Task<int> insert_record_async(string device_id, List<string> measurements, List<object> values, long timestamp){
             // TBD by Luzhan
             var client = client_lst.Take();
-            var req = gen_insert_record_req(device_id, measurements, values, data_types, timestamp, client.sessionId);
+            var req = gen_insert_record_req(device_id, measurements, values, timestamp, client.sessionId);
             TSStatus status;
             try{
                status = await client.client.insertRecordAsync(req);
@@ -386,29 +382,9 @@ namespace iotdb_client_csharp.client{
             }
             return new TSInsertStringRecordReq(session_id, device_id, measurements, values, timestamp);
         }
-        public async Task<int> insert_record_async(string device_id, List<string> measurements, List<string> values, long timestamp){
-
-            var client = client_lst.Take();
-            var req = gen_insert_str_record_req(device_id, measurements, values, timestamp, client.sessionId);
-            TSStatus status;
-            try{
-                status = await client.client.insertStringRecordAsync(req);
-            }
-            catch(TException e){
-                client_lst.Add(client);
-                var err_msg = String.Format("record insertion failed");
-                throw new TException(err_msg, e);
-            }
-            if(debug_mode){
-                _logger.Info("insert one record to device {0} successfully, server message is {1}", device_id, status.Message);
-            }
-            client_lst.Add(client);
-            return util_functions.verify_success(status, SUCCESS_CODE);
-        }
-        public TSInsertRecordsReq gen_insert_records_req(List<string> device_id, List<List<string>> measurements_lst, List<List<string>> values_lst, List<List<TSDataType>> data_types_lst, List<long> timestamp_lst, long session_id){
+        public TSInsertRecordsReq gen_insert_records_req(List<string> device_id, List<List<string>> measurements_lst, List<List<object>> values_lst, List<long> timestamp_lst, long session_id){
             //TODO
-            if(device_id.Count() != measurements_lst.Count() || timestamp_lst.Count() != data_types_lst.Count() || 
-               device_id.Count() != timestamp_lst.Count()    || timestamp_lst.Count() != values_lst.Count()){
+            if(device_id.Count() != timestamp_lst.Count()    || timestamp_lst.Count() != values_lst.Count()){
                    var err_msg = String.Format("deviceIds, times, measurementsList and valueList's size should be equal");
                    throw new TException(err_msg,null);
             }
@@ -416,22 +392,21 @@ namespace iotdb_client_csharp.client{
             List<byte[]> values_lst_in_bytes = new List<byte[]>();
             for(int i = 0;i < values_lst.Count(); i++){
                 var values = values_lst[i];
-                var data_types = data_types_lst[i];
                 var measurements = measurements_lst[i];
-                if(values.Count() != data_types.Count() || values.Count() != measurements.Count()){
+                if(values.Count() != measurements.Count()){
                     var err_msg = String.Format("deviceIds, times, measurementsList and valueList's size should be equal");
                     throw new TException(err_msg, null);
                 }
-                var values_in_bytes = util_functions.value_to_bytes(data_types, values);
+                var values_in_bytes = util_functions.value_to_bytes(values);
                 values_lst_in_bytes.Add(values_in_bytes);
             }
 
             return new TSInsertRecordsReq(session_id, device_id, measurements_lst, values_lst_in_bytes, timestamp_lst);
         }
-        public async Task<int> insert_records_async(List<string> device_id, List<List<string>> measurements_lst, List<List<string>> values_lst, List<List<TSDataType>> data_types_lst, List<long> timestamp_lst){
+        public async Task<int> insert_records_async(List<string> device_id, List<List<string>> measurements_lst, List<List<object>> values_lst, List<long> timestamp_lst){
            
             var client = client_lst.Take();
-            var req = gen_insert_records_req(device_id, measurements_lst, values_lst, data_types_lst, timestamp_lst, client.sessionId);
+            var req = gen_insert_records_req(device_id, measurements_lst, values_lst, timestamp_lst, client.sessionId);
             TSStatus status;
             try{
                 status = await client.client.insertRecordsAsync(req);

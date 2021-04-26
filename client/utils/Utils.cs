@@ -59,5 +59,36 @@ namespace iotdb_client_csharp.client.utils
             var buf = buffer.get_buffer();
             return buf;
         }
+        public byte[] value_to_bytes(List<object> values){
+            // todo by Luzhan
+
+            ByteBuffer buffer = new ByteBuffer(values.Count);
+            foreach(var value in values){
+                if(value.GetType().Equals(typeof(bool))){
+                    buffer.add_bool((bool)value);
+                }
+                else if((value.GetType().Equals(typeof(Int32)))){
+
+                }
+                else if((value.GetType().Equals(typeof(Int64)))){
+
+                }
+                else if((value.GetType().Equals(typeof(double)))){
+
+                }
+                else if((value.GetType().Equals(typeof(float)))){
+
+                }
+                else if((value.GetType().Equals(typeof(string)))){
+
+                }
+                else{
+                        var message = String.Format("Unsupported data type:{0}",value.GetType().ToString());
+                        throw new TException(message, null);
+                }
+            }
+            var buf = buffer.get_buffer();
+            return buf;
+        }
     }
 }

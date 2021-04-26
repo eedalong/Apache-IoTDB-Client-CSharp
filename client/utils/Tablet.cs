@@ -31,7 +31,7 @@ namespace iotdb_client_csharp.client.utils
 
        private Utils util_functions = new Utils();
 
-       public Tablet(string device_id, List<string> measurement_lst, List<TSDataType> data_type_lst, List<List<string>> value_lst, List<long> timestamp_lst){
+       public Tablet(string device_id, List<string> measurement_lst, List<TSDataType> data_type_lst, List<List<object>> value_lst, List<long> timestamp_lst){
             if(timestamp_lst.Count != value_lst.Count){
                 var err_msg = String.Format("Input error! len(timestamp_lst) does not equal to len(value_lst)!");
                 throw new TException(err_msg, null);

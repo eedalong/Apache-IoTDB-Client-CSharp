@@ -6,24 +6,21 @@ namespace iotdb_client_csharp.client.utils
     public class RowRecord
     {
         public long timestamp{get;set;}
-        public List<Field> field_lst{get;set;}
-        public RowRecord(long timestamp, List<Field> field_lst){
+        public List<Object> row {get;set;}
+        public RowRecord(long timestamp, List<Object> row){
             this.timestamp = timestamp;
-            this.field_lst = field_lst;
+            this.row = row;
         }
-        public void add_field(Field field){
-            field_lst.Add(field);
-        }
-        public void append(Field field){
-            field_lst.Add(field);
+        public void append(Object value){
+            row.Add(value);
         }
 
-        public void set_filed(int index, Field filed){
-            field_lst[index] = filed;
+        public void set_filed(int index, Object value){
+            row[index] = value;
         }
-        public Field this[int index]{
-            get => field_lst[index];
-            set => field_lst[index] = value;
+        public Object this[int index]{
+            get => row[index];
+            set => row[index] = value;
         }
         public DateTime get_date_time(){
             return DateTimeOffset.FromUnixTimeMilliseconds(timestamp).DateTime.ToLocalTime();;
@@ -31,9 +28,9 @@ namespace iotdb_client_csharp.client.utils
         public override string ToString()
         {
             var str = timestamp.ToString();
-            foreach(var field in field_lst){
+            foreach(var row_value in row){
                 str += "\t\t";
-                str += field.ToString();
+                str += row_value.ToString();
             }
             return str;
         }
