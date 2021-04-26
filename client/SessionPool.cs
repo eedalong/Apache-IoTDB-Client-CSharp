@@ -510,8 +510,6 @@ namespace iotdb_client_csharp.client{
             client_lst.Add(client);
             return util_functions.verify_success(status, SUCCESS_CODE);
         }
-
-
         public async Task<SessionDataSet>  execute_query_statement_async(string sql){
             TSExecuteStatementResp resp;
             TSStatus status;
@@ -532,7 +530,7 @@ namespace iotdb_client_csharp.client{
                 throw new TException("execute query failed", null);
             }
             client_lst.Add(client);
-            var session_dataset = new SessionDataSet(sql, resp.Columns, resp.DataTypeList, resp.ColumnNameIndexMap, resp.QueryId, client_lst, resp.QueryDataSet);
+            var session_dataset = new SessionDataSet(sql, resp, client_lst);
             session_dataset.fetch_size = fetch_size;
             return session_dataset;
         }
