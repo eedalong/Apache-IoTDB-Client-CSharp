@@ -449,12 +449,14 @@ namespace iotdb_client_csharp.client{
                
             }
             catch(TException e){
+                client_lst.Add(client);
                 var err_msg = String.Format("Multiple tablets insertion failed");
                 throw new TException(err_msg, e);
             }
             if(debug_mode){
                 _logger.Info("insert multiple tablets, message: {0}", status.Message);
             }
+            client_lst.Add(client);
             return util_functions.verify_success(status, SUCCESS_CODE);
         }
         public async Task<int> insert_records_of_one_device_async(string device_id, List<RowRecord> rowRecords){
@@ -561,12 +563,14 @@ namespace iotdb_client_csharp.client{
                 status = await client.client.testInsertTabletsAsync(req);
             }
             catch(TException e){
+                client_lst.Add(client);
                 var err_msg = String.Format("Multiple tablets insertion failed");
                 throw new TException(err_msg, e);
             }
             if(debug_mode){
                 _logger.Info("insert multiple tablets, message: {0}", status.Message);
             }
+            client_lst.Add(client);
             return util_functions.verify_success(status, SUCCESS_CODE);
         }
         public async Task<SessionDataSet>  execute_query_statement_async(string sql){

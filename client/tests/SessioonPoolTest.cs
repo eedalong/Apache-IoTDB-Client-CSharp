@@ -22,26 +22,26 @@ namespace iotdb_client_csharp.client.test
 
         public void Test(){
             
-            // var task = TestInsertRecord();
-            // task.Wait();
+             var task = TestInsertRecord();
+             task.Wait();
             
-            //var task = TestCreateMultiTimeSeries();
-            //task.Wait();
-            //task = TestGetTimeZone();
-            //task.Wait();
-            var task = TestInsertStrRecord();
+             task = TestCreateMultiTimeSeries();
+            task.Wait();
+            task = TestGetTimeZone();
+            task.Wait();
+            task = TestInsertStrRecord();
             task.Wait();
             task = TestInsertRecords();
             task.Wait();
             task = TestInsertRecordsOfOneDevice();
             task.Wait();
             
-            task = TestInsertTablet();
-            task.Wait();
+            //task = TestInsertTablet();
+            //task.Wait();
             
-            // task = TestInsertTablets();
-            // task.Wait();
-            /*
+             task = TestInsertTablets();
+             task.Wait();
+            
             task = TestSetAndDeleteStorageGroup();
             task.Wait();
             task = TestCreateTimeSeries();
@@ -52,13 +52,13 @@ namespace iotdb_client_csharp.client.test
             task.Wait();
             task = TestSetTimeZone();
             task.Wait();
-            // task = TestDeleteData();
-            // task.Wait();
+             task = TestDeleteData();
+             task.Wait();
             task = TestNonSql();
             task.Wait();
             task = TestSqlQuery();
             task.Wait();
-            */
+            
             
             
         }
