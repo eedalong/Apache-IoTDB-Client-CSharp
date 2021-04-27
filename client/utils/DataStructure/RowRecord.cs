@@ -90,6 +90,7 @@ namespace iotdb_client_csharp.client.utils
                 }
             }
             var buf = buffer.get_buffer();
+            Console.WriteLine(buf.Length);
             return buf;
         }
         

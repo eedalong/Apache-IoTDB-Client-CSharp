@@ -7,7 +7,7 @@ namespace iotdb_client_csharp.client.utils
 {
     public class SessionDataSet
     {
-        private long query_id, session_id;
+        private long query_id;
 
         private string sql;
         List<string> column_name_lst;
@@ -20,8 +20,6 @@ namespace iotdb_client_csharp.client.utils
         List<ByteBuffer> value_buffer_lst, bitmap_buffer_lst;
         ByteBuffer time_buffer;
         ConcurentClientQueue clientQueue;
-        TSIService.Client client;
-
         private string TIMESTAMP_STR{
             get{return "Time";}
         }
@@ -201,21 +199,11 @@ namespace iotdb_client_csharp.client.utils
         }
         private bool fetch_results(){
             row_index = 0;
-            TSIService.Client local_client;
-            long local_session_id;
-            Client my_client = new Client();
-            if(clientQueue == null){
-                local_client = client;
-                local_session_id = session_id;
-            }else{
-                my_client = clientQueue.Take();
-                local_client = my_client.client;
-                local_session_id = my_client.sessionId;
-            }
-            var req = new TSFetchResultsReq(local_session_id, sql, fetch_size, query_id, true);
+            var my_client = clientQueue.Take();            
+            var req = new TSFetchResultsReq(my_client.sessionId, sql, fetch_size, query_id, true);
             req.Timeout = default_timeout;
             try{
-                var task = local_client.fetchResultsAsync(req);
+                var task = my_client.client.fetchResultsAsync(req);
                 task.Wait();
                 var resp = task.Result;
                 if(resp.HasResultSet){

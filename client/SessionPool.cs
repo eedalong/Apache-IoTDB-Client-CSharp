@@ -229,6 +229,8 @@ namespace iotdb_client_csharp.client{
             if(debug_mode){
                 _logger.Info("creating time series {0} successfully, server message is {1}", ts_path, status.Message);
             }
+            client_lst.Add(client); 
+
             return util_functions.verify_success(status, SUCCESS_CODE); 
         }
         public async Task<int> delete_storage_group_async(string group_name){
@@ -340,15 +342,11 @@ namespace iotdb_client_csharp.client{
             client_lst.Add(client);
             return util_functions.verify_success(status, SUCCESS_CODE);
         }
-
-        public TSInsertRecordReq gen_insert_record_req(string device_id, RowRecord record,  long session_id){
-            var values_in_bytes = util_functions.value_to_bytes(record.values);
-            return new TSInsertRecordReq(session_id, device_id, record.measurements, values_in_bytes, record.timestamp);
-        }
         public async Task<int> insert_record_async(string device_id, RowRecord record){
             // TBD by Luzhan
             var client = client_lst.Take();
-            var req = gen_insert_record_req(device_id, record,client.sessionId);
+            var req = new TSInsertRecordReq(client.sessionId, device_id, record.measurements, record.ToBytes(), record.timestamp);
+            Console.WriteLine(req);
             TSStatus status;
             try{
                status = await client.client.insertRecordAsync(req);
@@ -501,7 +499,7 @@ namespace iotdb_client_csharp.client{
         }
         public async Task<int> test_insert_record_async(string device_id, RowRecord record){
             var client = client_lst.Take();
-            var req = gen_insert_record_req(device_id, record,client.sessionId);
+            var req = new TSInsertRecordReq(client.sessionId, device_id, record.measurements, record.ToBytes(), record.timestamp);
             TSStatus status;
             try{
                status = await client.client.testInsertRecordAsync(req);

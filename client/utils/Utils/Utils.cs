@@ -24,70 +24,9 @@ namespace iotdb_client_csharp.client.utils
             }
             if (status.Code == SUCCESS_CODE){
                 return 0;
-            }            
+            }
+            Console.WriteLine(status);            
             return -1;
-        }
-        public byte[] value_to_bytes(List<TSDataType> data_types, List<string> values){
-
-            ByteBuffer buffer = new ByteBuffer(values.Count);
-            for(int i = 0;i < data_types.Count; i++){
-                buffer.add_char((char)data_types[i]);
-                switch(data_types[i]){
-                    case TSDataType.BOOLEAN:
-                        buffer.add_bool(bool.Parse(values[i]));
-                        break;
-                    case TSDataType.INT32:
-                        buffer.add_int(int.Parse(values[i]));
-                        break;
-                    case TSDataType.INT64:
-                        buffer.add_long(long.Parse(values[i]));
-                        break;
-                    case TSDataType.FLOAT:
-                        buffer.add_float(float.Parse(values[i]));
-                        break;
-                    case TSDataType.DOUBLE:
-                        buffer.add_double(double.Parse(values[i]));
-                        break;
-                    case TSDataType.TEXT:
-                        buffer.add_str(values[i]);
-                        break;
-                    default:
-                        var message = String.Format("Unsupported data type:{0}",data_types[i]);
-                        throw new TException(message, null);
-                }
-            }
-            var buf = buffer.get_buffer();
-            return buf;
-        }
-        public byte[] value_to_bytes(List<object> values){
-            // todo by Luzhan
-            ByteBuffer buffer = new ByteBuffer(values.Count * 8);
-            foreach(var value in values){
-                if(value.GetType().Equals(typeof(bool))){
-                    buffer.add_bool((bool)value);
-                }
-                else if((value.GetType().Equals(typeof(Int32)))){
-
-                }
-                else if((value.GetType().Equals(typeof(Int64)))){
-
-                }
-                else if((value.GetType().Equals(typeof(double)))){
-
-                }
-                else if((value.GetType().Equals(typeof(float)))){
-
-                }
-                else if((value.GetType().Equals(typeof(string)))){
-
-                }
-                else{
-                        var message = String.Format("Unsupported data type:{0}",value.GetType().ToString());
-                        throw new TException(message, null);
-                }
-            }
-            var buf = buffer.get_buffer();
-            return buf;
         }
     }
 }

@@ -17,19 +17,19 @@ namespace iotdb_client_csharp.client.test
         public string passwd = "root";
         public int fetch_size = 40000;
         public int processed_size = 4;
-        public bool debug = false;
-        int pool_size = 32;
+        public bool debug = true;
+        int pool_size = 1;
 
         public void Test(){
             
             // var task = TestInsertRecord();
             // task.Wait();
             
-            var task = TestCreateMultiTimeSeries();
-            task.Wait();
-            task = TestGetTimeZone();
-            task.Wait();
-            task = TestInsertStrRecord();
+            //var task = TestCreateMultiTimeSeries();
+            //task.Wait();
+            //task = TestGetTimeZone();
+            //task.Wait();
+            var task = TestInsertStrRecord();
             task.Wait();
             //task = TestInsertRecords();
             //task.Wait();
@@ -41,6 +41,7 @@ namespace iotdb_client_csharp.client.test
             
             // task = TestInsertTablets();
             // task.Wait();
+            /*
             task = TestSetAndDeleteStorageGroup();
             task.Wait();
             task = TestCreateTimeSeries();
@@ -57,6 +58,7 @@ namespace iotdb_client_csharp.client.test
             task.Wait();
             task = TestSqlQuery();
             task.Wait();
+            */
             
             
         }
@@ -157,16 +159,17 @@ namespace iotdb_client_csharp.client.test
            System.Diagnostics.Debug.Assert(session_pool.is_open());
            await session_pool.delete_storage_group_async("root.97209_TEST_CSHARP_CLIENT_GROUP");
 
-           status = await session_pool.create_time_series_async("root.97209_TEST_CSHARP_CLIENT_GROUP.TEST_CSHARP_CLIENT_DEVICE.TEST_CSHARP_CLIENT_TS1", TSDataType.TEXT, TSEncoding.PLAIN, Compressor.UNCOMPRESSED);
-           status = await session_pool.create_time_series_async("root.97209_TEST_CSHARP_CLIENT_GROUP.TEST_CSHARP_CLIENT_DEVICE.TEST_CSHARP_CLIENT_TS2", TSDataType.TEXT, TSEncoding.PLAIN, Compressor.UNCOMPRESSED);
+           status = await session_pool.create_time_series_async("root.97209_TEST_CSHARP_CLIENT_GROUP.TEST_CSHARP_CLIENT_DEVICE.TEST_CSHARP_CLIENT_TS1", TSDataType.INT32, TSEncoding.PLAIN, Compressor.UNCOMPRESSED);
+           System.Diagnostics.Debug.Assert(status == 0);
+           status = await session_pool.create_time_series_async("root.97209_TEST_CSHARP_CLIENT_GROUP.TEST_CSHARP_CLIENT_DEVICE.TEST_CSHARP_CLIENT_TS2", TSDataType.INT32, TSEncoding.PLAIN, Compressor.UNCOMPRESSED);
            System.Diagnostics.Debug.Assert(status == 0);
 
            var measures = new List<string>{"TEST_CSHARP_CLIENT_TS1", "TEST_CSHARP_CLIENT_TS2"};
-           var values = new List<object>{"test_record", "test_record"};
+           var values = new List<object>{(Int32)1, (Int32)2};
            RowRecord rowRecord = new RowRecord(1, values, measures);
            status = await session_pool.insert_record_async("root.97209_TEST_CSHARP_CLIENT_GROUP.TEST_CSHARP_CLIENT_DEVICE", rowRecord);
            System.Diagnostics.Debug.Assert(status == 0);
-
+           return;
            var res = await session_pool.execute_query_statement_async("select * from root.97209_TEST_CSHARP_CLIENT_GROUP.TEST_CSHARP_CLIENT_DEVICE where time<2");
            res.show_table_names();
            while(res.has_next()){
