@@ -15,9 +15,9 @@ namespace iotdb_client_csharp.client.test
         public int port = 6667;
         public string user = "root";
         public string passwd = "root";
-        public int fetch_size = 40000;
+        public int fetch_size = 500;
         public int processed_size = 4;
-        public bool debug = true;
+        public bool debug = false;
         int pool_size = 1;
 
         public void Test(){
@@ -31,13 +31,13 @@ namespace iotdb_client_csharp.client.test
             //task.Wait();
             var task = TestInsertStrRecord();
             task.Wait();
-            //task = TestInsertRecords();
-            //task.Wait();
-            //task = TestInsertRecordsOfOneDevice();
-            //task.Wait();
+            task = TestInsertRecords();
+            task.Wait();
+            task = TestInsertRecordsOfOneDevice();
+            task.Wait();
             
-            // task = TestInsertTablet();
-            // task.Wait();
+            task = TestInsertTablet();
+            task.Wait();
             
             // task = TestInsertTablets();
             // task.Wait();
@@ -169,7 +169,6 @@ namespace iotdb_client_csharp.client.test
            RowRecord rowRecord = new RowRecord(1, values, measures);
            status = await session_pool.insert_record_async("root.97209_TEST_CSHARP_CLIENT_GROUP.TEST_CSHARP_CLIENT_DEVICE", rowRecord);
            System.Diagnostics.Debug.Assert(status == 0);
-           return;
            var res = await session_pool.execute_query_statement_async("select * from root.97209_TEST_CSHARP_CLIENT_GROUP.TEST_CSHARP_CLIENT_DEVICE where time<2");
            res.show_table_names();
            while(res.has_next()){
@@ -240,7 +239,7 @@ namespace iotdb_client_csharp.client.test
                 rowRecords.Add(rowRecord);
             }
             status = await session_pool.insert_records_async(device_id, rowRecords);
-            // System.Diagnostics.Debug.Assert(status == 0);
+            System.Diagnostics.Debug.Assert(status == 0);
             var res= await session_pool.execute_query_statement_async("select * from root.97209_TEST_CSHARP_CLIENT_GROUP.TEST_CSHARP_CLIENT_DEVICE where time<10");
             res.show_table_names();
             while(res.has_next()){

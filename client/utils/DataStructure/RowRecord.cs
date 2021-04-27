@@ -67,21 +67,27 @@ namespace iotdb_client_csharp.client.utils
             ByteBuffer buffer = new ByteBuffer(values.Count * 8);
             foreach(var value in values){
                 if(value.GetType().Equals(typeof(bool))){
+                    buffer.add_char((char)TSDataType.BOOLEAN);
                     buffer.add_bool((bool)value);
                 }
                 else if((value.GetType().Equals(typeof(Int32)))){
+                    buffer.add_char((char)TSDataType.INT32);
                     buffer.add_int((int)value);
                 }
                 else if((value.GetType().Equals(typeof(Int64)))){
+                    buffer.add_char((char)TSDataType.INT64);
                     buffer.add_long((long)value);
                 }
                 else if((value.GetType().Equals(typeof(double)))){
+                    buffer.add_char((char)TSDataType.DOUBLE);
                     buffer.add_double((double)value);
                 }
                 else if((value.GetType().Equals(typeof(float)))){
+                    buffer.add_char((char)TSDataType.FLOAT);
                     buffer.add_float((float)value);
                 }
                 else if((value.GetType().Equals(typeof(string)))){
+                    buffer.add_char((char)TSDataType.TEXT);
                     buffer.add_str((string)value);
                 }
                 else{
@@ -90,7 +96,6 @@ namespace iotdb_client_csharp.client.utils
                 }
             }
             var buf = buffer.get_buffer();
-            Console.WriteLine(buf.Length);
             return buf;
         }
         

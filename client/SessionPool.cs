@@ -346,7 +346,6 @@ namespace iotdb_client_csharp.client{
             // TBD by Luzhan
             var client = client_lst.Take();
             var req = new TSInsertRecordReq(client.sessionId, device_id, record.measurements, record.ToBytes(), record.timestamp);
-            Console.WriteLine(req);
             TSStatus status;
             try{
                status = await client.client.insertRecordAsync(req);
@@ -590,6 +589,7 @@ namespace iotdb_client_csharp.client{
                 throw new TException("execute query failed", null);
             }
             client_lst.Add(client);
+            
             var session_dataset = new SessionDataSet(sql, resp, client_lst);
             session_dataset.fetch_size = fetch_size;
             return session_dataset;

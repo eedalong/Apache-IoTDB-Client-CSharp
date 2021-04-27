@@ -60,10 +60,10 @@ namespace iotdb_client_csharp.client.utils
                     this.column_name_lst.Add("");
                     this.column_type_lst.Add("");
                 }
-                for(var index = 0; index < column_name_lst.Count; index++){
-                    var name = column_name_lst[index];
+                for(var index = 0; index < resp.Columns.Count; index++){
+                    var name = resp.Columns[index];
                     this.column_name_lst[resp.ColumnNameIndexMap[name]] = name;
-                    this.column_type_lst[resp.ColumnNameIndexMap[name]] = column_type_lst[index];
+                    this.column_type_lst[resp.ColumnNameIndexMap[name]] = resp.DataTypeList[index];
                     
                 }
             }else{
@@ -155,6 +155,9 @@ namespace iotdb_client_csharp.client.utils
                     object local_field;
                     if(!is_null(i, row_index)){
                         TSDataType column_data_type = get_data_type_from_str(column_type_lst[i]);
+                        
+
+
                         switch(column_data_type){
                             case TSDataType.BOOLEAN:
                                 local_field = column_value_buffer.get_bool();
@@ -183,7 +186,7 @@ namespace iotdb_client_csharp.client.utils
                     }
                     else{
                         local_field = null;
-                        field_lst.Add(local_field);
+                        field_lst.Add("NULL");
                     }
                 }
             }

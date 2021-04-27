@@ -25,7 +25,6 @@ namespace iotdb_client_csharp.client.utils
             if (status.Code == SUCCESS_CODE){
                 return 0;
             }
-            Console.WriteLine(status);            
             return -1;
         }
     }
