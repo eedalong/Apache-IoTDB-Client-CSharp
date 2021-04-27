@@ -499,6 +499,79 @@ namespace iotdb_client_csharp.client{
             client_lst.Add(client);
             return util_functions.verify_success(status, SUCCESS_CODE);
         }
+        public async Task<int> test_insert_record_async(string device_id, RowRecord record){
+            var client = client_lst.Take();
+            var req = gen_insert_record_req(device_id, record,client.sessionId);
+            TSStatus status;
+            try{
+               status = await client.client.testInsertRecordAsync(req);
+            }
+            catch(TException e){
+                client_lst.Add(client);
+                Console.WriteLine(e);
+                var err_msg = String.Format("Record insertion failed");
+                throw new TException(err_msg, e);
+            }
+            if(debug_mode){
+                _logger.Info("insert one record to device {0}， server message: {1}", device_id, status.Message);
+            }
+            client_lst.Add(client);
+
+            return util_functions.verify_success(status, SUCCESS_CODE);
+        }
+        public async Task<int> test_insert_records_async(List<string> device_id,List<RowRecord> rowRecords){
+            var client = client_lst.Take();
+            var req = gen_insert_records_req(device_id, rowRecords, client.sessionId);
+            TSStatus status;
+            try{
+                status = await client.client.testInsertRecordsAsync(req);
+            }
+            catch(TException e){
+                client_lst.Add(client);
+                var err_msg = String.Format("Multiple records insertion failed");
+                throw new TException(err_msg, e);
+            }
+            if(debug_mode){
+                _logger.Info("insert multiple records to devices {0}, server message: {1}", device_id, status.Message);
+            }
+            client_lst.Add(client);
+            return util_functions.verify_success(status, SUCCESS_CODE);
+        }
+        public async Task<int> test_insert_tablet_async(Tablet tablet){
+            var client = client_lst.Take();
+            var req = gen_insert_tablet_req(tablet, client.sessionId);
+            TSStatus status;
+            try{
+                status = await client.client.testInsertTabletAsync(req);
+            }
+            catch(TException e){
+                client_lst.Add(client);
+                var err_msg = String.Format("Tablet insertion failed");
+                throw new TException(err_msg, e);
+            }
+            if(debug_mode){
+                _logger.Info("insert one tablet to device {0}, server message: {1}", tablet.device_id, status.Message);
+            }       
+            client_lst.Add(client);     
+            
+            return util_functions.verify_success(status, SUCCESS_CODE);
+        }
+        public async Task<int> test_insert_tablets_async(List<Tablet> tablet_lst){
+            var client = client_lst.Take();
+            var req = gen_insert_tablets_req(tablet_lst, client.sessionId);
+            TSStatus status;
+            try{
+                status = await client.client.testInsertTabletsAsync(req);
+            }
+            catch(TException e){
+                var err_msg = String.Format("Multiple tablets insertion failed");
+                throw new TException(err_msg, e);
+            }
+            if(debug_mode){
+                _logger.Info("insert multiple tablets, message: {0}", status.Message);
+            }
+            return util_functions.verify_success(status, SUCCESS_CODE);
+        }
         public async Task<SessionDataSet>  execute_query_statement_async(string sql){
             TSExecuteStatementResp resp;
             TSStatus status;
