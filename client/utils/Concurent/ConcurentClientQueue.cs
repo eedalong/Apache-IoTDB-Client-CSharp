@@ -1,8 +1,6 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
-using System;
-using iotdb_client_csharp.client.utils;
 
 namespace iotdb_client_csharp.client.utils
 {

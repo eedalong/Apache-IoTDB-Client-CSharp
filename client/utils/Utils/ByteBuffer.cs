@@ -1,7 +1,5 @@
 using System;
 using System.Linq;
-using System.Collections.Generic;
-using System.Net;
 namespace iotdb_client_csharp.client.utils
 {
     public class ByteBuffer

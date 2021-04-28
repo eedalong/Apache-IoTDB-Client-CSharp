@@ -1,16 +1,14 @@
 using System;
 using System.Collections.Generic;
 using Thrift;
-using System.Linq;
-using NLog;
+using System.Threading.Tasks;
 namespace iotdb_client_csharp.client.utils
 {
     public class SessionDataSet
     {
-        private long query_id, session_id;
+        private long query_id;
 
         private string sql;
-        private NLog.Logger _logger;
         List<string> column_name_lst;
         Dictionary<string, int> column_name_index_map;
         Dictionary<int, int> duplicate_location;
@@ -21,8 +19,6 @@ namespace iotdb_client_csharp.client.utils
         List<ByteBuffer> value_buffer_lst, bitmap_buffer_lst;
         ByteBuffer time_buffer;
         ConcurentClientQueue clientQueue;
-        TSIService.Client client;
-
         private string TIMESTAMP_STR{
             get{return "Time";}
         }
@@ -40,54 +36,39 @@ namespace iotdb_client_csharp.client.utils
 
         private bool has_catched_result;
         private RowRecord cached_row_record;
+        private bool is_closed = false;
 
-        
-
-        public SessionDataSet(string sql, List<string> column_name_lst, List<string> column_type_lst, Dictionary<string, int> column_name_index, long query_id, ConcurentClientQueue clientQueue, TSQueryDataSet query_data_set){
+        public SessionDataSet(string sql, TSExecuteStatementResp resp,ConcurentClientQueue clientQueue){
             this.clientQueue = clientQueue;
-            init(sql, column_name_lst, column_type_lst, column_name_index, query_id, clientQueue, query_data_set);
-
-        }
-        public SessionDataSet(string sql, List<string> column_name_lst, List<string> column_type_lst, Dictionary<string, int> column_name_index, long query_id, TSIService.Client client, long session_id, TSQueryDataSet query_data_set){
-            this.client = client;
-            this.session_id = session_id;
-            this.clientQueue = null;
-            init(sql, column_name_lst, column_type_lst, column_name_index, query_id, clientQueue, query_data_set);
-        }
-        public void init(string sql, List<string> column_name_lst, List<string> column_type_lst, Dictionary<string, int> column_name_index, long query_id, ConcurentClientQueue clientQueue, TSQueryDataSet query_data_set){
             this.sql = sql;
-            this.query_dataset = query_data_set;
-            this.query_id = query_id;
-            this._logger = NLog.LogManager.GetCurrentClassLogger();
-            this.current_bitmap = new byte[column_name_lst.Count];
-            this.column_size = column_name_lst.Count;
+            this.query_dataset = resp.QueryDataSet;
+            this.query_id = resp.QueryId;
+            this.column_size = resp.Columns.Count;
+            this.current_bitmap = new byte[this.column_size];
             this.column_name_lst = new List<string>{};
-            this.column_size = column_name_lst.Count;
-            this.time_buffer = new ByteBuffer(query_data_set.Time);
+            this.time_buffer = new ByteBuffer(query_dataset.Time);
             this.column_name_index_map = new Dictionary<string, int>{};
             this.column_type_lst = new List<string>{};
             this.duplicate_location = new Dictionary<int, int>{};
             this.value_buffer_lst = new List<ByteBuffer>{};
             this.bitmap_buffer_lst = new List<ByteBuffer>{};
-
-
             // some internal variable
             this.has_catched_result = false;
             this.row_index = 0;
-            if(column_name_index != null){
-                for(var index = 0; index < column_name_lst.Count; index++){
+            if(resp.ColumnNameIndexMap != null){
+                for(var index = 0; index < resp.Columns.Count; index++){
                     this.column_name_lst.Add("");
                     this.column_type_lst.Add("");
                 }
-                for(var index = 0; index < column_name_lst.Count; index++){
-                    var name = column_name_lst[index];
-                    this.column_name_lst[column_name_index[name]] = name;
-                    this.column_type_lst[column_name_index[name]] = column_type_lst[index];
+                for(var index = 0; index < resp.Columns.Count; index++){
+                    var name = resp.Columns[index];
+                    this.column_name_lst[resp.ColumnNameIndexMap[name]] = name;
+                    this.column_type_lst[resp.ColumnNameIndexMap[name]] = resp.DataTypeList[index];
                     
                 }
             }else{
-                this.column_name_lst = column_name_lst;
-                this.column_type_lst = column_type_lst;
+                this.column_name_lst = resp.Columns;
+                this.column_type_lst = resp.DataTypeList;
             }
         
             for(int index = 0; index < this.column_name_lst.Count; index++){
@@ -97,8 +78,8 @@ namespace iotdb_client_csharp.client.utils
                 }else{
                     this.column_name_index_map[column_name] = index;
                 }
-                this.value_buffer_lst.Add(new ByteBuffer(query_data_set.ValueList[index]));
-                this.bitmap_buffer_lst.Add(new ByteBuffer(query_data_set.BitmapList[index]));
+                this.value_buffer_lst.Add(new ByteBuffer(this.query_dataset.ValueList[index]));
+                this.bitmap_buffer_lst.Add(new ByteBuffer(this.query_dataset.BitmapList[index]));
             }
 
         }
@@ -160,7 +141,7 @@ namespace iotdb_client_csharp.client.utils
             }
         }
         public void construct_one_row(){
-            List<Field> field_lst = new List<Field>{};
+            List<object> field_lst = new List<Object>{};
             for(int i = 0; i < this.column_size; i++){
                 if(duplicate_location.ContainsKey(i)){
                     var field = field_lst[duplicate_location[i]];
@@ -171,33 +152,30 @@ namespace iotdb_client_csharp.client.utils
                     if(row_index % 8 == 0){
                         current_bitmap[i] = column_bitmap_buffer.get_byte();
                     }
+                    object local_field;
                     if(!is_null(i, row_index)){
                         TSDataType column_data_type = get_data_type_from_str(column_type_lst[i]);
-                        var local_field = new Field(column_data_type);
+                        
+
+
                         switch(column_data_type){
                             case TSDataType.BOOLEAN:
-                                var bool_val = column_value_buffer.get_bool();
-                                local_field.set(bool_val);
+                                local_field = column_value_buffer.get_bool();
                                 break;
                             case TSDataType.INT32:
-                                var int_val = column_value_buffer.get_int();
-                                local_field.set(int_val);
+                                local_field = column_value_buffer.get_int();
                                 break;
                             case TSDataType.INT64:
-                                var long_val = column_value_buffer.get_long();
-                                local_field.set(long_val);
+                                local_field = column_value_buffer.get_long();
                                 break;
                             case TSDataType.FLOAT:
-                                float float_val = column_value_buffer.get_float();
-                                local_field.set(float_val);
+                                local_field = column_value_buffer.get_float();
                                 break;
                             case TSDataType.DOUBLE:
-                                double double_val = column_value_buffer.get_double();
-                                local_field.set(double_val);
+                                local_field = column_value_buffer.get_double();
                                 break;
                             case TSDataType.TEXT:
-                                string str_val = column_value_buffer.get_str();
-                                local_field.set(str_val);
+                                local_field = column_value_buffer.get_str();
                                 break;
                             default:
                                 string err_msg = string.Format("value format not supported");
@@ -207,14 +185,14 @@ namespace iotdb_client_csharp.client.utils
 
                     }
                     else{
-                        var local_field = new Field(TSDataType.NONE);
-                        field_lst.Add(local_field);
+                        local_field = null;
+                        field_lst.Add("NULL");
                     }
                 }
             }
             long timestamp = time_buffer.get_long();
             row_index += 1;
-            this.cached_row_record = new RowRecord(timestamp, field_lst);
+            this.cached_row_record = new RowRecord(timestamp, field_lst,column_name_lst);
         }
         private bool is_null(int loc, int row_index){
             byte bitmap = current_bitmap[loc];
@@ -224,21 +202,11 @@ namespace iotdb_client_csharp.client.utils
         }
         private bool fetch_results(){
             row_index = 0;
-            TSIService.Client local_client;
-            long local_session_id;
-            Client my_client = new Client();
-            if(clientQueue == null){
-                local_client = client;
-                local_session_id = session_id;
-            }else{
-                my_client = clientQueue.Take();
-                local_client = my_client.client;
-                local_session_id = my_client.sessionId;
-            }
-            var req = new TSFetchResultsReq(local_session_id, sql, fetch_size, query_id, true);
+            var my_client = clientQueue.Take();            
+            var req = new TSFetchResultsReq(my_client.sessionId, sql, fetch_size, query_id, true);
             req.Timeout = default_timeout;
             try{
-                var task = local_client.fetchResultsAsync(req);
+                var task = my_client.client.fetchResultsAsync(req);
                 task.Wait();
                 var resp = task.Result;
                 if(resp.HasResultSet){
@@ -265,6 +233,20 @@ namespace iotdb_client_csharp.client.utils
                 }
                 var message = string.Format("Cannot fetch result from server, because of network connection");
                 throw new TException(message, e);
+            }
+        }
+        public async Task close(){
+            if(!is_closed){
+                var my_client = clientQueue.Take();
+                var req = new TSCloseOperationReq(sessionId:my_client.sessionId){QueryId=query_id};
+                try{
+                    await my_client.client.closeOperationAsync(req);
+                }catch(TException e){
+                    clientQueue.Add(my_client);
+                    throw new TException("Operation Handle Close Failed", e);
+                }
+                clientQueue.Add(my_client);
+
             }
         }
     }

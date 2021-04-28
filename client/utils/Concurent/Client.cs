@@ -1,5 +1,3 @@
-using Thrift;
-using Thrift.Protocol;
 using Thrift.Transport;
 
 
