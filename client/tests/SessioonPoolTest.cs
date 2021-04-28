@@ -8,9 +8,7 @@ namespace iotdb_client_csharp.client.test
     public class SessionPoolTest
     {
         public string host = "localhost";
-        //public string host = "81.69.18.71";
         public int port = 8888;
-        //public int port = 6667;
         public string user = "root";
         public string passwd = "root";
         public int fetch_size = 5000;
