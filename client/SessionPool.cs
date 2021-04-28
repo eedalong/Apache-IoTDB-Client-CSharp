@@ -10,7 +10,6 @@ using iotdb_client_csharp.client.utils;
 using NLog;
 using System.Net.Sockets;
 using System.Threading.Tasks;
-using System.Collections.Concurrent;
 namespace iotdb_client_csharp.client{
     public class SessionPool{
         private string username, password, zoneId, host;

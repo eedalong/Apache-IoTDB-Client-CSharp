@@ -1,6 +1,4 @@
 using System.Collections.Generic;
-using System;
-using Thrift;
 namespace iotdb_client_csharp.client.utils
 {
     public class Utils

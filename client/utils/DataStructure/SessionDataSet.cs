@@ -1,8 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Thrift;
-using System.Linq;
-using NLog;
+using System.Threading.Tasks;
 namespace iotdb_client_csharp.client.utils
 {
     public class SessionDataSet
@@ -37,6 +36,7 @@ namespace iotdb_client_csharp.client.utils
 
         private bool has_catched_result;
         private RowRecord cached_row_record;
+        private bool is_closed = false;
 
         public SessionDataSet(string sql, TSExecuteStatementResp resp,ConcurentClientQueue clientQueue){
             this.clientQueue = clientQueue;
@@ -233,6 +233,20 @@ namespace iotdb_client_csharp.client.utils
                 }
                 var message = string.Format("Cannot fetch result from server, because of network connection");
                 throw new TException(message, e);
+            }
+        }
+        public async Task close(){
+            if(!is_closed){
+                var my_client = clientQueue.Take();
+                var req = new TSCloseOperationReq(sessionId:my_client.sessionId){QueryId=query_id};
+                try{
+                    await my_client.client.closeOperationAsync(req);
+                }catch(TException e){
+                    clientQueue.Add(my_client);
+                    throw new TException("Operation Handle Close Failed", e);
+                }
+                clientQueue.Add(my_client);
+
             }
         }
     }
