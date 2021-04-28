@@ -152,8 +152,6 @@ namespace iotdb_client_csharp.client{
             TSIService.Client client;
             long sessionId, statementId;
             var transport = new TFramedTransport(new TSocketTransport(tcp_client, null));
-            // this will fail remote server access
-            //this.transport = new TFramedTransport(new TSocketTransport(this.host, this.port, new TConfiguration()));
             if(!transport.IsOpen){
                 try{
                     await transport.OpenAsync(new CancellationToken());
