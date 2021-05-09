@@ -11,10 +11,10 @@ namespace iotdb_client_csharp.client.test
         public int port = 6667;
         public string user = "root";
         public string passwd = "root";
-        public int fetch_size = 5000;
+        public int fetch_size = 50000;
         public int processed_size = 4;
         public bool debug = false;
-        int pool_size = 4;
+        int pool_size = 2;
 
         public void Test(){
             Task task;
