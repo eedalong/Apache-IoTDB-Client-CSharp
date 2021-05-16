@@ -6,37 +6,37 @@ namespace Apache.IoTDB
 {
     public class ConcurrentClientQueue
     {
-        public ConcurrentQueue<Client> client_queue;
+        public ConcurrentQueue<Client> ClientQueue { get; }
 
         public ConcurrentClientQueue(List<Client> clients)
         {
-            client_queue = new ConcurrentQueue<Client>(clients);
+            ClientQueue = new ConcurrentQueue<Client>(clients);
         }
 
         public ConcurrentClientQueue()
         {
-            client_queue = new ConcurrentQueue<Client>();
+            ClientQueue = new ConcurrentQueue<Client>();
         }
 
         public void Add(Client client)
         {
-            Monitor.Enter(client_queue);
-            client_queue.Enqueue(client);
-            Monitor.Pulse(client_queue);
-            Monitor.Exit(client_queue);
+            Monitor.Enter(ClientQueue);
+            ClientQueue.Enqueue(client);
+            Monitor.Pulse(ClientQueue);
+            Monitor.Exit(ClientQueue);
         }
 
         public Client Take()
         {
-            Client client;
-            Monitor.Enter(client_queue);
-            if (client_queue.IsEmpty)
+            Monitor.Enter(ClientQueue);
+            
+            if (ClientQueue.IsEmpty)
             {
-                Monitor.Wait(client_queue);
+                Monitor.Wait(ClientQueue);
             }
 
-            client_queue.TryDequeue(out client);
-            Monitor.Exit(client_queue);
+            ClientQueue.TryDequeue(out var client);
+            Monitor.Exit(ClientQueue);
             return client;
         }
     }

@@ -1,195 +1,199 @@
 using System;
 using System.Linq;
+using System.Text;
 
 namespace Apache.IoTDB.DataStructure
 {
     public class ByteBuffer
     {
-        private byte[] buffer;
-        private int write_pos = 0, read_pos = 0;
-        private int total_length;
-        private bool is_little_endian;
+        private byte[] _buffer;
+        private int _writePos;
+        private int _readPos;
+        private int _totalLength;
+        private readonly bool _isLittleEndian = BitConverter.IsLittleEndian;
 
         public ByteBuffer(byte[] buffer)
         {
-            this.buffer = buffer;
-            read_pos = 0;
-            write_pos = buffer.Length;
-            total_length = buffer.Length;
-            is_little_endian = BitConverter.IsLittleEndian;
+            _buffer = buffer;
+            _readPos = 0;
+            _writePos = buffer.Length;
+            _totalLength = buffer.Length;
         }
 
         public ByteBuffer(int reserve = 1)
         {
-            buffer = new byte[reserve];
-            write_pos = 0;
-            read_pos = 0;
-            total_length = reserve;
-            is_little_endian = BitConverter.IsLittleEndian;
+            _buffer = new byte[reserve];
+            _writePos = 0;
+            _readPos = 0;
+            _totalLength = reserve;
         }
 
         public bool has_remaining()
         {
-            return read_pos < write_pos;
+            return _readPos < _writePos;
         }
 
         // these for read
         public byte get_byte()
         {
-            var byte_val = buffer[read_pos];
-            read_pos += 1;
-            return byte_val;
+            var byteVal = _buffer[_readPos];
+            _readPos += 1;
+            return byteVal;
         }
 
         public bool get_bool()
         {
-            var bool_value = BitConverter.ToBoolean(buffer, read_pos);
-            read_pos += 1;
-            return bool_value;
+            var boolValue = BitConverter.ToBoolean(_buffer, _readPos);
+            _readPos += 1;
+            return boolValue;
         }
 
         public int get_int()
         {
-            var int_buff = buffer[read_pos..(read_pos + 4)];
-            if (is_little_endian) int_buff = int_buff.Reverse().ToArray();
+            var intBuff = _buffer[_readPos..(_readPos + 4)];
+            
+            if (_isLittleEndian) intBuff = intBuff.Reverse().ToArray();
 
-            var int_value = BitConverter.ToInt32(int_buff);
-            read_pos += 4;
-            return int_value;
+            var intValue = BitConverter.ToInt32(intBuff);
+            _readPos += 4;
+            return intValue;
         }
 
         public long get_long()
         {
-            var long_buff = buffer[read_pos..(read_pos + 8)];
-            if (is_little_endian) long_buff = long_buff.Reverse().ToArray();
+            var longBuff = _buffer[_readPos..(_readPos + 8)];
+            
+            if (_isLittleEndian) longBuff = longBuff.Reverse().ToArray();
 
-            var long_value = BitConverter.ToInt64(long_buff);
-            read_pos += 8;
-            return long_value;
+            var longValue = BitConverter.ToInt64(longBuff);
+            _readPos += 8;
+            return longValue;
         }
 
         public float get_float()
         {
-            var float_buff = buffer[read_pos..(read_pos + 4)];
-            if (is_little_endian) float_buff = float_buff.Reverse().ToArray();
+            var floatBuff = _buffer[_readPos..(_readPos + 4)];
+            
+            if (_isLittleEndian) floatBuff = floatBuff.Reverse().ToArray();
 
-            var float_value = BitConverter.ToSingle(float_buff);
-            read_pos += 4;
-            return float_value;
+            var floatValue = BitConverter.ToSingle(floatBuff);
+            _readPos += 4;
+            return floatValue;
         }
 
         public double get_double()
         {
-            var double_buff = buffer[read_pos..(read_pos + 8)];
-            if (is_little_endian) double_buff = double_buff.Reverse().ToArray();
+            var doubleBuff = _buffer[_readPos..(_readPos + 8)];
+            
+            if (_isLittleEndian) doubleBuff = doubleBuff.Reverse().ToArray();
 
-            var double_value = BitConverter.ToDouble(double_buff);
-            read_pos += 8;
-            return double_value;
+            var doubleValue = BitConverter.ToDouble(doubleBuff);
+            _readPos += 8;
+            return doubleValue;
         }
 
         public string get_str()
         {
             var length = get_int();
-            var str_buff = buffer[read_pos..(read_pos + length)];
-            var str_value = System.Text.Encoding.UTF8.GetString(str_buff);
-            read_pos += length;
-            return str_value;
+            var strBuff = _buffer[_readPos..(_readPos + length)];
+            var strValue = Encoding.UTF8.GetString(strBuff);
+            _readPos += length;
+            return strValue;
         }
 
         public byte[] get_buffer()
         {
-            return buffer[0..write_pos];
+            return _buffer[.._writePos];
         }
 
-        private int max(int a, int b)
+        private void extend_buffer(int spaceNeed)
         {
-            if (a <= b) return b;
-
-            return a;
-        }
-
-        private void extend_buffer(int space_need)
-        {
-            if (write_pos + space_need >= total_length)
+            if (_writePos + spaceNeed >= _totalLength)
             {
-                total_length = max(space_need, total_length);
-                var new_buffer = new byte[total_length * 2];
-                buffer.CopyTo(new_buffer, 0);
-                buffer = new_buffer;
-                total_length = 2 * total_length;
+                _totalLength = Math.Max(spaceNeed, _totalLength);
+                var newBuffer = new byte[_totalLength * 2];
+                _buffer.CopyTo(newBuffer, 0);
+                _buffer = newBuffer;
+                _totalLength = 2 * _totalLength;
             }
         }
 
         // these for write
         public void add_bool(bool value)
         {
-            var bool_buffer = BitConverter.GetBytes(value);
-            if (is_little_endian) bool_buffer = bool_buffer.Reverse().ToArray();
+            var boolBuffer = BitConverter.GetBytes(value);
+            
+            if (_isLittleEndian) boolBuffer = boolBuffer.Reverse().ToArray();
 
-            extend_buffer(bool_buffer.Length);
-            bool_buffer.CopyTo(buffer, write_pos);
-            write_pos += bool_buffer.Length;
+            extend_buffer(boolBuffer.Length);
+            boolBuffer.CopyTo(_buffer, _writePos);
+            _writePos += boolBuffer.Length;
         }
 
         public void add_int(int value)
         {
-            var int_buff = BitConverter.GetBytes(value);
-            if (is_little_endian) int_buff = int_buff.Reverse().ToArray();
+            var intBuff = BitConverter.GetBytes(value);
+            
+            if (_isLittleEndian) intBuff = intBuff.Reverse().ToArray();
 
-            extend_buffer(int_buff.Length);
-            int_buff.CopyTo(buffer, write_pos);
-            write_pos += int_buff.Length;
+            extend_buffer(intBuff.Length);
+            intBuff.CopyTo(_buffer, _writePos);
+            _writePos += intBuff.Length;
         }
 
         public void add_long(long value)
         {
-            var long_buff = BitConverter.GetBytes(value);
-            if (is_little_endian) long_buff = long_buff.Reverse().ToArray();
+            var longBuff = BitConverter.GetBytes(value);
+            
+            if (_isLittleEndian) longBuff = longBuff.Reverse().ToArray();
 
-            extend_buffer(long_buff.Length);
-            long_buff.CopyTo(buffer, write_pos);
-            write_pos += long_buff.Length;
+            extend_buffer(longBuff.Length);
+            longBuff.CopyTo(_buffer, _writePos);
+            _writePos += longBuff.Length;
         }
 
         public void add_float(float value)
         {
-            var float_buff = BitConverter.GetBytes(value);
-            if (is_little_endian) float_buff = float_buff.Reverse().ToArray();
+            var floatBuff = BitConverter.GetBytes(value);
+            
+            if (_isLittleEndian) floatBuff = floatBuff.Reverse().ToArray();
 
-            extend_buffer(float_buff.Length);
-            float_buff.CopyTo(buffer, write_pos);
-            write_pos += float_buff.Length;
+            extend_buffer(floatBuff.Length);
+            floatBuff.CopyTo(_buffer, _writePos);
+            _writePos += floatBuff.Length;
         }
 
         public void add_double(double value)
         {
-            var double_buff = BitConverter.GetBytes(value);
-            if (is_little_endian) double_buff = double_buff.Reverse().ToArray();
+            var doubleBuff = BitConverter.GetBytes(value);
+            
+            if (_isLittleEndian) doubleBuff = doubleBuff.Reverse().ToArray();
 
-            extend_buffer(double_buff.Length);
-            double_buff.CopyTo(buffer, write_pos);
-            write_pos += double_buff.Length;
+            extend_buffer(doubleBuff.Length);
+            doubleBuff.CopyTo(_buffer, _writePos);
+            _writePos += doubleBuff.Length;
         }
 
         public void add_str(string value)
         {
             add_int(value.Length);
-            var str_buf = System.Text.Encoding.UTF8.GetBytes(value);
+            
+            var strBuf = Encoding.UTF8.GetBytes(value);
 
-            extend_buffer(str_buf.Length);
-            str_buf.CopyTo(buffer, write_pos);
-            write_pos += str_buf.Length;
+            extend_buffer(strBuf.Length);
+            strBuf.CopyTo(_buffer, _writePos);
+            _writePos += strBuf.Length;
         }
 
         public void add_char(char value)
         {
-            var char_buf = BitConverter.GetBytes(value);
-            if (is_little_endian) char_buf = char_buf.Reverse().ToArray();
+            var charBuf = BitConverter.GetBytes(value);
+            
+            if (_isLittleEndian) charBuf = charBuf.Reverse().ToArray();
 
-            extend_buffer(char_buf.Length);
-            char_buf.CopyTo(buffer, write_pos);
-            write_pos += char_buf.Length;
+            extend_buffer(charBuf.Length);
+            charBuf.CopyTo(_buffer, _writePos);
+            _writePos += charBuf.Length;
         }
     }
 }

@@ -6,6 +6,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Apache.IoTDB.DataStructure;
 using NLog;
+using NLog.Config;
+using NLog.Targets;
 using Thrift;
 using Thrift.Protocol;
 using Thrift.Transport;
@@ -15,825 +17,877 @@ namespace Apache.IoTDB
 {
     public class SessionPool
     {
-        private string username, password, zoneId, host;
+        private static int SuccessCode => 200;
+        private static readonly TSProtocolVersion ProtocolVersion = TSProtocolVersion.IOTDB_SERVICE_PROTOCOL_V3;
+        
+        private readonly string _username;
+        private readonly string _password;
+        private string _zoneId;
+        private readonly string _host;
+        private readonly int _port;
+        private readonly int _fetchSize;
+        private readonly int _poolSize = 4;
+        private readonly Utils _utilFunctions = new Utils();
 
-        public int SUCCESS_CODE
-        {
-            get { return 200; }
-        }
+        
+        private bool _debugMode;
+        private bool _isClose = true;
+        private ConcurrentClientQueue _clients;
+        private Logger _logger;
 
-        private int port, fetch_size;
-        private int pool_size = 4;
-        private bool debug_mode = false;
-        private bool is_close = true;
-        private ConcurrentClientQueue client_lst;
-        private NLog.Logger _logger;
-        public Utils util_functions = new Utils();
-        private static TSProtocolVersion protocol_version = TSProtocolVersion.IOTDB_SERVICE_PROTOCOL_V3;
-
-        public SessionPool(string host, int port, int pool_size)
+        public SessionPool(string host, int port, int poolSize)
         {
             // init success code 
-            this.host = host;
-            this.port = port;
-            this.username = "root";
-            this.password = "root";
-            this.zoneId = "UTC+08:00";
-            this.fetch_size = 1024;
-            this.pool_size = pool_size;
+            _host = host;
+            _port = port;
+            _username = "root";
+            _password = "root";
+            _zoneId = "UTC+08:00";
+            _fetchSize = 1024;
+            _poolSize = poolSize;
         }
 
-        public SessionPool(string host, int port, string username, string password, int pool_size = 8)
+        public SessionPool(
+            string host, 
+            int port, 
+            string username, 
+            string password, 
+            int poolSize = 8)
         {
-            this.host = host;
-            this.port = port;
-            this.password = password;
-            this.username = username;
-            this.zoneId = "UTC+08:00";
-            this.fetch_size = 1024;
-            this.debug_mode = false;
-            this.pool_size = pool_size;
+            _host = host;
+            _port = port;
+            _password = password;
+            _username = username;
+            _zoneId = "UTC+08:00";
+            _fetchSize = 1024;
+            _debugMode = false;
+            _poolSize = poolSize;
         }
 
-        public SessionPool(string host, int port, string username, string password, int fetch_size, int pool_size = 8)
+        public SessionPool(
+            string host, 
+            int port, 
+            string username, 
+            string password, 
+            int fetchSize, 
+            int poolSize = 8)
         {
-            this.host = host;
-            this.port = port;
-            this.username = username;
-            this.password = password;
-            this.fetch_size = fetch_size;
-            this.zoneId = "UTC+08:00";
-            this.debug_mode = false;
-            this.pool_size = pool_size;
+            _host = host;
+            _port = port;
+            _username = username;
+            _password = password;
+            _fetchSize = fetchSize;
+            _zoneId = "UTC+08:00";
+            _debugMode = false;
+            _poolSize = poolSize;
         }
 
-        public SessionPool(string host, int port, string username = "root", string password = "root",
-            int fetch_size = 1000, string zoneId = "UTC+08:00", int pool_size = 8)
+        public SessionPool(
+            string host, 
+            int port, 
+            string username = "root", 
+            string password = "root",
+            int fetchSize = 1000, 
+            string zoneId = "UTC+08:00", 
+            int poolSize = 8)
         {
-            this.host = host;
-            this.port = port;
-            this.username = username;
-            this.password = password;
-            this.zoneId = zoneId;
-            this.fetch_size = fetch_size;
-            this.debug_mode = false;
-            this.pool_size = pool_size;
+            _host = host;
+            _port = port;
+            _username = username;
+            _password = password;
+            _zoneId = zoneId;
+            _fetchSize = fetchSize;
+            _debugMode = false;
+            _poolSize = poolSize;
         }
 
-        public void open_debug_mode(NLog.Config.LoggingConfiguration config = null)
+        public void open_debug_mode(LoggingConfiguration config = null)
         {
-            this.debug_mode = true;
+            _debugMode = true;
             if (config == null)
             {
-                config = new NLog.Config.LoggingConfiguration();
-                var logconsole = new NLog.Targets.ConsoleTarget("logconsole");
-                config.AddRule(LogLevel.Debug, LogLevel.Fatal, logconsole);
-                NLog.LogManager.Configuration = config;
-                _logger = NLog.LogManager.GetCurrentClassLogger();
+                config = new LoggingConfiguration();
+                config.AddRule(LogLevel.Debug, LogLevel.Fatal, new ConsoleTarget("logconsole"));
             }
-            else
-            {
-                NLog.LogManager.Configuration = config;
-                _logger = NLog.LogManager.GetCurrentClassLogger();
-            }
+            
+            LogManager.Configuration = config;
+            _logger = LogManager.GetCurrentClassLogger();
         }
 
         public void close_debug_mode()
         {
-            this.debug_mode = false;
+            _debugMode = false;
         }
 
-        public async Task open(bool enableRPCCompression)
+        public async Task Open(bool enableRpcCompression)
         {
-            client_lst = new ConcurrentClientQueue();
-            for (int index = 0; index < pool_size; index++)
+            _clients = new ConcurrentClientQueue();
+            
+            for (var index = 0; index < _poolSize; index++)
             {
-                client_lst.Add(await create_and_open(enableRPCCompression));
+                _clients.Add(await CreateAndOpen(enableRpcCompression));
             }
         }
 
-        public bool is_open()
-        {
-            return !is_close;
-        }
+        public bool IsOpen() => !_isClose;
 
-        public async Task close()
+        public async Task Close()
         {
-            if (is_close)
+            if (_isClose)
             {
                 return;
             }
 
-            foreach (var client in client_lst.client_queue.AsEnumerable())
+            foreach (var client in _clients.ClientQueue.AsEnumerable())
             {
-                var req = new TSCloseSessionReq(client.sessionId);
+                var closeSessionRequest = new TSCloseSessionReq(client.SessionId);
                 try
                 {
-                    await client.client.closeSessionAsync(req);
+                    await client.ServiceClient.closeSessionAsync(closeSessionRequest);
                 }
                 catch (TException e)
                 {
-                    var message = String.Format("Error occurs when closing session at server. Maybe server is down");
-                    throw new TException(message, e);
+                    throw new TException("Error occurs when closing session at server. Maybe server is down", e);
                 }
                 finally
                 {
-                    is_close = true;
-                    if (client.transport != null)
-                    {
-                        client.transport.Close();
-                    }
+                    _isClose = true;
+                    
+                    client.Transport?.Close();
                 }
             }
         }
 
-        public async Task set_time_zone(string zoneId)
+        public async Task SetTimeZone(string zoneId)
         {
-            this.zoneId = zoneId;
-            foreach (var client in client_lst.client_queue.AsEnumerable())
+            _zoneId = zoneId;
+            
+            foreach (var client in _clients.ClientQueue.AsEnumerable())
             {
-                var req = new TSSetTimeZoneReq(client.sessionId, zoneId);
+                var req = new TSSetTimeZoneReq(client.SessionId, zoneId);
                 try
                 {
-                    var resp = await client.client.setTimeZoneAsync(req);
-                    if (debug_mode)
+                    var resp = await client.ServiceClient.setTimeZoneAsync(req);
+                    if (_debugMode)
                     {
                         _logger.Info("setting time zone_id as {0}, server message:{1}", zoneId, resp.Message);
                     }
                 }
                 catch (TException e)
                 {
-                    var message = String.Format("could not set time zone");
-                    throw new TException(message, e);
+                    throw new TException("could not set time zone", e);
                 }
             }
         }
 
-        public async Task<string> get_time_zone()
+        public async Task<string> GetTimeZone()
         {
-            TSGetTimeZoneResp resp;
-            if (zoneId != "")
+            if (_zoneId != "")
             {
-                return zoneId;
+                return _zoneId;
             }
 
-            var client = client_lst.Take();
+            var client = _clients.Take();
+            
             try
             {
-                resp = await client.client.getTimeZoneAsync(client.sessionId);
+                var response = await client.ServiceClient.getTimeZoneAsync(client.SessionId);
+
+                return response?.TimeZone;
             }
             catch (TException e)
             {
-                client_lst.Add(client);
-                var message = String.Format("counld not get time zone");
-                throw new TException(message, e);
+                throw new TException("could not get time zone", e);
             }
-
-            client_lst.Add(client);
-            return resp.TimeZone;
+            finally
+            {
+                _clients.Add(client); 
+            }
         }
 
-        public async Task<Client> create_and_open(bool enableRPCCompression)
+        private async Task<Client> CreateAndOpen(bool enableRpcCompression)
         {
-            TcpClient tcp_client = new TcpClient(this.host, this.port);
-            TSIService.Client client;
-            long sessionId, statementId;
-            var transport = new TFramedTransport(new TSocketTransport(tcp_client, null));
+            var tcpClient = new TcpClient(_host, _port);
+
+            var transport = new TFramedTransport(new TSocketTransport(tcpClient, null));
+            
             if (!transport.IsOpen)
             {
-                try
-                {
-                    await transport.OpenAsync(new CancellationToken());
-                }
-                catch (TTransportException)
-                {
-                    throw;
-                }
+                await transport.OpenAsync(new CancellationToken());
             }
 
-            if (enableRPCCompression)
-            {
-                client = new TSIService.Client(new TCompactProtocol(transport));
-            }
-            else
-            {
-                client = new TSIService.Client(new TBinaryProtocol(transport));
-            }
+            var client = enableRpcCompression ? 
+                new TSIService.Client(new TCompactProtocol(transport)) : 
+                new TSIService.Client(new TBinaryProtocol(transport));
 
-            var open_req = new TSOpenSessionReq(protocol_version, zoneId);
-            open_req.Username = username;
-            open_req.Password = password;
+            var openReq = new TSOpenSessionReq(ProtocolVersion, _zoneId)
+            {
+                Username = _username, 
+                Password = _password
+            };
+            
             try
             {
-                var open_resp = await client.openSessionAsync(open_req);
-                if (open_resp.ServerProtocolVersion != protocol_version)
+                var openResp = await client.openSessionAsync(openReq);
+                
+                if (openResp.ServerProtocolVersion != ProtocolVersion)
                 {
-                    var message = String.Format("Protocol Differ, Client version is {0} but Server version is {1}",
-                        protocol_version, open_resp.ServerProtocolVersion);
-                    throw new TException(message, null);
+                    throw new TException($"Protocol Differ, Client version is {ProtocolVersion} but Server version is {openResp.ServerProtocolVersion}", null);
                 }
 
-                if (open_resp.ServerProtocolVersion == 0)
+                if (openResp.ServerProtocolVersion == 0)
                 {
                     throw new TException("Protocol not supported", null);
                 }
 
-                sessionId = open_resp.SessionId;
-                statementId = await client.requestStatementIdAsync(sessionId);
+                var sessionId = openResp.SessionId;
+                var statementId = await client.requestStatementIdAsync(sessionId);
+                
+                _isClose = false;
+            
+                var returnClient = new Client(
+                    client, 
+                    sessionId, 
+                    statementId, 
+                    transport);
+            
+                return returnClient;
             }
             catch (Exception)
             {
                 transport.Close();
+                
                 throw;
             }
-
-            is_close = false;
-            var return_client = new Client();
-            return_client.client = client;
-            return_client.sessionId = sessionId;
-            return_client.statementId = statementId;
-            return_client.transport = transport;
-            return return_client;
         }
 
-        public async Task<int> set_storage_group_async(string group_name)
+        public async Task<int> SetStorageGroup(string groupName)
         {
-            TSStatus status;
-            var client = client_lst.Take();
+            var client = _clients.Take();
+            
             try
             {
-                status = await client.client.setStorageGroupAsync(client.sessionId, group_name);
+                var status = await client.ServiceClient.setStorageGroupAsync(client.SessionId, groupName);
+                
+                if (_debugMode)
+                {
+                    _logger.Info("set storage group {0} successfully, server message is {1}", groupName, status.Message);
+                }
+                
+                return _utilFunctions.verify_success(status, SuccessCode);
             }
             catch (TException e)
             {
-                client_lst.Add(client);
-                var err_msg = String.Format("set storage group {0} failed", group_name);
-                throw new TException(err_msg, e);
+                throw new TException($"set storage group {groupName} failed", e);
             }
-
-            if (debug_mode)
+            finally
             {
-                _logger.Info("set storage group {0} successfully, server message is {1}", group_name, status.Message);
+                _clients.Add(client);
             }
-
-            client_lst.Add(client);
-            return util_functions.verify_success(status, SUCCESS_CODE);
         }
 
-        public async Task<int> create_time_series_async(string ts_path, TSDataType data_type, TSEncoding encoding,
+        public async Task<int> CreateTimeSeries(
+            string tsPath, 
+            TSDataType dataType, 
+            TSEncoding encoding,
             Compressor compressor)
         {
-            TSStatus status;
-            var client = client_lst.Take();
-            var req = new TSCreateTimeseriesReq(client.sessionId, ts_path, (int) data_type, (int) encoding,
+            var client = _clients.Take();
+            var req = new TSCreateTimeseriesReq(
+                client.SessionId, 
+                tsPath, 
+                (int) dataType, 
+                (int) encoding,
                 (int) compressor);
             try
             {
-                status = await client.client.createTimeseriesAsync(req);
+                var status = await client.ServiceClient.createTimeseriesAsync(req);
+                
+                if (_debugMode)
+                {
+                    _logger.Info("creating time series {0} successfully, server message is {1}", tsPath, status.Message);
+                }
+
+                return _utilFunctions.verify_success(status, SuccessCode);
             }
             catch (TException e)
             {
-                client_lst.Add(client);
-                var err_msg = String.Format("create time series {0} failed", ts_path);
-                throw new TException(err_msg, e);
+                throw new TException($"create time series {tsPath} failed", e);
             }
-
-            if (debug_mode)
+            finally
             {
-                _logger.Info("creating time series {0} successfully, server message is {1}", ts_path, status.Message);
+                _clients.Add(client);
             }
 
-            client_lst.Add(client);
-
-            return util_functions.verify_success(status, SUCCESS_CODE);
         }
 
-        public async Task<int> delete_storage_group_async(string group_name)
+        public async Task<int> delete_storage_group_async(string groupName)
         {
-            TSStatus status;
-            var client = client_lst.Take();
+            var client = _clients.Take();
             try
             {
-                status = await client.client.deleteStorageGroupsAsync(client.sessionId, new List<string> {group_name});
+                var status = await client.ServiceClient.deleteStorageGroupsAsync(
+                    client.SessionId,
+                    new List<string> {groupName});
+                
+                if (_debugMode)
+                {
+                    _logger.Info($"delete storage group {groupName} successfully, server message is {status?.Message}");
+                }
+
+                return _utilFunctions.verify_success(status, SuccessCode);
             }
             catch (TException e)
             {
-                client_lst.Add(client);
-                var err_msg = String.Format("delete storage group {0} failed", group_name);
-                throw new TException(err_msg, e);
+                throw new TException($"delete storage group {groupName} failed", e);
             }
-
-            if (debug_mode)
+            finally
             {
-                var message = String.Format("delete storage group {0} successfully, server message is {1}", group_name,
-                    status.Message);
-                _logger.Info(message);
+                _clients.Add(client); 
             }
-
-            client_lst.Add(client);
-            return util_functions.verify_success(status, SUCCESS_CODE);
         }
 
-        public async Task<int> delete_storage_groups_async(List<string> group_names)
+        public async Task<int> delete_storage_groups_async(List<string> groupNames)
         {
-            var client = client_lst.Take();
+            var client = _clients.Take();
 
-            TSStatus status;
             try
             {
-                status = await client.client.deleteStorageGroupsAsync(client.sessionId, group_names);
+                var status = await client.ServiceClient.deleteStorageGroupsAsync(client.SessionId, groupNames);
+                
+                if (_debugMode)
+                {
+                    _logger.Info(
+                        "delete storage group(s) {0} successfully, server message is {1}", 
+                        groupNames,
+                        status.Message);
+                }
+
+                return _utilFunctions.verify_success(status, SuccessCode);
             }
             catch (TException e)
             {
-                client_lst.Add(client);
-                var err_msg = String.Format("delete storage group(s) {0} failed", group_names);
-                throw new TException(err_msg, e);
+                throw new TException($"delete storage group(s) {groupNames} failed", e);
             }
-
-            if (debug_mode)
+            finally
             {
-                _logger.Info("delete storage group(s) {0} successfully, server message is {1}", group_names,
-                    status.Message);
+                _clients.Add(client);
             }
-
-            client_lst.Add(client);
-            return util_functions.verify_success(status, SUCCESS_CODE);
         }
 
-        public async Task<int> create_multi_time_series_async(List<string> ts_path_lst, List<TSDataType> data_type_lst,
-            List<TSEncoding> encoding_lst, List<Compressor> compressor_lst)
+        public async Task<int> create_multi_time_series_async(
+            List<string> tsPathLst, 
+            List<TSDataType> dataTypeLst,
+            List<TSEncoding> encodingLst, 
+            List<Compressor> compressorLst)
         {
-            var client = client_lst.Take();
-            var data_types = data_type_lst.ConvertAll<int>(x => (int) x);
-            var encodings = encoding_lst.ConvertAll<int>(x => (int) x);
-            var compressors = compressor_lst.ConvertAll<int>(x => (int) x);
-            TSStatus status;
-            var req = new TSCreateMultiTimeseriesReq(client.sessionId, ts_path_lst, data_types, encodings, compressors);
+            var client = _clients.Take();
+            var dataTypes = dataTypeLst.ConvertAll(x => (int) x);
+            var encodings = encodingLst.ConvertAll(x => (int) x);
+            var compressors = compressorLst.ConvertAll(x => (int) x);
+
+            var req = new TSCreateMultiTimeseriesReq(client.SessionId, tsPathLst, dataTypes, encodings, compressors);
+            
             try
             {
-                status = await client.client.createMultiTimeseriesAsync(req);
+                var status = await client.ServiceClient.createMultiTimeseriesAsync(req);
+                
+                if (_debugMode)
+                {
+                    _logger.Info("creating multiple time series {0}, server message is {1}", tsPathLst, status.Message);
+                }
+                
+                return _utilFunctions.verify_success(status, SuccessCode);
             }
             catch (TException e)
             {
-                client_lst.Add(client);
-                var err_msg = String.Format("create multiple time series {0} failed", ts_path_lst);
-                throw new TException(err_msg, e);
+                throw new TException($"create multiple time series {tsPathLst} failed", e);
             }
-
-            if (debug_mode)
+            finally
             {
-                _logger.Info("creating multiple time series {0}, server message is {1}", ts_path_lst, status.Message);
+                _clients.Add(client);
             }
-
-            client_lst.Add(client);
-            return util_functions.verify_success(status, SUCCESS_CODE);
         }
 
-        public async Task<int> delete_time_series_async(List<string> path_list)
+        public async Task<int> delete_time_series_async(List<string> pathList)
         {
-            TSStatus status;
-            var client = client_lst.Take();
+            var client = _clients.Take();
+            
             try
             {
-                status = await client.client.deleteTimeseriesAsync(client.sessionId, path_list);
+                var status = await client.ServiceClient.deleteTimeseriesAsync(client.SessionId, pathList);
+                
+                if (_debugMode)
+                {
+                    _logger.Info("deleting multiple time series {0}, server message is {1}", pathList, status.Message);
+                }
+                
+                return _utilFunctions.verify_success(status, SuccessCode);
             }
             catch (TException e)
             {
-                client_lst.Add(client);
-                var err_msg = String.Format("delete time series {0} failed", path_list);
-                throw new TException(err_msg, e);
+                throw new TException($"delete time series {pathList} failed", e);
             }
-
-            if (debug_mode)
+            finally
             {
-                _logger.Info("deleting multiple time series {0}, server message is {1}", path_list, status.Message);
+                _clients.Add(client);
             }
-
-            client_lst.Add(client);
-            return util_functions.verify_success(status, SUCCESS_CODE);
         }
 
-        public async Task<int> delete_time_series_async(string ts_path)
+        public async Task<int> delete_time_series_async(string tsPath)
         {
-            return await delete_time_series_async(new List<string> {ts_path});
+            return await delete_time_series_async(new List<string> {tsPath});
         }
 
-        public async Task<bool> check_time_series_exists_async(string ts_path)
+        public async Task<bool> check_time_series_exists_async(string tsPath)
         {
             // TBD by dalong
             try
             {
-                string sql = "SHOW TIMESERIES " + ts_path;
-                var session_dataset = await execute_query_statement_async(sql);
-                return session_dataset.has_next();
+                var sql = "SHOW TIMESERIES " + tsPath;
+                var sessionDataset = await execute_query_statement_async(sql);
+                return sessionDataset.has_next();
             }
             catch (TException e)
             {
-                var err_msg = String.Format("could not check if certain time series exists");
-                throw new TException(err_msg, e);
+                throw new TException("could not check if certain time series exists", e);
             }
         }
 
-        public async Task<int> delete_data_async(List<string> ts_path_lst, long start_time, long end_time)
+        public async Task<int> delete_data_async(List<string> tsPathLst, long startTime, long endTime)
         {
-            var client = client_lst.Take();
-            var req = new TSDeleteDataReq(client.sessionId, ts_path_lst, start_time, end_time);
-            TSStatus status;
+            var client = _clients.Take();
+            var req = new TSDeleteDataReq(client.SessionId, tsPathLst, startTime, endTime);
+            
             try
             {
-                status = await client.client.deleteDataAsync(req);
+                var status = await client.ServiceClient.deleteDataAsync(req);
+                
+                if (_debugMode)
+                {
+                    _logger.Info(
+                        "delete data from {0}, server message is {1}",
+                        tsPathLst, 
+                        status.Message);
+                }
+
+                return _utilFunctions.verify_success(status, SuccessCode);
             }
             catch (TException e)
             {
-                client_lst.Add(client);
-                var err_msg = String.Format("data deletion fails because");
-                throw new TException(err_msg, e);
+                throw new TException("data deletion fails because", e);
             }
-
-            if (debug_mode)
+            finally
             {
-                _logger.Info("delete data from {0}, server message is {1}", ts_path_lst, status.Message);
+                _clients.Add(client);
             }
-
-            client_lst.Add(client);
-            return util_functions.verify_success(status, SUCCESS_CODE);
         }
 
-        public async Task<int> insert_record_async(string device_id, RowRecord record)
+        public async Task<int> insert_record_async(string deviceId, RowRecord record)
         {
             // TBD by Luzhan
-            var client = client_lst.Take();
-            var req = new TSInsertRecordReq(client.sessionId, device_id, record.measurements, record.ToBytes(),
-                record.timestamp);
-            TSStatus status;
+            var client = _clients.Take();
+            var req = new TSInsertRecordReq(client.SessionId, deviceId, record.Measurements, record.ToBytes(),
+                record.Timestamps);
             try
             {
-                status = await client.client.insertRecordAsync(req);
+                var status = await client.ServiceClient.insertRecordAsync(req);
+
+                if (_debugMode)
+                {
+                    _logger.Info("insert one record to device {0}， server message: {1}", deviceId, status.Message);
+                }
+
+                return _utilFunctions.verify_success(status, SuccessCode);
             }
             catch (TException e)
             {
-                client_lst.Add(client);
-                Console.WriteLine(e);
-                var err_msg = String.Format("Record insertion failed");
-                throw new TException(err_msg, e);
+                throw new TException("Record insertion failed", e);
             }
-
-            if (debug_mode)
+            finally
             {
-                _logger.Info("insert one record to device {0}， server message: {1}", device_id, status.Message);
+                _clients.Add(client);
             }
-
-            client_lst.Add(client);
-
-            return util_functions.verify_success(status, SUCCESS_CODE);
         }
 
-        public TSInsertStringRecordReq gen_insert_str_record_req(string device_id, List<string> measurements,
-            List<string> values, long timestamp, long session_id)
+        public TSInsertStringRecordReq gen_insert_str_record_req(string deviceId, List<string> measurements,
+            List<string> values, long timestamp, long sessionId)
         {
             if (values.Count() != measurements.Count())
             {
-                var err_msg = "length of data types does not equal to length of values!";
-                throw new TException(err_msg, null);
+                throw new TException("length of data types does not equal to length of values!", null);
             }
 
-            return new TSInsertStringRecordReq(session_id, device_id, measurements, values, timestamp);
+            return new TSInsertStringRecordReq(sessionId, deviceId, measurements, values, timestamp);
         }
 
-        public TSInsertRecordsReq gen_insert_records_req(List<string> device_id, List<RowRecord> rowRecords,
-            long session_id)
+        public TSInsertRecordsReq gen_insert_records_req(List<string> deviceId, List<RowRecord> rowRecords,
+            long sessionId)
         {
             //TODO
-            var measurement_lst = rowRecords.Select(x => x.measurements).ToList();
-            var timestamp_lst = rowRecords.Select(x => x.timestamp).ToList();
-            List<byte[]> values_lst_in_bytes = new List<byte[]>();
-            foreach (var row in rowRecords)
-            {
-                values_lst_in_bytes.Add(row.ToBytes());
-            }
+            var measurementLst = rowRecords.Select(x => x.Measurements).ToList();
+            var timestampLst = rowRecords.Select(x => x.Timestamps).ToList();
+            var valuesLstInBytes = rowRecords.Select(row => row.ToBytes()).ToList();
 
-            return new TSInsertRecordsReq(session_id, device_id, measurement_lst, values_lst_in_bytes, timestamp_lst);
+            return new TSInsertRecordsReq(sessionId, deviceId, measurementLst, valuesLstInBytes, timestampLst);
         }
 
-        public async Task<int> insert_records_async(List<string> device_id, List<RowRecord> rowRecords)
+        public async Task<int> insert_records_async(List<string> deviceId, List<RowRecord> rowRecords)
         {
-            var client = client_lst.Take();
-            var req = gen_insert_records_req(device_id, rowRecords, client.sessionId);
-            TSStatus status;
+            var client = _clients.Take();
+            
+            var request = gen_insert_records_req(deviceId, rowRecords, client.SessionId);
+
             try
             {
-                status = await client.client.insertRecordsAsync(req);
+                var status = await client.ServiceClient.insertRecordsAsync(request);
+                
+                if (_debugMode)
+                {
+                    _logger.Info("insert multiple records to devices {0}, server message: {1}", deviceId, status.Message);
+                }
+
+                return _utilFunctions.verify_success(status, SuccessCode);
             }
             catch (TException e)
             {
-                client_lst.Add(client);
-                var err_msg = String.Format("Multiple records insertion failed");
-                throw new TException(err_msg, e);
+                throw new TException("Multiple records insertion failed", e);
             }
-
-            if (debug_mode)
+            finally
             {
-                _logger.Info("insert multiple records to devices {0}, server message: {1}", device_id, status.Message);
+                _clients.Add(client);
             }
-
-            client_lst.Add(client);
-            return util_functions.verify_success(status, SUCCESS_CODE);
         }
 
-        public TSInsertTabletReq gen_insert_tablet_req(Tablet tablet, long session_id)
+        public TSInsertTabletReq gen_insert_tablet_req(Tablet tablet, long sessionId)
         {
-            return new TSInsertTabletReq(session_id, tablet.device_id, tablet.measurement_lst,
-                tablet.get_binary_values(), tablet.get_binary_timestamps(), tablet.get_data_types(), tablet.row_number);
+            return new TSInsertTabletReq(
+                sessionId, 
+                tablet.DeviceId, 
+                tablet.Measurements,
+                tablet.get_binary_values(), 
+                tablet.get_binary_timestamps(), 
+                tablet.get_data_types(), 
+                tablet.RowNumber);
         }
 
         public async Task<int> insert_tablet_async(Tablet tablet)
         {
-            var client = client_lst.Take();
-            var req = gen_insert_tablet_req(tablet, client.sessionId);
-            TSStatus status;
+            var client = _clients.Take();
+            var req = gen_insert_tablet_req(tablet, client.SessionId);
+            
             try
             {
-                status = await client.client.insertTabletAsync(req);
+                var status = await client.ServiceClient.insertTabletAsync(req);
+                
+                if (_debugMode)
+                {
+                    _logger.Info("insert one tablet to device {0}, server message: {1}", tablet.DeviceId, status.Message);
+                }
+
+                return _utilFunctions.verify_success(status, SuccessCode);
             }
             catch (TException e)
             {
-                client_lst.Add(client);
-                var err_msg = String.Format("Tablet insertion failed");
-                throw new TException(err_msg, e);
+                throw new TException("Tablet insertion failed", e);
             }
-
-            if (debug_mode)
+            finally
             {
-                _logger.Info("insert one tablet to device {0}, server message: {1}", tablet.device_id, status.Message);
+                _clients.Add(client);
             }
-
-            client_lst.Add(client);
-
-            return util_functions.verify_success(status, SUCCESS_CODE);
         }
 
-        public TSInsertTabletsReq gen_insert_tablets_req(List<Tablet> tablet_lst, long session_id)
+        public TSInsertTabletsReq gen_insert_tablets_req(List<Tablet> tabletLst, long sessionId)
         {
-            List<string> device_id_lst = new List<string>() { };
-            List<List<string>> measurements_lst = new List<List<string>>() { };
-            List<byte[]> values_lst = new List<byte[]>() { };
-            List<byte[]> timestamps_lst = new List<byte[]>() { };
-            List<List<int>> type_lst = new List<List<int>>() { };
-            List<int> size_lst = new List<int>() { };
-            foreach (var tablet in tablet_lst)
+            var deviceIdLst = new List<string>();
+            var measurementsLst = new List<List<string>>();
+            var valuesLst = new List<byte[]>();
+            var timestampsLst = new List<byte[]>();
+            var typeLst = new List<List<int>>();
+            var sizeLst = new List<int>();
+            
+            foreach (var tablet in tabletLst)
             {
-                List<int> data_type_values = tablet.get_data_types();
-                device_id_lst.Add(tablet.device_id);
-                measurements_lst.Add(tablet.measurement_lst);
-                values_lst.Add(tablet.get_binary_values());
-                timestamps_lst.Add(tablet.get_binary_timestamps());
-                type_lst.Add(data_type_values);
-                size_lst.Add(tablet.row_number);
+                var dataTypeValues = tablet.get_data_types();
+                deviceIdLst.Add(tablet.DeviceId);
+                measurementsLst.Add(tablet.Measurements);
+                valuesLst.Add(tablet.get_binary_values());
+                timestampsLst.Add(tablet.get_binary_timestamps());
+                typeLst.Add(dataTypeValues);
+                sizeLst.Add(tablet.RowNumber);
             }
 
-            return new TSInsertTabletsReq(session_id, device_id_lst, measurements_lst, values_lst, timestamps_lst,
-                type_lst, size_lst);
+            return new TSInsertTabletsReq(
+                sessionId, 
+                deviceIdLst, 
+                measurementsLst, 
+                valuesLst, 
+                timestampsLst,
+                typeLst, 
+                sizeLst);
         }
 
-        public async Task<int> insert_tablets_async(List<Tablet> tablet_lst)
+        public async Task<int> insert_tablets_async(List<Tablet> tabletLst)
         {
-            var client = client_lst.Take();
-            var req = gen_insert_tablets_req(tablet_lst, client.sessionId);
-            TSStatus status;
+            var client = _clients.Take();
+            var req = gen_insert_tablets_req(tabletLst, client.SessionId);
+            
             try
             {
-                status = await client.client.insertTabletsAsync(req);
+                var status = await client.ServiceClient.insertTabletsAsync(req);
+                
+                if (_debugMode)
+                {
+                    _logger.Info("insert multiple tablets, message: {0}", status.Message);
+                }
+                
+                return _utilFunctions.verify_success(status, SuccessCode);
             }
             catch (TException e)
             {
-                client_lst.Add(client);
-                var err_msg = String.Format("Multiple tablets insertion failed");
-                throw new TException(err_msg, e);
-            }
+                _clients.Add(client);
 
-            if (debug_mode)
+                throw new TException("Multiple tablets insertion failed", e);
+            }
+            finally
             {
-                _logger.Info("insert multiple tablets, message: {0}", status.Message);
+                _clients.Add(client);
             }
-
-            client_lst.Add(client);
-            return util_functions.verify_success(status, SUCCESS_CODE);
         }
 
-        public async Task<int> insert_records_of_one_device_async(string device_id, List<RowRecord> rowRecords)
+        public async Task<int> insert_records_of_one_device_async(string deviceId, List<RowRecord> rowRecords)
         {
-            var sorted_row_records = rowRecords.OrderBy(x => x.timestamp).ToList();
-            return await insert_records_of_one_device_sorted_async(device_id, sorted_row_records);
+            var sortedRowRecords = rowRecords.OrderBy(x => x.Timestamps).ToList();
+            return await insert_records_of_one_device_sorted_async(deviceId, sortedRowRecords);
         }
 
-        public TSInsertRecordsOfOneDeviceReq gen_insert_records_of_one_device_request(string device_id,
-            List<RowRecord> rowRecords, long session_id)
+        private TSInsertRecordsOfOneDeviceReq gen_insert_records_of_one_device_request(
+            string deviceId,
+            List<RowRecord> records, 
+            long sessionId)
         {
-            List<byte[]> binary_value_lst = new List<byte[]>() { };
-            foreach (var row in rowRecords)
-            {
-                binary_value_lst.Add(row.ToBytes());
-            }
-
-            var measurements_lst = rowRecords.Select(x => x.measurements).ToList();
-            var timestamp_lst = rowRecords.Select(x => x.timestamp).ToList();
-            return new TSInsertRecordsOfOneDeviceReq(session_id, device_id, measurements_lst, binary_value_lst,
-                timestamp_lst);
+            var values = records.Select(row => row.ToBytes());
+            var measurementsLst = records.Select(x => x.Measurements).ToList();
+            var timestampLst = records.Select(x => x.Timestamps).ToList();
+            
+            return new TSInsertRecordsOfOneDeviceReq(
+                sessionId, 
+                deviceId, 
+                measurementsLst, 
+                values.ToList(),
+                timestampLst);
         }
 
-        public async Task<int> insert_records_of_one_device_sorted_async(string device_id, List<RowRecord> rowRecords)
+        public async Task<int> insert_records_of_one_device_sorted_async(string deviceId, List<RowRecord> rowRecords)
         {
-            var client = client_lst.Take();
-            var timestamp_lst = rowRecords.Select(x => x.timestamp).ToList();
-            if (!util_functions.check_sorted(timestamp_lst))
+            var client = _clients.Take();
+            
+            var timestampLst = rowRecords.Select(x => x.Timestamps).ToList();
+            
+            if (!_utilFunctions.IsSorted(timestampLst))
             {
-                var err_msg = "insert records of one device error: timestamp not sorted";
-                throw new TException(err_msg, null);
+                throw new TException("insert records of one device error: timestamp not sorted", null);
             }
 
-            var req = gen_insert_records_of_one_device_request(device_id, rowRecords, client.sessionId);
-            TSStatus status;
+            var req = gen_insert_records_of_one_device_request(deviceId, rowRecords, client.SessionId);
+            
             try
             {
-                status = await client.client.insertRecordsOfOneDeviceAsync(req);
+                var status = await client.ServiceClient.insertRecordsOfOneDeviceAsync(req);
+
+                if (_debugMode)
+                {
+                    _logger.Info("insert records of one device, message: {0}", status.Message);
+                }
+                
+                return _utilFunctions.verify_success(status, SuccessCode);
             }
             catch (TException e)
             {
-                client_lst.Add(client);
-                var err_msg = String.Format("Sorted records of one device insertion failed");
-                throw new TException(err_msg, e);
+                throw new TException("Sorted records of one device insertion failed", e);
             }
-
-            if (debug_mode)
+            finally
             {
-                _logger.Info("insert records of one device, message: {0}", status.Message);
+                _clients.Add(client);
             }
-
-            client_lst.Add(client);
-            return util_functions.verify_success(status, SUCCESS_CODE);
         }
 
-        public async Task<int> test_insert_record_async(string device_id, RowRecord record)
+        public async Task<int> test_insert_record_async(string deviceId, RowRecord record)
         {
-            var client = client_lst.Take();
-            var req = new TSInsertRecordReq(client.sessionId, device_id, record.measurements, record.ToBytes(),
-                record.timestamp);
-            TSStatus status;
+            var client = _clients.Take();
+            
+            var req = new TSInsertRecordReq(
+                client.SessionId, 
+                deviceId, 
+                record.Measurements, 
+                record.ToBytes(),
+                record.Timestamps);
+
             try
             {
-                status = await client.client.testInsertRecordAsync(req);
+                var status = await client.ServiceClient.testInsertRecordAsync(req);
+                
+                if (_debugMode)
+                {
+                    _logger.Info("insert one record to device {0}， server message: {1}", deviceId, status.Message);
+                }
+
+                return _utilFunctions.verify_success(status, SuccessCode);
             }
             catch (TException e)
             {
-                client_lst.Add(client);
-                Console.WriteLine(e);
-                var err_msg = String.Format("Record insertion failed");
-                throw new TException(err_msg, e);
+                throw new TException("Record insertion failed", e);
             }
-
-            if (debug_mode)
+            finally
             {
-                _logger.Info("insert one record to device {0}， server message: {1}", device_id, status.Message);
+                _clients.Add(client);
             }
-
-            client_lst.Add(client);
-
-            return util_functions.verify_success(status, SUCCESS_CODE);
         }
 
-        public async Task<int> test_insert_records_async(List<string> device_id, List<RowRecord> rowRecords)
+        public async Task<int> test_insert_records_async(List<string> deviceId, List<RowRecord> rowRecords)
         {
-            var client = client_lst.Take();
-            var req = gen_insert_records_req(device_id, rowRecords, client.sessionId);
-            TSStatus status;
+            var client = _clients.Take();
+            var req = gen_insert_records_req(deviceId, rowRecords, client.SessionId);
+
             try
             {
-                status = await client.client.testInsertRecordsAsync(req);
+                var status = await client.ServiceClient.testInsertRecordsAsync(req);
+                
+                if (_debugMode)
+                {
+                    _logger.Info("insert multiple records to devices {0}, server message: {1}", deviceId, status.Message);
+                }
+
+                return _utilFunctions.verify_success(status, SuccessCode);
             }
             catch (TException e)
             {
-                client_lst.Add(client);
-                var err_msg = String.Format("Multiple records insertion failed");
-                throw new TException(err_msg, e);
+                throw new TException("Multiple records insertion failed", e);
             }
-
-            if (debug_mode)
+            finally
             {
-                _logger.Info("insert multiple records to devices {0}, server message: {1}", device_id, status.Message);
+                _clients.Add(client);
             }
-
-            client_lst.Add(client);
-            return util_functions.verify_success(status, SUCCESS_CODE);
         }
 
         public async Task<int> test_insert_tablet_async(Tablet tablet)
         {
-            var client = client_lst.Take();
-            var req = gen_insert_tablet_req(tablet, client.sessionId);
-            TSStatus status;
+            var client = _clients.Take();
+            
+            var req = gen_insert_tablet_req(tablet, client.SessionId);
+
             try
             {
-                status = await client.client.testInsertTabletAsync(req);
+                var status = await client.ServiceClient.testInsertTabletAsync(req);
+
+                if (_debugMode)
+                {
+                    _logger.Info("insert one tablet to device {0}, server message: {1}", tablet.DeviceId,
+                        status.Message);
+                }
+
+                return _utilFunctions.verify_success(status, SuccessCode);
             }
             catch (TException e)
             {
-                client_lst.Add(client);
-                var err_msg = String.Format("Tablet insertion failed");
-                throw new TException(err_msg, e);
+                throw new TException("Tablet insertion failed", e);
             }
-
-            if (debug_mode)
+            finally
             {
-                _logger.Info("insert one tablet to device {0}, server message: {1}", tablet.device_id, status.Message);
+                _clients.Add(client);
             }
-
-            client_lst.Add(client);
-
-            return util_functions.verify_success(status, SUCCESS_CODE);
         }
 
-        public async Task<int> test_insert_tablets_async(List<Tablet> tablet_lst)
+        public async Task<int> test_insert_tablets_async(List<Tablet> tabletLst)
         {
-            var client = client_lst.Take();
-            var req = gen_insert_tablets_req(tablet_lst, client.sessionId);
-            TSStatus status;
+            var client = _clients.Take();
+            
+            var req = gen_insert_tablets_req(tabletLst, client.SessionId);
+            
             try
             {
-                status = await client.client.testInsertTabletsAsync(req);
+                var status = await client.ServiceClient.testInsertTabletsAsync(req);
+
+                if (_debugMode)
+                {
+                    _logger.Info("insert multiple tablets, message: {0}", status.Message);
+                }
+
+                return _utilFunctions.verify_success(status, SuccessCode);
             }
             catch (TException e)
             {
-                client_lst.Add(client);
-                var err_msg = String.Format("Multiple tablets insertion failed");
-                throw new TException(err_msg, e);
+                throw new TException("Multiple tablets insertion failed", e);
             }
-
-            if (debug_mode)
+            finally
             {
-                _logger.Info("insert multiple tablets, message: {0}", status.Message);
+                _clients.Add(client);
             }
-
-            client_lst.Add(client);
-            return util_functions.verify_success(status, SUCCESS_CODE);
         }
 
         public async Task<SessionDataSet> execute_query_statement_async(string sql)
         {
             TSExecuteStatementResp resp;
             TSStatus status;
-            var client = client_lst.Take();
-            var req = new TSExecuteStatementReq(client.sessionId, sql, client.statementId);
-            req.FetchSize = this.fetch_size;
+            var client = _clients.Take();
+            var req = new TSExecuteStatementReq(client.SessionId, sql, client.StatementId)
+            {
+                FetchSize = _fetchSize
+            };
             try
             {
-                resp = await client.client.executeQueryStatementAsync(req);
+                resp = await client.ServiceClient.executeQueryStatementAsync(req);
                 status = resp.Status;
             }
             catch (TException e)
             {
-                client_lst.Add(client);
-                var err_msg = String.Format("could not execute query statement");
-                throw new TException(err_msg, e);
+                _clients.Add(client);
+                
+                throw new TException("could not execute query statement", e);
             }
 
-            if (util_functions.verify_success(status, SUCCESS_CODE) == -1)
+            if (_utilFunctions.verify_success(status, SuccessCode) == -1)
             {
-                client_lst.Add(client);
+                _clients.Add(client);
+                
                 throw new TException("execute query failed", null);
             }
 
-            client_lst.Add(client);
+            _clients.Add(client);
 
-            var session_dataset = new SessionDataSet(sql, resp, client_lst);
-            session_dataset.fetch_size = fetch_size;
-            return session_dataset;
+            var sessionDataset = new SessionDataSet(sql, resp, _clients)
+            {
+                FetchSize = _fetchSize
+            };
+            
+            return sessionDataset;
         }
 
         public async Task<int> execute_non_query_statement_async(string sql)
         {
-            TSExecuteStatementResp resp;
-            TSStatus status;
-            var client = client_lst.Take();
-            var req = new TSExecuteStatementReq(client.sessionId, sql, client.statementId);
+            var client = _clients.Take();
+            var req = new TSExecuteStatementReq(client.SessionId, sql, client.StatementId);
+            
             try
             {
-                resp = await client.client.executeUpdateStatementAsync(req);
-                status = resp.Status;
+                var resp = await client.ServiceClient.executeUpdateStatementAsync(req);
+                var status = resp.Status;
+
+                if (_debugMode)
+                {
+                    _logger.Info("execute non-query statement {0} message: {1}", sql, status.Message);
+                }
+
+                return _utilFunctions.verify_success(status, SuccessCode);
             }
             catch (TException e)
             {
-                client_lst.Add(client);
-                var err_msg = String.Format("execution of non-query statement failed");
-                throw new TException(err_msg, e);
+                throw new TException("execution of non-query statement failed", e);
             }
-
-            if (debug_mode)
+            finally
             {
-                _logger.Info("execute non-query statement {0} message: {1}", sql, status.Message);
+                _clients.Add(client);
             }
-
-            client_lst.Add(client);
-            return util_functions.verify_success(status, SUCCESS_CODE);
         }
     }
 }

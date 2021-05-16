@@ -11,7 +11,7 @@ namespace Apache.IoTDB
         
         // default value must be 0
         NONE
-    };
+    }
 
     public enum TSEncoding
     {
@@ -27,7 +27,7 @@ namespace Apache.IoTDB
         
         // default value must be 0
         NONE
-    };
+    }
 
     public enum Compressor
     {
@@ -39,5 +39,5 @@ namespace Apache.IoTDB
         PAA,
         PLA,
         LZ4
-    };
+    }
 }

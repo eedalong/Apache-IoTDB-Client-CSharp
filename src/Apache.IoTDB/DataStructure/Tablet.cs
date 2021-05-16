@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Thrift;
@@ -21,47 +20,55 @@ namespace Apache.IoTDB.DataStructure
     */
     public class Tablet
     {
-        public string device_id { get; }
-        public List<string> measurement_lst { get; }
-        public List<long> timestamp_lst;
-        public List<List<object>> value_lst;
-        public int row_number { get; }
-        public int col_number;
+        private readonly List<long> _timestamps;
+        private readonly List<List<object>> _values;
+        
+        public string DeviceId { get; }
+        public List<string> Measurements { get; }
+        public int RowNumber { get; }
+        public int ColNumber { get; }
 
-        public Utils util_functions = new Utils();
+        private readonly Utils _utilFunctions = new Utils();
 
-        public Tablet(string device_id, List<string> measurement_lst, List<List<object>> value_lst,
-            List<long> timestamp_lst)
+        public Tablet(
+            string deviceId, 
+            List<string> measurements, 
+            List<List<object>> values,
+            List<long> timestamps)
         {
-            if (timestamp_lst.Count != value_lst.Count)
+            if (timestamps.Count != values.Count)
             {
-                var err_msg = String.Format("Input error! len(timestamp_lst) does not equal to len(value_lst)!");
-                throw new TException(err_msg, null);
+                throw new TException(
+                    $"Input error. TimeStamp. Timestamps.Count({timestamps.Count}) does not equal to Values.Count({values.Count}).", 
+                    null);
             }
-
-            if (!util_functions.check_sorted(timestamp_lst))
+            
+            if (!_utilFunctions.IsSorted(timestamps))
             {
-                var sorted = timestamp_lst.Select((x, index) => (timestamp: x, values: value_lst[index]))
+                var sorted = timestamps
+                    .Select((x, index) => (timestamp: x, values: values[index]))
                     .OrderBy(x => x.timestamp).ToList();
-                this.timestamp_lst = sorted.Select(x => x.timestamp).ToList();
-                this.value_lst = sorted.Select(x => x.values).ToList();
+                
+                _timestamps = sorted.Select(x => x.timestamp).ToList();
+                _values = sorted.Select(x => x.values).ToList();
             }
             else
             {
-                this.value_lst = value_lst;
-                this.timestamp_lst = timestamp_lst;
+                _values = values;
+                _timestamps = timestamps;
             }
 
-            this.device_id = device_id;
-            this.measurement_lst = measurement_lst;
-            this.row_number = timestamp_lst.Count;
-            this.col_number = measurement_lst.Count;
+            DeviceId = deviceId;
+            Measurements = measurements;
+            RowNumber = timestamps.Count;
+            ColNumber = measurements.Count;
         }
 
         public byte[] get_binary_timestamps()
         {
-            ByteBuffer buffer = new ByteBuffer(new byte[] { });
-            foreach (var timestamp in timestamp_lst)
+            var buffer = new ByteBuffer(new byte[] { });
+            
+            foreach (var timestamp in _timestamps)
             {
                 buffer.add_long(timestamp);
             }
@@ -71,134 +78,142 @@ namespace Apache.IoTDB.DataStructure
 
         public List<int> get_data_types()
         {
-            List<int> data_type_values = new List<int>() { };
-            foreach (var value in value_lst[0])
+            var dataTypeValues = new List<int>();
+            
+            foreach (var valueType in _values[0].Select(value => value))
             {
-                var value_type = value.GetType();
-                if (value_type.Equals(typeof(bool)))
+                switch (valueType)
                 {
-                    data_type_values.Add((int) TSDataType.BOOLEAN);
-                }
-                else if (value_type.Equals(typeof(Int32)))
-                {
-                    data_type_values.Add((int) TSDataType.INT32);
-                }
-                else if (value_type.Equals(typeof(Int64)))
-                {
-                    data_type_values.Add((int) TSDataType.INT64);
-                }
-                else if (value_type.Equals(typeof(float)))
-                {
-                    data_type_values.Add((int) TSDataType.FLOAT);
-                }
-                else if (value_type.Equals(typeof(double)))
-                {
-                    data_type_values.Add((int) TSDataType.DOUBLE);
-                }
-                else if (value_type.Equals(typeof(string)))
-                {
-                    data_type_values.Add((int) TSDataType.TEXT);
+                    case bool _:
+                        dataTypeValues.Add((int) TSDataType.BOOLEAN);
+                        break;
+                    case int _:
+                        dataTypeValues.Add((int) TSDataType.INT32);
+                        break;
+                    case long _:
+                        dataTypeValues.Add((int) TSDataType.INT64);
+                        break;
+                    case float _:
+                        dataTypeValues.Add((int) TSDataType.FLOAT);
+                        break;
+                    case double _:
+                        dataTypeValues.Add((int) TSDataType.DOUBLE);
+                        break;
+                    case string _:
+                        dataTypeValues.Add((int) TSDataType.TEXT);
+                        break;
                 }
             }
 
-            return data_type_values;
+            return dataTypeValues;
         }
 
-        public int estimate_buffer_size()
+        private int estimate_buffer_size()
         {
-            var estimate_size = 0;
+            var estimateSize = 0;
+            
             // estimate one row size
-            foreach (var value in value_lst[0])
+            foreach (var value in _values[0])
             {
-                var value_type = value.GetType();
-                if (value_type.Equals(typeof(bool)))
+                switch (value)
                 {
-                    estimate_size += 1;
-                }
-                else if (value_type.Equals(typeof(Int32)))
-                {
-                    estimate_size += 4;
-                }
-                else if (value_type.Equals(typeof(Int64)))
-                {
-                    estimate_size += 8;
-                }
-                else if (value_type.Equals(typeof(float)))
-                {
-                    estimate_size += 4;
-                }
-                else if (value_type.Equals(typeof(double)))
-                {
-                    estimate_size += 8;
-                }
-                else if (value_type.Equals(typeof(string)))
-                {
-                    estimate_size += ((string) value).Length;
+                    case bool _:
+                        estimateSize += 1;
+                        break;
+                    case int _:
+                        estimateSize += 4;
+                        break;
+                    case long _:
+                        estimateSize += 8;
+                        break;
+                    case float _:
+                        estimateSize += 4;
+                        break;
+                    case double _:
+                        estimateSize += 8;
+                        break;
+                    case string s:
+                        estimateSize += s.Length;
+                        break;
                 }
             }
 
-            estimate_size *= timestamp_lst.Count;
-            return estimate_size;
+            estimateSize *= _timestamps.Count;
+            return estimateSize;
         }
 
         public byte[] get_binary_values()
         {
-            var estimate_size = estimate_buffer_size();
-            ByteBuffer buffer = new ByteBuffer(estimate_size);
-            for (int i = 0; i < col_number; i++)
+            var estimateSize = estimate_buffer_size();
+            var buffer = new ByteBuffer(estimateSize);
+            
+            for (var i = 0; i < ColNumber; i++)
             {
-                var value_type = value_lst[0][i].GetType();
-                if (value_type.Equals(typeof(bool)))
+                var value = _values[0][i];
+                
+                switch (value)
                 {
-                    for (int j = 0; j < row_number; j++)
+                    case bool _:
                     {
-                        buffer.add_bool((bool) value_lst[j][i]);
+                        for (var j = 0; j < RowNumber; j++)
+                        {
+                            buffer.add_bool((bool) _values[j][i]);
+                        }
+
+                        break;
                     }
-                }
-                else if (value_type.Equals(typeof(Int32)))
-                {
-                    for (int j = 0; j < row_number; j++)
+                    case int _:
                     {
-                        buffer.add_int((Int32) value_lst[j][i]);
+                        for (var j = 0; j < RowNumber; j++)
+                        {
+                            buffer.add_int((int) _values[j][i]);
+                        }
+
+                        break;
                     }
-                }
-                else if (value_type.Equals(typeof(Int64)))
-                {
-                    for (int j = 0; j < row_number; j++)
+                    case long _:
                     {
-                        buffer.add_long((Int64) value_lst[j][i]);
+                        for (var j = 0; j < RowNumber; j++)
+                        {
+                            buffer.add_long((long) _values[j][i]);
+                        }
+
+                        break;
                     }
-                }
-                else if (value_type.Equals(typeof(float)))
-                {
-                    for (int j = 0; j < row_number; j++)
+                    case float _:
                     {
-                        buffer.add_float((float) value_lst[j][i]);
+                        for (int j = 0; j < RowNumber; j++)
+                        {
+                            buffer.add_float((float) _values[j][i]);
+                        }
+
+                        break;
                     }
-                }
-                else if (value_type.Equals(typeof(double)))
-                {
-                    for (int j = 0; j < row_number; j++)
+                    case double _:
                     {
-                        buffer.add_double((double) value_lst[j][i]);
+                        for (var j = 0; j < RowNumber; j++)
+                        {
+                            buffer.add_double((double) _values[j][i]);
+                        }
+
+                        break;
                     }
-                }
-                else if (value_type.Equals(typeof(string)))
-                {
-                    for (int j = 0; j < row_number; j++)
+                    case string _:
                     {
-                        buffer.add_str((string) value_lst[j][i]);
+                        for (var j = 0; j < RowNumber; j++)
+                        {
+                            buffer.add_str((string) _values[j][i]);
+                        }
+
+                        break;
                     }
-                }
-                else
-                {
-                    var message = String.Format("Unsupported data type {0}", value_type);
-                    throw new TException(message, null);
+                    default:
+                        throw new TException($"Unsupported data type {value}", null);
+                    
                 }
             }
 
-            var buf = buffer.get_buffer();
-            return buf;
+            return  buffer.get_buffer();
         }
     }
 }

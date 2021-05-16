@@ -1,14 +1,15 @@
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Apache.IoTDB
 {
     public class Utils
     {
-        public bool check_sorted(List<long> timestamp_lst)
+        public bool IsSorted(IList<long> collection)
         {
-            for (int i = 1; i < timestamp_lst.Count; i++)
+            for (var i = 1; i < collection.Count; i++)
             {
-                if (timestamp_lst[i] < timestamp_lst[i - 1])
+                if (collection[i] < collection[i - 1])
                 {
                     return false;
                 }
@@ -17,22 +18,19 @@ namespace Apache.IoTDB
             return true;
         }
 
-        public int verify_success(TSStatus status, int SUCCESS_CODE)
+        public int verify_success(TSStatus status, int successCode)
         {
             if (status.__isset.subStatus)
             {
-                foreach (var sub_status in status.SubStatus)
+                if (status.SubStatus.Any(subStatus => verify_success(subStatus, successCode) != 0))
                 {
-                    if (verify_success(sub_status, SUCCESS_CODE) != 0)
-                    {
-                        return -1;
-                    }
+                    return -1;
                 }
 
                 return 0;
             }
 
-            if (status.Code == SUCCESS_CODE)
+            if (status.Code == successCode)
             {
                 return 0;
             }

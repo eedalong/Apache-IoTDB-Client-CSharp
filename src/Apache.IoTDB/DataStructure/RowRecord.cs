@@ -1,50 +1,50 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Thrift;
 
 namespace Apache.IoTDB.DataStructure
 {
     public class RowRecord
     {
-        public long timestamp { get; set; }
-        public List<object> values { get; set; }
-        public List<string> measurements { get; set; }
+        public long Timestamps { get; }
+        public List<object> Values { get; }
+        public List<string> Measurements { get; }
 
-        public RowRecord(long timestamp, List<object> values, List<string> measurements)
+        public RowRecord(long timestamps, List<object> values, List<string> measurements)
         {
-            this.timestamp = timestamp;
-            this.values = values;
-            this.measurements = measurements;
+            Timestamps = timestamps;
+            Values = values;
+            Measurements = measurements;
         }
 
-        public void append(string measurement, Object value)
+        public void Append(string measurement, object value)
         {
-            values.Add(value);
-            measurements.Add(measurement);
+            Values.Add(value);
+            Measurements.Add(measurement);
         }
 
         public DateTime get_date_time()
         {
-            return DateTimeOffset.FromUnixTimeMilliseconds(timestamp).DateTime.ToLocalTime();
-            ;
+            return DateTimeOffset.FromUnixTimeMilliseconds(Timestamps).DateTime.ToLocalTime();
         }
 
         public override string ToString()
         {
             var str = "TimeStamp";
-            foreach (var measurement in measurements)
+            foreach (var measurement in Measurements)
             {
                 str += "\t\t";
-                str += measurement.ToString();
+                str += measurement;
             }
 
             str += "\n";
 
-            str += timestamp.ToString();
-            foreach (var row_value in values)
+            str += Timestamps.ToString();
+            foreach (var rowValue in Values)
             {
                 str += "\t\t";
-                str += row_value.ToString();
+                str += rowValue.ToString();
             }
 
             return str;
@@ -52,83 +52,74 @@ namespace Apache.IoTDB.DataStructure
 
         public List<int> get_datatypes()
         {
-            List<int> data_type_values = new List<int>() { };
-            foreach (var value in values)
+            var dataTypeValues = new List<int>();
+            
+            foreach (var valueType in Values.Select(value => value))
             {
-                var value_type = value.GetType();
-                if (value_type.Equals(typeof(bool)))
+                switch (valueType)
                 {
-                    data_type_values.Add((int) TSDataType.BOOLEAN);
-                }
-                else if (value_type.Equals(typeof(Int32)))
-                {
-                    data_type_values.Add((int) TSDataType.INT32);
-                }
-                else if (value_type.Equals(typeof(Int64)))
-                {
-                    data_type_values.Add((int) TSDataType.INT64);
-                }
-                else if (value_type.Equals(typeof(float)))
-                {
-                    data_type_values.Add((int) TSDataType.FLOAT);
-                }
-                else if (value_type.Equals(typeof(double)))
-                {
-                    data_type_values.Add((int) TSDataType.DOUBLE);
-                }
-                else if (value_type.Equals(typeof(string)))
-                {
-                    data_type_values.Add((int) TSDataType.TEXT);
+                    case bool _:
+                        dataTypeValues.Add((int) TSDataType.BOOLEAN);
+                        break;
+                    case int _:
+                        dataTypeValues.Add((int) TSDataType.INT32);
+                        break;
+                    case long _:
+                        dataTypeValues.Add((int) TSDataType.INT64);
+                        break;
+                    case float _:
+                        dataTypeValues.Add((int) TSDataType.FLOAT);
+                        break;
+                    case double _:
+                        dataTypeValues.Add((int) TSDataType.DOUBLE);
+                        break;
+                    case string _:
+                        dataTypeValues.Add((int) TSDataType.TEXT);
+                        break;
                 }
             }
 
-            return data_type_values;
+            return dataTypeValues;
         }
 
         public byte[] ToBytes()
         {
-            ByteBuffer buffer = new ByteBuffer(values.Count * 8);
-            foreach (var value in values)
+            var buffer = new ByteBuffer(Values.Count * 8);
+            
+            foreach (var value in Values)
             {
-                if (value.GetType().Equals(typeof(bool)))
+                switch (value)
                 {
-                    buffer.add_char((char) TSDataType.BOOLEAN);
-                    buffer.add_bool((bool) value);
-                }
-                else if ((value.GetType().Equals(typeof(Int32))))
-                {
-                    buffer.add_char((char) TSDataType.INT32);
-                    buffer.add_int((int) value);
-                }
-                else if ((value.GetType().Equals(typeof(Int64))))
-                {
-                    buffer.add_char((char) TSDataType.INT64);
-                    buffer.add_long((long) value);
-                }
-                else if ((value.GetType().Equals(typeof(double))))
-                {
-                    buffer.add_char((char) TSDataType.DOUBLE);
-                    buffer.add_double((double) value);
-                }
-                else if ((value.GetType().Equals(typeof(float))))
-                {
-                    buffer.add_char((char) TSDataType.FLOAT);
-                    buffer.add_float((float) value);
-                }
-                else if ((value.GetType().Equals(typeof(string))))
-                {
-                    buffer.add_char((char) TSDataType.TEXT);
-                    buffer.add_str((string) value);
-                }
-                else
-                {
-                    var message = String.Format("Unsupported data type:{0}", value.GetType().ToString());
-                    throw new TException(message, null);
+                    case bool b:
+                        buffer.add_char((char) TSDataType.BOOLEAN);
+                        buffer.add_bool(b);
+                        break;
+                    case int i:
+                        buffer.add_char((char) TSDataType.INT32);
+                        buffer.add_int(i);
+                        break;
+                    case long l:
+                        buffer.add_char((char) TSDataType.INT64);
+                        buffer.add_long(l);
+                        break;
+                    case double d:
+                        buffer.add_char((char) TSDataType.DOUBLE);
+                        buffer.add_double(d);
+                        break;
+                    case float f:
+                        buffer.add_char((char) TSDataType.FLOAT);
+                        buffer.add_float(f);
+                        break;
+                    case string s:
+                        buffer.add_char((char) TSDataType.TEXT);
+                        buffer.add_str(s);
+                        break;
+                    default:
+                        throw new TException($"Unsupported data type:{value.GetType()}", null);
                 }
             }
 
-            var buf = buffer.get_buffer();
-            return buf;
+            return buffer.get_buffer();;
         }
     }
 }

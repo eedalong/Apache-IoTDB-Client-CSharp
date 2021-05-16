@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Thrift;
 
@@ -7,131 +8,111 @@ namespace Apache.IoTDB.DataStructure
 {
     public class SessionDataSet
     {
-        private long query_id;
+        private readonly long _queryId;
+        private readonly string _sql;
+        private readonly List<string> _columnNames;
+        private readonly Dictionary<string, int> _columnNameIndexMap;
+        private readonly Dictionary<int, int> _duplicateLocation;
+        private readonly List<string> _columnTypeLst;
+        private TSQueryDataSet _queryDataset;
+        private readonly byte[] _currentBitmap;
+        private readonly int _columnSize;
+        private List<ByteBuffer> _valueBufferLst, _bitmapBufferLst;
+        private ByteBuffer _timeBuffer;
+        private readonly ConcurrentClientQueue _clientQueue;
+        private int _rowIndex;
+        private bool _hasCatchedResult;
+        private RowRecord _cachedRowRecord;
+        private readonly bool _isClosed = false;
 
-        private string sql;
-        List<string> column_name_lst;
-        Dictionary<string, int> column_name_index_map;
-        Dictionary<int, int> duplicate_location;
-        List<string> column_type_lst;
-        TSQueryDataSet query_dataset;
-        byte[] current_bitmap;
-        int column_size;
-        List<ByteBuffer> value_buffer_lst, bitmap_buffer_lst;
-        ByteBuffer time_buffer;
-        ConcurrentClientQueue clientQueue;
 
-        private string TIMESTAMP_STR
-        {
-            get { return "Time"; }
-        }
+        private string TimestampStr => "Time";
+        private int StartIndex => 2;
+        private int Flag => 0x80;
+        private int DefaultTimeout => 10000;
 
-        private int START_INDEX
-        {
-            get { return 2; }
-        }
-
-        private int FLAG
-        {
-            get { return 0x80; }
-        }
-
-        private int default_timeout
-        {
-            get { return 10000; }
-        }
-
-        public int fetch_size { get; set; }
-        private int row_index;
-
-        private bool has_catched_result;
-        private RowRecord cached_row_record;
-        private bool is_closed = false;
-
+        public int FetchSize { get; set; }
+        
         public SessionDataSet(string sql, TSExecuteStatementResp resp, ConcurrentClientQueue clientQueue)
         {
-            this.clientQueue = clientQueue;
-            this.sql = sql;
-            this.query_dataset = resp.QueryDataSet;
-            this.query_id = resp.QueryId;
-            this.column_size = resp.Columns.Count;
-            this.current_bitmap = new byte[this.column_size];
-            this.column_name_lst = new List<string> { };
-            this.time_buffer = new ByteBuffer(query_dataset.Time);
-            this.column_name_index_map = new Dictionary<string, int> { };
-            this.column_type_lst = new List<string> { };
-            this.duplicate_location = new Dictionary<int, int> { };
-            this.value_buffer_lst = new List<ByteBuffer> { };
-            this.bitmap_buffer_lst = new List<ByteBuffer> { };
+            _clientQueue = clientQueue;
+            _sql = sql;
+            _queryDataset = resp.QueryDataSet;
+            _queryId = resp.QueryId;
+            _columnSize = resp.Columns.Count;
+            _currentBitmap = new byte[_columnSize];
+            _columnNames = new List<string>();
+            _timeBuffer = new ByteBuffer(_queryDataset.Time);
+            _columnNameIndexMap = new Dictionary<string, int>();
+            _columnTypeLst = new List<string>();
+            _duplicateLocation = new Dictionary<int, int>();
+            _valueBufferLst = new List<ByteBuffer>();
+            _bitmapBufferLst = new List<ByteBuffer>();
             // some internal variable
-            this.has_catched_result = false;
-            this.row_index = 0;
+            _hasCatchedResult = false;
+            _rowIndex = 0;
             if (resp.ColumnNameIndexMap != null)
             {
                 for (var index = 0; index < resp.Columns.Count; index++)
                 {
-                    this.column_name_lst.Add("");
-                    this.column_type_lst.Add("");
+                    _columnNames.Add("");
+                    _columnTypeLst.Add("");
                 }
 
                 for (var index = 0; index < resp.Columns.Count; index++)
                 {
                     var name = resp.Columns[index];
-                    this.column_name_lst[resp.ColumnNameIndexMap[name]] = name;
-                    this.column_type_lst[resp.ColumnNameIndexMap[name]] = resp.DataTypeList[index];
+                    _columnNames[resp.ColumnNameIndexMap[name]] = name;
+                    _columnTypeLst[resp.ColumnNameIndexMap[name]] = resp.DataTypeList[index];
                 }
             }
             else
             {
-                this.column_name_lst = resp.Columns;
-                this.column_type_lst = resp.DataTypeList;
+                _columnNames = resp.Columns;
+                _columnTypeLst = resp.DataTypeList;
             }
 
-            for (int index = 0; index < this.column_name_lst.Count; index++)
+            for (int index = 0; index < _columnNames.Count; index++)
             {
-                var column_name = this.column_name_lst[index];
-                if (this.column_name_index_map.ContainsKey(column_name))
+                var columnName = _columnNames[index];
+                if (_columnNameIndexMap.ContainsKey(columnName))
                 {
-                    this.duplicate_location[index] = this.column_name_index_map[column_name];
+                    _duplicateLocation[index] = _columnNameIndexMap[columnName];
                 }
                 else
                 {
-                    this.column_name_index_map[column_name] = index;
+                    _columnNameIndexMap[columnName] = index;
                 }
 
-                this.value_buffer_lst.Add(new ByteBuffer(this.query_dataset.ValueList[index]));
-                this.bitmap_buffer_lst.Add(new ByteBuffer(this.query_dataset.BitmapList[index]));
+                _valueBufferLst.Add(new ByteBuffer(_queryDataset.ValueList[index]));
+                _bitmapBufferLst.Add(new ByteBuffer(_queryDataset.BitmapList[index]));
             }
         }
 
-        public List<string> get_column_names()
+        private List<string> get_column_names()
         {
-            var name_lst = new List<string> {"timestamp"};
-            name_lst.AddRange(this.column_name_lst);
-            return name_lst;
+            var nameLst = new List<string> {"timestamp"};
+            nameLst.AddRange(_columnNames);
+            return nameLst;
         }
 
         public void show_table_names()
         {
-            var str = "";
-            var name_lst = get_column_names();
-            foreach (var name in name_lst)
-            {
-                str += name + "\t\t";
-            }
+            var str = get_column_names()
+                .Aggregate("", (current, name) => current + (name + "\t\t"));
 
             Console.WriteLine(str);
         }
 
         public bool has_next()
         {
-            if (has_catched_result)
+            if (_hasCatchedResult)
             {
                 return true;
             }
 
             // we have consumed all current data, fetch some more
-            if (!this.time_buffer.has_remaining())
+            if (!_timeBuffer.has_remaining())
             {
                 if (!fetch_results())
                 {
@@ -140,13 +121,13 @@ namespace Apache.IoTDB.DataStructure
             }
 
             construct_one_row();
-            has_catched_result = true;
+            _hasCatchedResult = true;
             return true;
         }
 
-        public RowRecord next()
+        public RowRecord Next()
         {
-            if (!has_catched_result)
+            if (!_hasCatchedResult)
             {
                 if (!has_next())
                 {
@@ -154,169 +135,164 @@ namespace Apache.IoTDB.DataStructure
                 }
             }
 
-            has_catched_result = false;
-            return cached_row_record;
+            _hasCatchedResult = false;
+            return _cachedRowRecord;
         }
 
         private TSDataType get_data_type_from_str(string str)
         {
-            switch (str)
+            return str switch
             {
-                case "BOOLEAN":
-                    return TSDataType.BOOLEAN;
-                case "INT32":
-                    return TSDataType.INT32;
-                case "INT64":
-                    return TSDataType.INT64;
-                case "FLOAT":
-                    return TSDataType.FLOAT;
-                case "DOUBLE":
-                    return TSDataType.DOUBLE;
-                case "TEXT":
-                    return TSDataType.TEXT;
-                case "NULLTYPE":
-                    return TSDataType.NONE;
-                default:
-                    return TSDataType.TEXT;
-            }
+                "BOOLEAN" => TSDataType.BOOLEAN,
+                "INT32" => TSDataType.INT32,
+                "INT64" => TSDataType.INT64,
+                "FLOAT" => TSDataType.FLOAT,
+                "DOUBLE" => TSDataType.DOUBLE,
+                "TEXT" => TSDataType.TEXT,
+                "NULLTYPE" => TSDataType.NONE,
+                _ => TSDataType.TEXT
+            };
         }
 
-        public void construct_one_row()
+        private void construct_one_row()
         {
-            List<object> field_lst = new List<Object> { };
-            for (int i = 0; i < this.column_size; i++)
+            List<object> fieldLst = new List<Object>();
+            
+            for (int i = 0; i < _columnSize; i++)
             {
-                if (duplicate_location.ContainsKey(i))
+                if (_duplicateLocation.ContainsKey(i))
                 {
-                    var field = field_lst[duplicate_location[i]];
-                    field_lst.Add(field);
+                    var field = fieldLst[_duplicateLocation[i]];
+                    fieldLst.Add(field);
                 }
                 else
                 {
-                    ByteBuffer column_value_buffer = value_buffer_lst[i];
-                    ByteBuffer column_bitmap_buffer = bitmap_buffer_lst[i];
-                    if (row_index % 8 == 0)
+                    var columnValueBuffer = _valueBufferLst[i];
+                    var columnBitmapBuffer = _bitmapBufferLst[i];
+                    
+                    if (_rowIndex % 8 == 0)
                     {
-                        current_bitmap[i] = column_bitmap_buffer.get_byte();
+                        _currentBitmap[i] = columnBitmapBuffer.get_byte();
                     }
 
-                    object local_field;
-                    if (!is_null(i, row_index))
+                    object localField;
+                    if (!is_null(i, _rowIndex))
                     {
-                        TSDataType column_data_type = get_data_type_from_str(column_type_lst[i]);
+                        var columnDataType = get_data_type_from_str(_columnTypeLst[i]);
 
 
-                        switch (column_data_type)
+                        switch (columnDataType)
                         {
                             case TSDataType.BOOLEAN:
-                                local_field = column_value_buffer.get_bool();
+                                localField = columnValueBuffer.get_bool();
                                 break;
                             case TSDataType.INT32:
-                                local_field = column_value_buffer.get_int();
+                                localField = columnValueBuffer.get_int();
                                 break;
                             case TSDataType.INT64:
-                                local_field = column_value_buffer.get_long();
+                                localField = columnValueBuffer.get_long();
                                 break;
                             case TSDataType.FLOAT:
-                                local_field = column_value_buffer.get_float();
+                                localField = columnValueBuffer.get_float();
                                 break;
                             case TSDataType.DOUBLE:
-                                local_field = column_value_buffer.get_double();
+                                localField = columnValueBuffer.get_double();
                                 break;
                             case TSDataType.TEXT:
-                                local_field = column_value_buffer.get_str();
+                                localField = columnValueBuffer.get_str();
                                 break;
                             default:
-                                string err_msg = string.Format("value format not supported");
+                                string err_msg = "value format not supported";
                                 throw new TException(err_msg, null);
                         }
 
-                        field_lst.Add(local_field);
+                        fieldLst.Add(localField);
                     }
                     else
                     {
-                        local_field = null;
-                        field_lst.Add("NULL");
+                        localField = null;
+                        fieldLst.Add("NULL");
                     }
                 }
             }
 
-            long timestamp = time_buffer.get_long();
-            row_index += 1;
-            this.cached_row_record = new RowRecord(timestamp, field_lst, column_name_lst);
+            long timestamp = _timeBuffer.get_long();
+            _rowIndex += 1;
+            _cachedRowRecord = new RowRecord(timestamp, fieldLst, _columnNames);
         }
 
         private bool is_null(int loc, int row_index)
         {
-            byte bitmap = current_bitmap[loc];
+            byte bitmap = _currentBitmap[loc];
             int shift = row_index % 8;
-            return ((FLAG >> shift) & bitmap) == 0;
+            return ((Flag >> shift) & bitmap) == 0;
         }
 
         private bool fetch_results()
         {
-            row_index = 0;
-            var my_client = clientQueue.Take();
-            var req = new TSFetchResultsReq(my_client.sessionId, sql, fetch_size, query_id, true);
-            req.Timeout = default_timeout;
+            _rowIndex = 0;
+            var myClient = _clientQueue.Take();
+            var req = new TSFetchResultsReq(myClient.SessionId, _sql, FetchSize, _queryId, true)
+            {
+                Timeout = DefaultTimeout
+            };
             try
             {
-                var task = my_client.client.fetchResultsAsync(req);
+                var task = myClient.ServiceClient.fetchResultsAsync(req);
                 task.Wait();
                 var resp = task.Result;
+                
                 if (resp.HasResultSet)
                 {
-                    this.query_dataset = resp.QueryDataSet;
+                    _queryDataset = resp.QueryDataSet;
                     // reset buffer
-                    this.time_buffer = new ByteBuffer(resp.QueryDataSet.Time);
-                    this.value_buffer_lst = new List<ByteBuffer> { };
-                    this.bitmap_buffer_lst = new List<ByteBuffer> { };
-                    for (int index = 0; index < query_dataset.ValueList.Count; index++)
+                    _timeBuffer = new ByteBuffer(resp.QueryDataSet.Time);
+                    _valueBufferLst = new List<ByteBuffer>();
+                    _bitmapBufferLst = new List<ByteBuffer>();
+                    for (int index = 0; index < _queryDataset.ValueList.Count; index++)
                     {
-                        this.value_buffer_lst.Add(new ByteBuffer(query_dataset.ValueList[index]));
-                        this.bitmap_buffer_lst.Add(new ByteBuffer(query_dataset.BitmapList[index]));
+                        _valueBufferLst.Add(new ByteBuffer(_queryDataset.ValueList[index]));
+                        _bitmapBufferLst.Add(new ByteBuffer(_queryDataset.BitmapList[index]));
                     }
 
                     // reset row index
-                    row_index = 0;
-                }
-
-                if (clientQueue != null)
-                {
-                    clientQueue.Add(my_client);
+                    _rowIndex = 0;
                 }
 
                 return resp.HasResultSet;
             }
             catch (TException e)
             {
-                if (clientQueue != null)
-                {
-                    clientQueue.Add(my_client);
-                }
-
-                var message = string.Format("Cannot fetch result from server, because of network connection");
-                throw new TException(message, e);
+                throw new TException("Cannot fetch result from server, because of network connection", e);
+            }
+            finally
+            {
+                _clientQueue.Add(myClient);
             }
         }
 
-        public async Task close()
+        public async Task Close()
         {
-            if (!is_closed)
+            if (!_isClosed)
             {
-                var my_client = clientQueue.Take();
-                var req = new TSCloseOperationReq(sessionId: my_client.sessionId) {QueryId = query_id};
+                var myClient = _clientQueue.Take();
+                var req = new TSCloseOperationReq(myClient.SessionId)
+                {
+                    QueryId = _queryId
+                };
+
                 try
                 {
-                    await my_client.client.closeOperationAsync(req);
+                    await myClient.ServiceClient.closeOperationAsync(req);
                 }
                 catch (TException e)
                 {
-                    clientQueue.Add(my_client);
                     throw new TException("Operation Handle Close Failed", e);
                 }
-
-                clientQueue.Add(my_client);
+                finally
+                {
+                    _clientQueue.Add(myClient);
+                }
             }
         }
     }
