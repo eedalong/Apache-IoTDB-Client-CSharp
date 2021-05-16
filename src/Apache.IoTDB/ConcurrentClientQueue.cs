@@ -2,37 +2,42 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
 
-namespace iotdb_client_csharp.client.utils
+namespace Apache.IoTDB
 {
-    public class ConcurentClientQueue
+    public class ConcurrentClientQueue
     {
         public ConcurrentQueue<Client> client_queue;
-        public ConcurentClientQueue(List<Client> clients){
+
+        public ConcurrentClientQueue(List<Client> clients)
+        {
             client_queue = new ConcurrentQueue<Client>(clients);
         }
-        public ConcurentClientQueue(){
+
+        public ConcurrentClientQueue()
+        {
             client_queue = new ConcurrentQueue<Client>();
         }
-        public void Add(Client client){
+
+        public void Add(Client client)
+        {
             Monitor.Enter(client_queue);
             client_queue.Enqueue(client);
             Monitor.Pulse(client_queue);
             Monitor.Exit(client_queue);
         }
-        public Client Take(){
+
+        public Client Take()
+        {
             Client client;
             Monitor.Enter(client_queue);
-            if(client_queue.IsEmpty){
+            if (client_queue.IsEmpty)
+            {
                 Monitor.Wait(client_queue);
             }
+
             client_queue.TryDequeue(out client);
             Monitor.Exit(client_queue);
             return client;
         }
-
-
-
-
-
     }
 }

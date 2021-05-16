@@ -1,7 +1,6 @@
 using Thrift.Transport;
 
-
-namespace iotdb_client_csharp.client.utils
+namespace Apache.IoTDB
 {
     public class Client
     {
