@@ -101,7 +101,7 @@ namespace Apache.IoTDB
             _poolSize = poolSize;
         }
 
-        public void open_debug_mode(LoggingConfiguration config = null)
+        public void OpenDebugMode(LoggingConfiguration config = null)
         {
             _debugMode = true;
             if (config == null)
@@ -114,7 +114,7 @@ namespace Apache.IoTDB
             _logger = LogManager.GetCurrentClassLogger();
         }
 
-        public void close_debug_mode()
+        public void CloseDebugMode()
         {
             _debugMode = false;
         }
@@ -321,7 +321,7 @@ namespace Apache.IoTDB
 
         }
 
-        public async Task<int> delete_storage_group_async(string groupName)
+        public async Task<int> DeleteStorageGroupAsync(string groupName)
         {
             var client = _clients.Take();
             try
@@ -347,7 +347,7 @@ namespace Apache.IoTDB
             }
         }
 
-        public async Task<int> delete_storage_groups_async(List<string> groupNames)
+        public async Task<int> DeleteStorageGroupsAsync(List<string> groupNames)
         {
             var client = _clients.Take();
 
@@ -375,7 +375,7 @@ namespace Apache.IoTDB
             }
         }
 
-        public async Task<int> create_multi_time_series_async(
+        public async Task<int> CreateMultiTimeSeriesAsync(
             List<string> tsPathLst, 
             List<TSDataType> dataTypeLst,
             List<TSEncoding> encodingLst, 
@@ -409,7 +409,7 @@ namespace Apache.IoTDB
             }
         }
 
-        public async Task<int> delete_time_series_async(List<string> pathList)
+        public async Task<int> DeleteTimeSeriesAsync(List<string> pathList)
         {
             var client = _clients.Take();
             
@@ -434,18 +434,18 @@ namespace Apache.IoTDB
             }
         }
 
-        public async Task<int> delete_time_series_async(string tsPath)
+        public async Task<int> DeleteTimeSeriesAsync(string tsPath)
         {
-            return await delete_time_series_async(new List<string> {tsPath});
+            return await DeleteTimeSeriesAsync(new List<string> {tsPath});
         }
 
-        public async Task<bool> check_time_series_exists_async(string tsPath)
+        public async Task<bool> CheckTimeSeriesExistsAsync(string tsPath)
         {
             // TBD by dalong
             try
             {
                 var sql = "SHOW TIMESERIES " + tsPath;
-                var sessionDataset = await execute_query_statement_async(sql);
+                var sessionDataset = await ExecuteQueryStatementAsync(sql);
                 return sessionDataset.has_next();
             }
             catch (TException e)
@@ -454,7 +454,7 @@ namespace Apache.IoTDB
             }
         }
 
-        public async Task<int> delete_data_async(List<string> tsPathLst, long startTime, long endTime)
+        public async Task<int> DeleteDataAsync(List<string> tsPathLst, long startTime, long endTime)
         {
             var client = _clients.Take();
             var req = new TSDeleteDataReq(client.SessionId, tsPathLst, startTime, endTime);
@@ -483,7 +483,7 @@ namespace Apache.IoTDB
             }
         }
 
-        public async Task<int> insert_record_async(string deviceId, RowRecord record)
+        public async Task<int> InsertRecordAsync(string deviceId, RowRecord record)
         {
             // TBD by Luzhan
             var client = _clients.Take();
@@ -510,7 +510,7 @@ namespace Apache.IoTDB
             }
         }
 
-        public TSInsertStringRecordReq gen_insert_str_record_req(string deviceId, List<string> measurements,
+        public TSInsertStringRecordReq GenInsertStrRecordReq(string deviceId, List<string> measurements,
             List<string> values, long timestamp, long sessionId)
         {
             if (values.Count() != measurements.Count())
@@ -521,7 +521,7 @@ namespace Apache.IoTDB
             return new TSInsertStringRecordReq(sessionId, deviceId, measurements, values, timestamp);
         }
 
-        public TSInsertRecordsReq gen_insert_records_req(List<string> deviceId, List<RowRecord> rowRecords,
+        public TSInsertRecordsReq GenInsertRecordsReq(List<string> deviceId, List<RowRecord> rowRecords,
             long sessionId)
         {
             //TODO
@@ -532,11 +532,11 @@ namespace Apache.IoTDB
             return new TSInsertRecordsReq(sessionId, deviceId, measurementLst, valuesLstInBytes, timestampLst);
         }
 
-        public async Task<int> insert_records_async(List<string> deviceId, List<RowRecord> rowRecords)
+        public async Task<int> InsertRecordsAsync(List<string> deviceId, List<RowRecord> rowRecords)
         {
             var client = _clients.Take();
             
-            var request = gen_insert_records_req(deviceId, rowRecords, client.SessionId);
+            var request = GenInsertRecordsReq(deviceId, rowRecords, client.SessionId);
 
             try
             {
@@ -559,7 +559,7 @@ namespace Apache.IoTDB
             }
         }
 
-        public TSInsertTabletReq gen_insert_tablet_req(Tablet tablet, long sessionId)
+        public TSInsertTabletReq GenInsertTabletReq(Tablet tablet, long sessionId)
         {
             return new TSInsertTabletReq(
                 sessionId, 
@@ -571,10 +571,10 @@ namespace Apache.IoTDB
                 tablet.RowNumber);
         }
 
-        public async Task<int> insert_tablet_async(Tablet tablet)
+        public async Task<int> InsertTabletAsync(Tablet tablet)
         {
             var client = _clients.Take();
-            var req = gen_insert_tablet_req(tablet, client.SessionId);
+            var req = GenInsertTabletReq(tablet, client.SessionId);
             
             try
             {
@@ -597,7 +597,7 @@ namespace Apache.IoTDB
             }
         }
 
-        public TSInsertTabletsReq gen_insert_tablets_req(List<Tablet> tabletLst, long sessionId)
+        public TSInsertTabletsReq GenInsertTabletsReq(List<Tablet> tabletLst, long sessionId)
         {
             var deviceIdLst = new List<string>();
             var measurementsLst = new List<List<string>>();
@@ -627,10 +627,10 @@ namespace Apache.IoTDB
                 sizeLst);
         }
 
-        public async Task<int> insert_tablets_async(List<Tablet> tabletLst)
+        public async Task<int> InsertTabletsAsync(List<Tablet> tabletLst)
         {
             var client = _clients.Take();
-            var req = gen_insert_tablets_req(tabletLst, client.SessionId);
+            var req = GenInsertTabletsReq(tabletLst, client.SessionId);
             
             try
             {
@@ -655,13 +655,13 @@ namespace Apache.IoTDB
             }
         }
 
-        public async Task<int> insert_records_of_one_device_async(string deviceId, List<RowRecord> rowRecords)
+        public async Task<int> InsertRecordsOfOneDeviceAsync(string deviceId, List<RowRecord> rowRecords)
         {
             var sortedRowRecords = rowRecords.OrderBy(x => x.Timestamps).ToList();
-            return await insert_records_of_one_device_sorted_async(deviceId, sortedRowRecords);
+            return await InsertRecordsOfOneDeviceSortedAsync(deviceId, sortedRowRecords);
         }
 
-        private TSInsertRecordsOfOneDeviceReq gen_insert_records_of_one_device_request(
+        private TSInsertRecordsOfOneDeviceReq GenInsertRecordsOfOneDeviceRequest(
             string deviceId,
             List<RowRecord> records, 
             long sessionId)
@@ -678,7 +678,7 @@ namespace Apache.IoTDB
                 timestampLst);
         }
 
-        public async Task<int> insert_records_of_one_device_sorted_async(string deviceId, List<RowRecord> rowRecords)
+        public async Task<int> InsertRecordsOfOneDeviceSortedAsync(string deviceId, List<RowRecord> rowRecords)
         {
             var client = _clients.Take();
             
@@ -689,7 +689,7 @@ namespace Apache.IoTDB
                 throw new TException("insert records of one device error: timestamp not sorted", null);
             }
 
-            var req = gen_insert_records_of_one_device_request(deviceId, rowRecords, client.SessionId);
+            var req = GenInsertRecordsOfOneDeviceRequest(deviceId, rowRecords, client.SessionId);
             
             try
             {
@@ -712,7 +712,7 @@ namespace Apache.IoTDB
             }
         }
 
-        public async Task<int> test_insert_record_async(string deviceId, RowRecord record)
+        public async Task<int> TestInsertRecordAsync(string deviceId, RowRecord record)
         {
             var client = _clients.Take();
             
@@ -744,10 +744,10 @@ namespace Apache.IoTDB
             }
         }
 
-        public async Task<int> test_insert_records_async(List<string> deviceId, List<RowRecord> rowRecords)
+        public async Task<int> TestInsertRecordsAsync(List<string> deviceId, List<RowRecord> rowRecords)
         {
             var client = _clients.Take();
-            var req = gen_insert_records_req(deviceId, rowRecords, client.SessionId);
+            var req = GenInsertRecordsReq(deviceId, rowRecords, client.SessionId);
 
             try
             {
@@ -770,11 +770,11 @@ namespace Apache.IoTDB
             }
         }
 
-        public async Task<int> test_insert_tablet_async(Tablet tablet)
+        public async Task<int> TestInsertTabletAsync(Tablet tablet)
         {
             var client = _clients.Take();
             
-            var req = gen_insert_tablet_req(tablet, client.SessionId);
+            var req = GenInsertTabletReq(tablet, client.SessionId);
 
             try
             {
@@ -798,11 +798,11 @@ namespace Apache.IoTDB
             }
         }
 
-        public async Task<int> test_insert_tablets_async(List<Tablet> tabletLst)
+        public async Task<int> TestInsertTabletsAsync(List<Tablet> tabletLst)
         {
             var client = _clients.Take();
             
-            var req = gen_insert_tablets_req(tabletLst, client.SessionId);
+            var req = GenInsertTabletsReq(tabletLst, client.SessionId);
             
             try
             {
@@ -825,7 +825,7 @@ namespace Apache.IoTDB
             }
         }
 
-        public async Task<SessionDataSet> execute_query_statement_async(string sql)
+        public async Task<SessionDataSet> ExecuteQueryStatementAsync(string sql)
         {
             TSExecuteStatementResp resp;
             TSStatus status;
@@ -863,7 +863,7 @@ namespace Apache.IoTDB
             return sessionDataset;
         }
 
-        public async Task<int> execute_non_query_statement_async(string sql)
+        public async Task<int> ExecuteNonQueryStatementAsync(string sql)
         {
             var client = _clients.Take();
             var req = new TSExecuteStatementReq(client.SessionId, sql, client.StatementId);
