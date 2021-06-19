@@ -45,7 +45,7 @@ dotnet add package iotdb_client_csharp --version 0.12.0
     .NET SDK Version == 5.0 
 
 ## 如何使用 (快速上手)
-用户可参考[测试代码](https://github.com/eedalong/iotdb-client-csharp/tree/main/client/tests)中的测试代码了解各个接口使用方式
+用户可参考[测试代码](samples/Apache.IoTDB.Samples/SessioonPoolTest.cs)中的测试代码了解各个接口使用方式
 
 
 ## iotdb-client-csharp的开发者环境要求

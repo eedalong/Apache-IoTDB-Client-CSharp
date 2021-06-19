@@ -47,7 +47,7 @@ dotnet add package iotdb_client_csharp
 
 ## How to Use the Client (Quick Start)
 
-Users can refer to the test code in [tests](https://github.com/eedalong/iotdb-client-csharp/tree/main/client/tests) to understand the usage mode of each interface.
+Users can refer to the test code in [tests](samples/Apache.IoTDB.Samples/SessioonPoolTest.cs) to understand the usage mode of each interface.
 
 ## Developer environment requirements for iotdb-client-csharp
 
