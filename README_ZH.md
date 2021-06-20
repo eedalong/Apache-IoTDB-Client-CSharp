@@ -45,7 +45,7 @@ dotnet add package Apache.IoTDB
     .NET SDK Version == 5.0 
 
 ## 如何使用 (快速上手)
-用户可参考[测试代码](samples/Apache.IoTDB.Samples/SessioonPoolTest.cs)中的测试代码了解各个接口使用方式
+用户可参考[使用样例](https://github.com/eedalong/Apache-IoTDB-Client-CSharp-UserCase)中的测试代码了解各个接口使用方式
 
 
 ## iotdb-client-csharp的开发者环境要求
