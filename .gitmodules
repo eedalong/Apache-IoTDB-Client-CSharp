@@ -1,0 +1,3 @@
+[submodule "Apache-IoTDB-Client-CSharp-UserCase"]
+	path = Apache-IoTDB-Client-CSharp-UserCase
+	url = git@github.com:eedalong/Apache-IoTDB-Client-CSharp-UserCase.git
