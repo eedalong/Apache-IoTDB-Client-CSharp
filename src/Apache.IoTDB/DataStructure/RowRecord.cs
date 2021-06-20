@@ -91,27 +91,27 @@ namespace Apache.IoTDB.DataStructure
                 switch (value)
                 {
                     case bool b:
-                        buffer.add_char((char) TSDataType.BOOLEAN);
+                        buffer.add_byte((byte) TSDataType.BOOLEAN);
                         buffer.add_bool(b);
                         break;
                     case int i:
-                        buffer.add_char((char) TSDataType.INT32);
+                        buffer.add_byte((byte) TSDataType.INT32);
                         buffer.add_int(i);
                         break;
                     case long l:
-                        buffer.add_char((char) TSDataType.INT64);
+                        buffer.add_byte((byte) TSDataType.INT64);
                         buffer.add_long(l);
                         break;
                     case double d:
-                        buffer.add_char((char) TSDataType.DOUBLE);
+                        buffer.add_byte((byte) TSDataType.DOUBLE);
                         buffer.add_double(d);
                         break;
                     case float f:
-                        buffer.add_char((char) TSDataType.FLOAT);
+                        buffer.add_byte((byte) TSDataType.FLOAT);
                         buffer.add_float(f);
                         break;
                     case string s:
-                        buffer.add_char((char) TSDataType.TEXT);
+                        buffer.add_byte((byte) TSDataType.TEXT);
                         buffer.add_str(s);
                         break;
                     default:
