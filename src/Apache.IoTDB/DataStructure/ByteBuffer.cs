@@ -195,5 +195,10 @@ namespace Apache.IoTDB.DataStructure
             charBuf.CopyTo(_buffer, _writePos);
             _writePos += charBuf.Length;
         }
+        public void add_byte(byte value){
+            extend_buffer(1);
+            _buffer[_writePos] = value;
+            _writePos += 1;
+        }
     }
 }
