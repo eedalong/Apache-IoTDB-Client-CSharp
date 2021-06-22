@@ -35,7 +35,7 @@ Apache IoTDB Github: https://github.com/apache/iotdb
 
 ### Install from NuGet Package
 
-We have prepared Nuget Package for C# users. Users can directly install the client through .NET CLI. [The link of our NuGet Package is here](https://www.nuget.org/packages/iotdb_client_csharp/0.12.0). Run the following command in the command line to complete installation
+We have prepared Nuget Package for C# users. Users can directly install the client through .NET CLI. [The link of our NuGet Package is here](https://www.nuget.org/packages/Apache.IoTDB/). Run the following command in the command line to complete installation
 
 ```sh
 dotnet add package Apache.IoTDB
