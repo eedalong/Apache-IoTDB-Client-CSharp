@@ -89,22 +89,22 @@ namespace Apache.IoTDB.DataStructure
             }
         }
 
-        private List<string> get_column_names()
+        private List<string> GetColumnNames()
         {
             var nameLst = new List<string> {"timestamp"};
             nameLst.AddRange(_columnNames);
             return nameLst;
         }
 
-        public void show_table_names()
+        public void ShowTableNames()
         {
-            var str = get_column_names()
+            var str = GetColumnNames()
                 .Aggregate("", (current, name) => current + (name + "\t\t"));
 
             Console.WriteLine(str);
         }
 
-        public bool has_next()
+        public bool HasNext()
         {
             if (_hasCatchedResult)
             {
@@ -112,15 +112,15 @@ namespace Apache.IoTDB.DataStructure
             }
 
             // we have consumed all current data, fetch some more
-            if (!_timeBuffer.has_remaining())
+            if (!_timeBuffer.HasRemaining())
             {
-                if (!fetch_results())
+                if (!FetchResults())
                 {
                     return false;
                 }
             }
 
-            construct_one_row();
+            ConstructOneRow();
             _hasCatchedResult = true;
             return true;
         }
@@ -129,7 +129,7 @@ namespace Apache.IoTDB.DataStructure
         {
             if (!_hasCatchedResult)
             {
-                if (!has_next())
+                if (!HasNext())
                 {
                     return null;
                 }
@@ -139,7 +139,7 @@ namespace Apache.IoTDB.DataStructure
             return _cachedRowRecord;
         }
 
-        private TSDataType get_data_type_from_str(string str)
+        private TSDataType GetDataTypeFromStr(string str)
         {
             return str switch
             {
@@ -154,7 +154,7 @@ namespace Apache.IoTDB.DataStructure
             };
         }
 
-        private void construct_one_row()
+        private void ConstructOneRow()
         {
             List<object> fieldLst = new List<Object>();
             
@@ -172,34 +172,34 @@ namespace Apache.IoTDB.DataStructure
                     
                     if (_rowIndex % 8 == 0)
                     {
-                        _currentBitmap[i] = columnBitmapBuffer.get_byte();
+                        _currentBitmap[i] = columnBitmapBuffer.GetByte();
                     }
 
                     object localField;
-                    if (!is_null(i, _rowIndex))
+                    if (!IsNull(i, _rowIndex))
                     {
-                        var columnDataType = get_data_type_from_str(_columnTypeLst[i]);
+                        var columnDataType = GetDataTypeFromStr(_columnTypeLst[i]);
 
 
                         switch (columnDataType)
                         {
                             case TSDataType.BOOLEAN:
-                                localField = columnValueBuffer.get_bool();
+                                localField = columnValueBuffer.GetBool();
                                 break;
                             case TSDataType.INT32:
-                                localField = columnValueBuffer.get_int();
+                                localField = columnValueBuffer.GetInt();
                                 break;
                             case TSDataType.INT64:
-                                localField = columnValueBuffer.get_long();
+                                localField = columnValueBuffer.GetLong();
                                 break;
                             case TSDataType.FLOAT:
-                                localField = columnValueBuffer.get_float();
+                                localField = columnValueBuffer.GetFloat();
                                 break;
                             case TSDataType.DOUBLE:
-                                localField = columnValueBuffer.get_double();
+                                localField = columnValueBuffer.GetDouble();
                                 break;
                             case TSDataType.TEXT:
-                                localField = columnValueBuffer.get_str();
+                                localField = columnValueBuffer.GetStr();
                                 break;
                             default:
                                 string err_msg = "value format not supported";
@@ -216,19 +216,19 @@ namespace Apache.IoTDB.DataStructure
                 }
             }
 
-            long timestamp = _timeBuffer.get_long();
+            long timestamp = _timeBuffer.GetLong();
             _rowIndex += 1;
             _cachedRowRecord = new RowRecord(timestamp, fieldLst, _columnNames);
         }
 
-        private bool is_null(int loc, int row_index)
+        private bool IsNull(int loc, int row_index)
         {
             byte bitmap = _currentBitmap[loc];
             int shift = row_index % 8;
             return ((Flag >> shift) & bitmap) == 0;
         }
 
-        private bool fetch_results()
+        private bool FetchResults()
         {
             _rowIndex = 0;
             var myClient = _clientQueue.Take();

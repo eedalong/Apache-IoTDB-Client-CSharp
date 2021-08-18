@@ -64,19 +64,19 @@ namespace Apache.IoTDB.DataStructure
             ColNumber = measurements.Count;
         }
 
-        public byte[] get_binary_timestamps()
+        public byte[] GetBinaryTimestamps()
         {
             var buffer = new ByteBuffer(new byte[] { });
             
             foreach (var timestamp in _timestamps)
             {
-                buffer.add_long(timestamp);
+                buffer.AddLong(timestamp);
             }
 
-            return buffer.get_buffer();
+            return buffer.GetBuffer();
         }
 
-        public List<int> get_data_types()
+        public List<int> GetDataTypes()
         {
             var dataTypeValues = new List<int>();
             
@@ -108,7 +108,7 @@ namespace Apache.IoTDB.DataStructure
             return dataTypeValues;
         }
 
-        private int estimate_buffer_size()
+        private int EstimateBufferSize()
         {
             var estimateSize = 0;
             
@@ -142,9 +142,9 @@ namespace Apache.IoTDB.DataStructure
             return estimateSize;
         }
 
-        public byte[] get_binary_values()
+        public byte[] GetBinaryValues()
         {
-            var estimateSize = estimate_buffer_size();
+            var estimateSize = EstimateBufferSize();
             var buffer = new ByteBuffer(estimateSize);
             
             for (var i = 0; i < ColNumber; i++)
@@ -157,7 +157,7 @@ namespace Apache.IoTDB.DataStructure
                     {
                         for (var j = 0; j < RowNumber; j++)
                         {
-                            buffer.add_bool((bool) _values[j][i]);
+                            buffer.AddBool((bool) _values[j][i]);
                         }
 
                         break;
@@ -166,7 +166,7 @@ namespace Apache.IoTDB.DataStructure
                     {
                         for (var j = 0; j < RowNumber; j++)
                         {
-                            buffer.add_int((int) _values[j][i]);
+                            buffer.AddInt((int) _values[j][i]);
                         }
 
                         break;
@@ -175,7 +175,7 @@ namespace Apache.IoTDB.DataStructure
                     {
                         for (var j = 0; j < RowNumber; j++)
                         {
-                            buffer.add_long((long) _values[j][i]);
+                            buffer.AddLong((long) _values[j][i]);
                         }
 
                         break;
@@ -184,7 +184,7 @@ namespace Apache.IoTDB.DataStructure
                     {
                         for (int j = 0; j < RowNumber; j++)
                         {
-                            buffer.add_float((float) _values[j][i]);
+                            buffer.AddFloat((float) _values[j][i]);
                         }
 
                         break;
@@ -193,7 +193,7 @@ namespace Apache.IoTDB.DataStructure
                     {
                         for (var j = 0; j < RowNumber; j++)
                         {
-                            buffer.add_double((double) _values[j][i]);
+                            buffer.AddDouble((double) _values[j][i]);
                         }
 
                         break;
@@ -202,7 +202,7 @@ namespace Apache.IoTDB.DataStructure
                     {
                         for (var j = 0; j < RowNumber; j++)
                         {
-                            buffer.add_str((string) _values[j][i]);
+                            buffer.AddStr((string) _values[j][i]);
                         }
 
                         break;
@@ -213,7 +213,7 @@ namespace Apache.IoTDB.DataStructure
                 }
             }
 
-            return  buffer.get_buffer();
+            return  buffer.GetBuffer();
         }
     }
 }
