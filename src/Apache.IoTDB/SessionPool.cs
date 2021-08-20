@@ -274,7 +274,7 @@ namespace Apache.IoTDB
                     _logger.Info("set storage group {0} successfully, server message is {1}", groupName, status.Message);
                 }
                 
-                return _utilFunctions.verify_success(status, SuccessCode);
+                return _utilFunctions.VerifySuccess(status, SuccessCode);
             }
             catch (TException e)
             {
@@ -308,7 +308,7 @@ namespace Apache.IoTDB
                     _logger.Info("creating time series {0} successfully, server message is {1}", tsPath, status.Message);
                 }
 
-                return _utilFunctions.verify_success(status, SuccessCode);
+                return _utilFunctions.VerifySuccess(status, SuccessCode);
             }
             catch (TException e)
             {
@@ -335,7 +335,7 @@ namespace Apache.IoTDB
                     _logger.Info($"delete storage group {groupName} successfully, server message is {status?.Message}");
                 }
 
-                return _utilFunctions.verify_success(status, SuccessCode);
+                return _utilFunctions.VerifySuccess(status, SuccessCode);
             }
             catch (TException e)
             {
@@ -363,7 +363,7 @@ namespace Apache.IoTDB
                         status.Message);
                 }
 
-                return _utilFunctions.verify_success(status, SuccessCode);
+                return _utilFunctions.VerifySuccess(status, SuccessCode);
             }
             catch (TException e)
             {
@@ -397,7 +397,7 @@ namespace Apache.IoTDB
                     _logger.Info("creating multiple time series {0}, server message is {1}", tsPathLst, status.Message);
                 }
                 
-                return _utilFunctions.verify_success(status, SuccessCode);
+                return _utilFunctions.VerifySuccess(status, SuccessCode);
             }
             catch (TException e)
             {
@@ -422,7 +422,7 @@ namespace Apache.IoTDB
                     _logger.Info("deleting multiple time series {0}, server message is {1}", pathList, status.Message);
                 }
                 
-                return _utilFunctions.verify_success(status, SuccessCode);
+                return _utilFunctions.VerifySuccess(status, SuccessCode);
             }
             catch (TException e)
             {
@@ -446,7 +446,7 @@ namespace Apache.IoTDB
             {
                 var sql = "SHOW TIMESERIES " + tsPath;
                 var sessionDataset = await ExecuteQueryStatementAsync(sql);
-                return sessionDataset.has_next();
+                return sessionDataset.HasNext();
             }
             catch (TException e)
             {
@@ -471,7 +471,7 @@ namespace Apache.IoTDB
                         status.Message);
                 }
 
-                return _utilFunctions.verify_success(status, SuccessCode);
+                return _utilFunctions.VerifySuccess(status, SuccessCode);
             }
             catch (TException e)
             {
@@ -498,7 +498,7 @@ namespace Apache.IoTDB
                     _logger.Info("insert one record to device {0}， server message: {1}", deviceId, status.Message);
                 }
 
-                return _utilFunctions.verify_success(status, SuccessCode);
+                return _utilFunctions.VerifySuccess(status, SuccessCode);
             }
             catch (TException e)
             {
@@ -547,7 +547,7 @@ namespace Apache.IoTDB
                     _logger.Info("insert multiple records to devices {0}, server message: {1}", deviceId, status.Message);
                 }
 
-                return _utilFunctions.verify_success(status, SuccessCode);
+                return _utilFunctions.VerifySuccess(status, SuccessCode);
             }
             catch (TException e)
             {
@@ -565,9 +565,9 @@ namespace Apache.IoTDB
                 sessionId, 
                 tablet.DeviceId, 
                 tablet.Measurements,
-                tablet.get_binary_values(), 
-                tablet.get_binary_timestamps(), 
-                tablet.get_data_types(), 
+                tablet.GetBinaryValues(), 
+                tablet.GetBinaryTimestamps(), 
+                tablet.GetDataTypes(), 
                 tablet.RowNumber);
         }
 
@@ -585,7 +585,7 @@ namespace Apache.IoTDB
                     _logger.Info("insert one tablet to device {0}, server message: {1}", tablet.DeviceId, status.Message);
                 }
 
-                return _utilFunctions.verify_success(status, SuccessCode);
+                return _utilFunctions.VerifySuccess(status, SuccessCode);
             }
             catch (TException e)
             {
@@ -608,11 +608,11 @@ namespace Apache.IoTDB
             
             foreach (var tablet in tabletLst)
             {
-                var dataTypeValues = tablet.get_data_types();
+                var dataTypeValues = tablet.GetDataTypes();
                 deviceIdLst.Add(tablet.DeviceId);
                 measurementsLst.Add(tablet.Measurements);
-                valuesLst.Add(tablet.get_binary_values());
-                timestampsLst.Add(tablet.get_binary_timestamps());
+                valuesLst.Add(tablet.GetBinaryValues());
+                timestampsLst.Add(tablet.GetBinaryTimestamps());
                 typeLst.Add(dataTypeValues);
                 sizeLst.Add(tablet.RowNumber);
             }
@@ -641,7 +641,7 @@ namespace Apache.IoTDB
                     _logger.Info("insert multiple tablets, message: {0}", status.Message);
                 }
                 
-                return _utilFunctions.verify_success(status, SuccessCode);
+                return _utilFunctions.VerifySuccess(status, SuccessCode);
             }
             catch (TException e)
             {
@@ -700,7 +700,7 @@ namespace Apache.IoTDB
                     _logger.Info("insert records of one device, message: {0}", status.Message);
                 }
                 
-                return _utilFunctions.verify_success(status, SuccessCode);
+                return _utilFunctions.VerifySuccess(status, SuccessCode);
             }
             catch (TException e)
             {
@@ -732,7 +732,7 @@ namespace Apache.IoTDB
                     _logger.Info("insert one record to device {0}， server message: {1}", deviceId, status.Message);
                 }
 
-                return _utilFunctions.verify_success(status, SuccessCode);
+                return _utilFunctions.VerifySuccess(status, SuccessCode);
             }
             catch (TException e)
             {
@@ -758,7 +758,7 @@ namespace Apache.IoTDB
                     _logger.Info("insert multiple records to devices {0}, server message: {1}", deviceId, status.Message);
                 }
 
-                return _utilFunctions.verify_success(status, SuccessCode);
+                return _utilFunctions.VerifySuccess(status, SuccessCode);
             }
             catch (TException e)
             {
@@ -786,7 +786,7 @@ namespace Apache.IoTDB
                         status.Message);
                 }
 
-                return _utilFunctions.verify_success(status, SuccessCode);
+                return _utilFunctions.VerifySuccess(status, SuccessCode);
             }
             catch (TException e)
             {
@@ -813,7 +813,7 @@ namespace Apache.IoTDB
                     _logger.Info("insert multiple tablets, message: {0}", status.Message);
                 }
 
-                return _utilFunctions.verify_success(status, SuccessCode);
+                return _utilFunctions.VerifySuccess(status, SuccessCode);
             }
             catch (TException e)
             {
@@ -846,7 +846,7 @@ namespace Apache.IoTDB
                 throw new TException("could not execute query statement", e);
             }
 
-            if (_utilFunctions.verify_success(status, SuccessCode) == -1)
+            if (_utilFunctions.VerifySuccess(status, SuccessCode) == -1)
             {
                 _clients.Add(client);
                 
@@ -878,7 +878,7 @@ namespace Apache.IoTDB
                     _logger.Info("execute non-query statement {0} message: {1}", sql, status.Message);
                 }
 
-                return _utilFunctions.verify_success(status, SuccessCode);
+                return _utilFunctions.VerifySuccess(status, SuccessCode);
             }
             catch (TException e)
             {

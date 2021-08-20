@@ -24,7 +24,7 @@ namespace Apache.IoTDB.DataStructure
             Measurements.Add(measurement);
         }
 
-        public DateTime get_date_time()
+        public DateTime GetDateTime()
         {
             return DateTimeOffset.FromUnixTimeMilliseconds(Timestamps).DateTime.ToLocalTime();
         }
@@ -50,7 +50,7 @@ namespace Apache.IoTDB.DataStructure
             return str;
         }
 
-        public List<int> get_datatypes()
+        public List<int> GetDataTypes()
         {
             var dataTypeValues = new List<int>();
             
@@ -91,35 +91,35 @@ namespace Apache.IoTDB.DataStructure
                 switch (value)
                 {
                     case bool b:
-                        buffer.add_byte((byte) TSDataType.BOOLEAN);
-                        buffer.add_bool(b);
+                        buffer.AddByte((byte) TSDataType.BOOLEAN);
+                        buffer.AddBool(b);
                         break;
                     case int i:
-                        buffer.add_byte((byte) TSDataType.INT32);
-                        buffer.add_int(i);
+                        buffer.AddByte((byte) TSDataType.INT32);
+                        buffer.AddInt(i);
                         break;
                     case long l:
-                        buffer.add_byte((byte) TSDataType.INT64);
-                        buffer.add_long(l);
+                        buffer.AddByte((byte) TSDataType.INT64);
+                        buffer.AddLong(l);
                         break;
                     case double d:
-                        buffer.add_byte((byte) TSDataType.DOUBLE);
-                        buffer.add_double(d);
+                        buffer.AddByte((byte) TSDataType.DOUBLE);
+                        buffer.AddDouble(d);
                         break;
                     case float f:
-                        buffer.add_byte((byte) TSDataType.FLOAT);
-                        buffer.add_float(f);
+                        buffer.AddByte((byte) TSDataType.FLOAT);
+                        buffer.AddFloat(f);
                         break;
                     case string s:
-                        buffer.add_byte((byte) TSDataType.TEXT);
-                        buffer.add_str(s);
+                        buffer.AddByte((byte) TSDataType.TEXT);
+                        buffer.AddStr(s);
                         break;
                     default:
                         throw new TException($"Unsupported data type:{value.GetType()}", null);
                 }
             }
 
-            return buffer.get_buffer();;
+            return buffer.GetBuffer();;
         }
     }
 }

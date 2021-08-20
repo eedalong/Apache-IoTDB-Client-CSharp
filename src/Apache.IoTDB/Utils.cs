@@ -18,11 +18,11 @@ namespace Apache.IoTDB
             return true;
         }
 
-        public int verify_success(TSStatus status, int successCode)
+        public int VerifySuccess(TSStatus status, int successCode)
         {
             if (status.__isset.subStatus)
             {
-                if (status.SubStatus.Any(subStatus => verify_success(subStatus, successCode) != 0))
+                if (status.SubStatus.Any(subStatus => VerifySuccess(subStatus, successCode) != 0))
                 {
                     return -1;
                 }

@@ -28,27 +28,27 @@ namespace Apache.IoTDB.DataStructure
             _totalLength = reserve;
         }
 
-        public bool has_remaining()
+        public bool HasRemaining()
         {
             return _readPos < _writePos;
         }
 
         // these for read
-        public byte get_byte()
+        public byte GetByte()
         {
             var byteVal = _buffer[_readPos];
             _readPos += 1;
             return byteVal;
         }
 
-        public bool get_bool()
+        public bool GetBool()
         {
             var boolValue = BitConverter.ToBoolean(_buffer, _readPos);
             _readPos += 1;
             return boolValue;
         }
 
-        public int get_int()
+        public int GetInt()
         {
             var intBuff = _buffer[_readPos..(_readPos + 4)];
             
@@ -59,7 +59,7 @@ namespace Apache.IoTDB.DataStructure
             return intValue;
         }
 
-        public long get_long()
+        public long GetLong()
         {
             var longBuff = _buffer[_readPos..(_readPos + 8)];
             
@@ -70,7 +70,7 @@ namespace Apache.IoTDB.DataStructure
             return longValue;
         }
 
-        public float get_float()
+        public float GetFloat()
         {
             var floatBuff = _buffer[_readPos..(_readPos + 4)];
             
@@ -81,7 +81,7 @@ namespace Apache.IoTDB.DataStructure
             return floatValue;
         }
 
-        public double get_double()
+        public double GetDouble()
         {
             var doubleBuff = _buffer[_readPos..(_readPos + 8)];
             
@@ -92,21 +92,21 @@ namespace Apache.IoTDB.DataStructure
             return doubleValue;
         }
 
-        public string get_str()
+        public string GetStr()
         {
-            var length = get_int();
+            var length = GetInt();
             var strBuff = _buffer[_readPos..(_readPos + length)];
             var strValue = Encoding.UTF8.GetString(strBuff);
             _readPos += length;
             return strValue;
         }
 
-        public byte[] get_buffer()
+        public byte[] GetBuffer()
         {
             return _buffer[.._writePos];
         }
 
-        private void extend_buffer(int spaceNeed)
+        private void ExtendBuffer(int spaceNeed)
         {
             if (_writePos + spaceNeed >= _totalLength)
             {
@@ -119,84 +119,84 @@ namespace Apache.IoTDB.DataStructure
         }
 
         // these for write
-        public void add_bool(bool value)
+        public void AddBool(bool value)
         {
             var boolBuffer = BitConverter.GetBytes(value);
             
             if (_isLittleEndian) boolBuffer = boolBuffer.Reverse().ToArray();
 
-            extend_buffer(boolBuffer.Length);
+            ExtendBuffer(boolBuffer.Length);
             boolBuffer.CopyTo(_buffer, _writePos);
             _writePos += boolBuffer.Length;
         }
 
-        public void add_int(int value)
+        public void AddInt(int value)
         {
             var intBuff = BitConverter.GetBytes(value);
             
             if (_isLittleEndian) intBuff = intBuff.Reverse().ToArray();
 
-            extend_buffer(intBuff.Length);
+            ExtendBuffer(intBuff.Length);
             intBuff.CopyTo(_buffer, _writePos);
             _writePos += intBuff.Length;
         }
 
-        public void add_long(long value)
+        public void AddLong(long value)
         {
             var longBuff = BitConverter.GetBytes(value);
             
             if (_isLittleEndian) longBuff = longBuff.Reverse().ToArray();
 
-            extend_buffer(longBuff.Length);
+            ExtendBuffer(longBuff.Length);
             longBuff.CopyTo(_buffer, _writePos);
             _writePos += longBuff.Length;
         }
 
-        public void add_float(float value)
+        public void AddFloat(float value)
         {
             var floatBuff = BitConverter.GetBytes(value);
             
             if (_isLittleEndian) floatBuff = floatBuff.Reverse().ToArray();
 
-            extend_buffer(floatBuff.Length);
+            ExtendBuffer(floatBuff.Length);
             floatBuff.CopyTo(_buffer, _writePos);
             _writePos += floatBuff.Length;
         }
 
-        public void add_double(double value)
+        public void AddDouble(double value)
         {
             var doubleBuff = BitConverter.GetBytes(value);
             
             if (_isLittleEndian) doubleBuff = doubleBuff.Reverse().ToArray();
 
-            extend_buffer(doubleBuff.Length);
+            ExtendBuffer(doubleBuff.Length);
             doubleBuff.CopyTo(_buffer, _writePos);
             _writePos += doubleBuff.Length;
         }
 
-        public void add_str(string value)
+        public void AddStr(string value)
         {
-            add_int(value.Length);
+            AddInt(value.Length);
             
             var strBuf = Encoding.UTF8.GetBytes(value);
 
-            extend_buffer(strBuf.Length);
+            ExtendBuffer(strBuf.Length);
             strBuf.CopyTo(_buffer, _writePos);
             _writePos += strBuf.Length;
         }
 
-        public void add_char(char value)
+        public void AddChar(char value)
         {
             var charBuf = BitConverter.GetBytes(value);
             
             if (_isLittleEndian) charBuf = charBuf.Reverse().ToArray();
 
-            extend_buffer(charBuf.Length);
+            ExtendBuffer(charBuf.Length);
             charBuf.CopyTo(_buffer, _writePos);
             _writePos += charBuf.Length;
         }
-        public void add_byte(byte value){
-            extend_buffer(1);
+        public void AddByte(byte value){
+            ExtendBuffer(1);
             _buffer[_writePos] = value;
             _writePos += 1;
         }
