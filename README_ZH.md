@@ -60,3 +60,6 @@ dotnet add package Apache.IoTDB
 * Windows+bash(WSL、cygwin、Git Bash)
 
 ### 命令行工具
+
+## 在 nuget.org 上发布你自己的客户端
+你可以在这个[文档](./PUBLISH.md)中找到如何发布

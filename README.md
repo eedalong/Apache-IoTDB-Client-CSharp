@@ -63,3 +63,6 @@ NLog >= 4.7.9
 * Windows+bash(WSL, cygwin, Git Bash)
 
 ### Command Line Tools
+
+## Publish your own client on nuget.org
+You can find out how to publish from this [doc](./PUBLISH.md).
