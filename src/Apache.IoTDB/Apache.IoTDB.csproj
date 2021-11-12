@@ -9,7 +9,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Apache.IoTDB.RPC.Generated\Apache.IoTDB.RPC.Generated.csproj" />
+      <ProjectReference Include="..\Apache.IoTDB.Rpc.Generated\Apache.IoTDB.Rpc.Generated.csproj" />
     </ItemGroup>
 
 </Project>

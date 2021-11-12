@@ -13,11 +13,11 @@ Note that this name should be unique, otherwise it will be rejected. You can sea
 
 Besides, you also need to modify the configuration in `./src/Apache.IoTDB/Apache.IoTDB.csproj` to ensure that the project references are correct.
 ``` xml
-<ProjectReference Include="..\Apache.IoTDB.RPC.Generated\Apache.IoTDB.RPC.Generated.csproj" />
+<ProjectReference Include="..\Apache.IoTDB.Rpc.Generated\Apache.IoTDB.Rpc.Generated.csproj" />
 ```
 to
 ``` xml
-<ProjectReference Include="..\PACKAGE_NAME.RPC.Generated\PACKAGE_NAME.RPC.Generated.csproj" />
+<ProjectReference Include="..\PACKAGE_NAME.Rpc.Generated\PACKAGE_NAME.Rpc.Generated.csproj" />
 ```
 
 ### Step 2: Add package information
