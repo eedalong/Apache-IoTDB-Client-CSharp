@@ -4,7 +4,7 @@
     {
         public static void Main()
         {
-            var sessionPoolTest = new SessionPoolTest();
+            var sessionPoolTest = new SessionPoolTest("iotdb");
             sessionPoolTest.Test();
         }
     }
