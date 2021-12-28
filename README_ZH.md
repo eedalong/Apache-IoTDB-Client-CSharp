@@ -39,6 +39,7 @@ Apache IoTDB Github: https://github.com/apache/iotdb
 dotnet add package Apache.IoTDB
 ```
 
+请注意，`Apache.IoTDB`这个包仅支持`.net 5.0`。 如果您使用的是`.net framework 4.x`，请参考[从`.net framework 4.x`开始](#从-net-framework-4x-开始)。
 
 ## 环境准备
 
@@ -63,3 +64,12 @@ dotnet add package Apache.IoTDB
 
 ## 在 nuget.org 上发布你自己的客户端
 你可以在这个[文档](./PUBLISH.md)中找到如何发布
+
+## 从`.net framework 4.x`开始
+为了适配`.net framework 4.x`，我们单独构建了一个Nuget包，包名是[`Apache.IoTDB.framework`](https://www.nuget.org/packages/Apache.IoTDB.framework/)。
+
+您可以使用PM、.NET CLI等工作来安装它。以.NET CLI为例：
+
+```sh
+dotnet add package Apache.IoTDB.framework --version 0.12.1.2
+```
