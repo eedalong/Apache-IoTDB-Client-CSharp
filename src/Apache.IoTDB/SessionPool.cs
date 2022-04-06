@@ -626,7 +626,35 @@ namespace Apache.IoTDB
                 _clients.Add(client);
             }
         }
+        public async Task<int> InsertAlignedRecordsAsync(List<string> deviceId, List<RowRecord> rowRecords)
+        {
+            var client = _clients.Take();
 
+            var request = GenInsertRecordsReq(deviceId, rowRecords, client.SessionId);
+            request.IsAligned = true;
+            // ASSERT that the insert plan is aligned
+            System.Diagnostics.Debug.Assert(request.IsAligned == true);
+
+            try
+            {
+                var status = await client.ServiceClient.insertRecordsAsync(request);
+
+                if (_debugMode)
+                {
+                    _logger.Info("insert multiple records to devices {0}, server message: {1}", deviceId, status.Message);
+                }
+
+                return _utilFunctions.VerifySuccess(status, SuccessCode);
+            }
+            catch (TException e)
+            {
+                throw new TException("Multiple records insertion failed", e);
+            }
+            finally
+            {
+                _clients.Add(client);
+            }
+        }
         public TSInsertTabletReq GenInsertTabletReq(Tablet tablet, long sessionId)
         {
             return new TSInsertTabletReq(
