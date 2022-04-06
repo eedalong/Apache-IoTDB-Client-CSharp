@@ -139,7 +139,7 @@ namespace Apache.IoTDB.Samples
             Task.WaitAll(tasks.ToArray());
             var end_ms = DateTime.Now.Ticks / 10000;
             Console.WriteLine(string.Format("total insert record time is {0}", end_ms - start_ms));
-            // status = await session_pool.DeleteStorageGroupAsync("root.TEST_CSHARP_CLIENT_GROUP_97209");
+            status = await session_pool.DeleteStorageGroupAsync("root.TEST_CSHARP_CLIENT_GROUP_97209");
             await session_pool.Close();
             Console.WriteLine("TestInsertAlignedRecordAsync Passed");
         }
