@@ -29,7 +29,7 @@ using Thrift.Processor;
 #pragma warning disable IDE1006  // parts of the code use IDL spelling
 
 
-public partial class TSInsertStringRecordReq : TBase
+public partial class TSInsertStringRecordsOfOneDeviceReq : TBase
 {
   private bool _isAligned;
 
@@ -37,11 +37,11 @@ public partial class TSInsertStringRecordReq : TBase
 
   public string PrefixPath { get; set; }
 
-  public List<string> Measurements { get; set; }
+  public List<List<string>> MeasurementsList { get; set; }
 
-  public List<string> Values { get; set; }
+  public List<List<string>> ValuesList { get; set; }
 
-  public long Timestamp { get; set; }
+  public List<long> Timestamps { get; set; }
 
   public bool IsAligned
   {
@@ -63,42 +63,45 @@ public partial class TSInsertStringRecordReq : TBase
     public bool isAligned;
   }
 
-  public TSInsertStringRecordReq()
+  public TSInsertStringRecordsOfOneDeviceReq()
   {
   }
 
-  public TSInsertStringRecordReq(long sessionId, string prefixPath, List<string> measurements, List<string> values, long timestamp) : this()
+  public TSInsertStringRecordsOfOneDeviceReq(long sessionId, string prefixPath, List<List<string>> measurementsList, List<List<string>> valuesList, List<long> timestamps) : this()
   {
     this.SessionId = sessionId;
     this.PrefixPath = prefixPath;
-    this.Measurements = measurements;
-    this.Values = values;
-    this.Timestamp = timestamp;
+    this.MeasurementsList = measurementsList;
+    this.ValuesList = valuesList;
+    this.Timestamps = timestamps;
   }
 
-  public TSInsertStringRecordReq DeepCopy()
+  public TSInsertStringRecordsOfOneDeviceReq DeepCopy()
   {
-    var tmp113 = new TSInsertStringRecordReq();
-    tmp113.SessionId = this.SessionId;
+    var tmp207 = new TSInsertStringRecordsOfOneDeviceReq();
+    tmp207.SessionId = this.SessionId;
     if((PrefixPath != null))
     {
-      tmp113.PrefixPath = this.PrefixPath;
+      tmp207.PrefixPath = this.PrefixPath;
     }
-    if((Measurements != null))
+    if((MeasurementsList != null))
     {
-      tmp113.Measurements = this.Measurements.DeepCopy();
+      tmp207.MeasurementsList = this.MeasurementsList.DeepCopy();
     }
-    if((Values != null))
+    if((ValuesList != null))
     {
-      tmp113.Values = this.Values.DeepCopy();
+      tmp207.ValuesList = this.ValuesList.DeepCopy();
     }
-    tmp113.Timestamp = this.Timestamp;
+    if((Timestamps != null))
+    {
+      tmp207.Timestamps = this.Timestamps.DeepCopy();
+    }
     if(__isset.isAligned)
     {
-      tmp113.IsAligned = this.IsAligned;
+      tmp207.IsAligned = this.IsAligned;
     }
-    tmp113.__isset.isAligned = this.__isset.isAligned;
-    return tmp113;
+    tmp207.__isset.isAligned = this.__isset.isAligned;
+    return tmp207;
   }
 
   public async global::System.Threading.Tasks.Task ReadAsync(TProtocol iprot, CancellationToken cancellationToken)
@@ -108,9 +111,9 @@ public partial class TSInsertStringRecordReq : TBase
     {
       bool isset_sessionId = false;
       bool isset_prefixPath = false;
-      bool isset_measurements = false;
-      bool isset_values = false;
-      bool isset_timestamp = false;
+      bool isset_measurementsList = false;
+      bool isset_valuesList = false;
+      bool isset_timestamps = false;
       TField field;
       await iprot.ReadStructBeginAsync(cancellationToken);
       while (true)
@@ -149,17 +152,27 @@ public partial class TSInsertStringRecordReq : TBase
             if (field.Type == TType.List)
             {
               {
-                TList _list114 = await iprot.ReadListBeginAsync(cancellationToken);
-                Measurements = new List<string>(_list114.Count);
-                for(int _i115 = 0; _i115 < _list114.Count; ++_i115)
+                TList _list208 = await iprot.ReadListBeginAsync(cancellationToken);
+                MeasurementsList = new List<List<string>>(_list208.Count);
+                for(int _i209 = 0; _i209 < _list208.Count; ++_i209)
                 {
-                  string _elem116;
-                  _elem116 = await iprot.ReadStringAsync(cancellationToken);
-                  Measurements.Add(_elem116);
+                  List<string> _elem210;
+                  {
+                    TList _list211 = await iprot.ReadListBeginAsync(cancellationToken);
+                    _elem210 = new List<string>(_list211.Count);
+                    for(int _i212 = 0; _i212 < _list211.Count; ++_i212)
+                    {
+                      string _elem213;
+                      _elem213 = await iprot.ReadStringAsync(cancellationToken);
+                      _elem210.Add(_elem213);
+                    }
+                    await iprot.ReadListEndAsync(cancellationToken);
+                  }
+                  MeasurementsList.Add(_elem210);
                 }
                 await iprot.ReadListEndAsync(cancellationToken);
               }
-              isset_measurements = true;
+              isset_measurementsList = true;
             }
             else
             {
@@ -170,17 +183,27 @@ public partial class TSInsertStringRecordReq : TBase
             if (field.Type == TType.List)
             {
               {
-                TList _list117 = await iprot.ReadListBeginAsync(cancellationToken);
-                Values = new List<string>(_list117.Count);
-                for(int _i118 = 0; _i118 < _list117.Count; ++_i118)
+                TList _list214 = await iprot.ReadListBeginAsync(cancellationToken);
+                ValuesList = new List<List<string>>(_list214.Count);
+                for(int _i215 = 0; _i215 < _list214.Count; ++_i215)
                 {
-                  string _elem119;
-                  _elem119 = await iprot.ReadStringAsync(cancellationToken);
-                  Values.Add(_elem119);
+                  List<string> _elem216;
+                  {
+                    TList _list217 = await iprot.ReadListBeginAsync(cancellationToken);
+                    _elem216 = new List<string>(_list217.Count);
+                    for(int _i218 = 0; _i218 < _list217.Count; ++_i218)
+                    {
+                      string _elem219;
+                      _elem219 = await iprot.ReadStringAsync(cancellationToken);
+                      _elem216.Add(_elem219);
+                    }
+                    await iprot.ReadListEndAsync(cancellationToken);
+                  }
+                  ValuesList.Add(_elem216);
                 }
                 await iprot.ReadListEndAsync(cancellationToken);
               }
-              isset_values = true;
+              isset_valuesList = true;
             }
             else
             {
@@ -188,10 +211,20 @@ public partial class TSInsertStringRecordReq : TBase
             }
             break;
           case 5:
-            if (field.Type == TType.I64)
+            if (field.Type == TType.List)
             {
-              Timestamp = await iprot.ReadI64Async(cancellationToken);
-              isset_timestamp = true;
+              {
+                TList _list220 = await iprot.ReadListBeginAsync(cancellationToken);
+                Timestamps = new List<long>(_list220.Count);
+                for(int _i221 = 0; _i221 < _list220.Count; ++_i221)
+                {
+                  long _elem222;
+                  _elem222 = await iprot.ReadI64Async(cancellationToken);
+                  Timestamps.Add(_elem222);
+                }
+                await iprot.ReadListEndAsync(cancellationToken);
+              }
+              isset_timestamps = true;
             }
             else
             {
@@ -225,15 +258,15 @@ public partial class TSInsertStringRecordReq : TBase
       {
         throw new TProtocolException(TProtocolException.INVALID_DATA);
       }
-      if (!isset_measurements)
+      if (!isset_measurementsList)
       {
         throw new TProtocolException(TProtocolException.INVALID_DATA);
       }
-      if (!isset_values)
+      if (!isset_valuesList)
       {
         throw new TProtocolException(TProtocolException.INVALID_DATA);
       }
-      if (!isset_timestamp)
+      if (!isset_timestamps)
       {
         throw new TProtocolException(TProtocolException.INVALID_DATA);
       }
@@ -249,7 +282,7 @@ public partial class TSInsertStringRecordReq : TBase
     oprot.IncrementRecursionDepth();
     try
     {
-      var struc = new TStruct("TSInsertStringRecordReq");
+      var struc = new TStruct("TSInsertStringRecordsOfOneDeviceReq");
       await oprot.WriteStructBeginAsync(struc, cancellationToken);
       var field = new TField();
       field.Name = "sessionId";
@@ -267,44 +300,68 @@ public partial class TSInsertStringRecordReq : TBase
         await oprot.WriteStringAsync(PrefixPath, cancellationToken);
         await oprot.WriteFieldEndAsync(cancellationToken);
       }
-      if((Measurements != null))
+      if((MeasurementsList != null))
       {
-        field.Name = "measurements";
+        field.Name = "measurementsList";
         field.Type = TType.List;
         field.ID = 3;
         await oprot.WriteFieldBeginAsync(field, cancellationToken);
         {
-          await oprot.WriteListBeginAsync(new TList(TType.String, Measurements.Count), cancellationToken);
-          foreach (string _iter120 in Measurements)
+          await oprot.WriteListBeginAsync(new TList(TType.List, MeasurementsList.Count), cancellationToken);
+          foreach (List<string> _iter223 in MeasurementsList)
           {
-            await oprot.WriteStringAsync(_iter120, cancellationToken);
+            {
+              await oprot.WriteListBeginAsync(new TList(TType.String, _iter223.Count), cancellationToken);
+              foreach (string _iter224 in _iter223)
+              {
+                await oprot.WriteStringAsync(_iter224, cancellationToken);
+              }
+              await oprot.WriteListEndAsync(cancellationToken);
+            }
           }
           await oprot.WriteListEndAsync(cancellationToken);
         }
         await oprot.WriteFieldEndAsync(cancellationToken);
       }
-      if((Values != null))
+      if((ValuesList != null))
       {
-        field.Name = "values";
+        field.Name = "valuesList";
         field.Type = TType.List;
         field.ID = 4;
         await oprot.WriteFieldBeginAsync(field, cancellationToken);
         {
-          await oprot.WriteListBeginAsync(new TList(TType.String, Values.Count), cancellationToken);
-          foreach (string _iter121 in Values)
+          await oprot.WriteListBeginAsync(new TList(TType.List, ValuesList.Count), cancellationToken);
+          foreach (List<string> _iter225 in ValuesList)
           {
-            await oprot.WriteStringAsync(_iter121, cancellationToken);
+            {
+              await oprot.WriteListBeginAsync(new TList(TType.String, _iter225.Count), cancellationToken);
+              foreach (string _iter226 in _iter225)
+              {
+                await oprot.WriteStringAsync(_iter226, cancellationToken);
+              }
+              await oprot.WriteListEndAsync(cancellationToken);
+            }
           }
           await oprot.WriteListEndAsync(cancellationToken);
         }
         await oprot.WriteFieldEndAsync(cancellationToken);
       }
-      field.Name = "timestamp";
-      field.Type = TType.I64;
-      field.ID = 5;
-      await oprot.WriteFieldBeginAsync(field, cancellationToken);
-      await oprot.WriteI64Async(Timestamp, cancellationToken);
-      await oprot.WriteFieldEndAsync(cancellationToken);
+      if((Timestamps != null))
+      {
+        field.Name = "timestamps";
+        field.Type = TType.List;
+        field.ID = 5;
+        await oprot.WriteFieldBeginAsync(field, cancellationToken);
+        {
+          await oprot.WriteListBeginAsync(new TList(TType.I64, Timestamps.Count), cancellationToken);
+          foreach (long _iter227 in Timestamps)
+          {
+            await oprot.WriteI64Async(_iter227, cancellationToken);
+          }
+          await oprot.WriteListEndAsync(cancellationToken);
+        }
+        await oprot.WriteFieldEndAsync(cancellationToken);
+      }
       if(__isset.isAligned)
       {
         field.Name = "isAligned";
@@ -325,13 +382,13 @@ public partial class TSInsertStringRecordReq : TBase
 
   public override bool Equals(object that)
   {
-    if (!(that is TSInsertStringRecordReq other)) return false;
+    if (!(that is TSInsertStringRecordsOfOneDeviceReq other)) return false;
     if (ReferenceEquals(this, other)) return true;
     return System.Object.Equals(SessionId, other.SessionId)
       && System.Object.Equals(PrefixPath, other.PrefixPath)
-      && TCollections.Equals(Measurements, other.Measurements)
-      && TCollections.Equals(Values, other.Values)
-      && System.Object.Equals(Timestamp, other.Timestamp)
+      && TCollections.Equals(MeasurementsList, other.MeasurementsList)
+      && TCollections.Equals(ValuesList, other.ValuesList)
+      && TCollections.Equals(Timestamps, other.Timestamps)
       && ((__isset.isAligned == other.__isset.isAligned) && ((!__isset.isAligned) || (System.Object.Equals(IsAligned, other.IsAligned))));
   }
 
@@ -343,15 +400,18 @@ public partial class TSInsertStringRecordReq : TBase
       {
         hashcode = (hashcode * 397) + PrefixPath.GetHashCode();
       }
-      if((Measurements != null))
+      if((MeasurementsList != null))
       {
-        hashcode = (hashcode * 397) + TCollections.GetHashCode(Measurements);
+        hashcode = (hashcode * 397) + TCollections.GetHashCode(MeasurementsList);
       }
-      if((Values != null))
+      if((ValuesList != null))
       {
-        hashcode = (hashcode * 397) + TCollections.GetHashCode(Values);
+        hashcode = (hashcode * 397) + TCollections.GetHashCode(ValuesList);
       }
-      hashcode = (hashcode * 397) + Timestamp.GetHashCode();
+      if((Timestamps != null))
+      {
+        hashcode = (hashcode * 397) + TCollections.GetHashCode(Timestamps);
+      }
       if(__isset.isAligned)
       {
         hashcode = (hashcode * 397) + IsAligned.GetHashCode();
@@ -362,7 +422,7 @@ public partial class TSInsertStringRecordReq : TBase
 
   public override string ToString()
   {
-    var sb = new StringBuilder("TSInsertStringRecordReq(");
+    var sb = new StringBuilder("TSInsertStringRecordsOfOneDeviceReq(");
     sb.Append(", SessionId: ");
     SessionId.ToString(sb);
     if((PrefixPath != null))
@@ -370,18 +430,21 @@ public partial class TSInsertStringRecordReq : TBase
       sb.Append(", PrefixPath: ");
       PrefixPath.ToString(sb);
     }
-    if((Measurements != null))
+    if((MeasurementsList != null))
     {
-      sb.Append(", Measurements: ");
-      Measurements.ToString(sb);
+      sb.Append(", MeasurementsList: ");
+      MeasurementsList.ToString(sb);
     }
-    if((Values != null))
+    if((ValuesList != null))
     {
-      sb.Append(", Values: ");
-      Values.ToString(sb);
+      sb.Append(", ValuesList: ");
+      ValuesList.ToString(sb);
     }
-    sb.Append(", Timestamp: ");
-    Timestamp.ToString(sb);
+    if((Timestamps != null))
+    {
+      sb.Append(", Timestamps: ");
+      Timestamps.ToString(sb);
+    }
     if(__isset.isAligned)
     {
       sb.Append(", IsAligned: ");

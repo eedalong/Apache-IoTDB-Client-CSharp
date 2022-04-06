@@ -29,18 +29,15 @@ using Thrift.Processor;
 #pragma warning disable IDE1006  // parts of the code use IDL spelling
 
 
-public partial class TSExecuteStatementReq : TBase
+public partial class TSLastDataQueryReq : TBase
 {
   private int _fetchSize;
-  private long _timeout;
   private bool _enableRedirectQuery;
   private bool _jdbcQuery;
 
   public long SessionId { get; set; }
 
-  public string Statement { get; set; }
-
-  public long StatementId { get; set; }
+  public List<string> Paths { get; set; }
 
   public int FetchSize
   {
@@ -55,18 +52,9 @@ public partial class TSExecuteStatementReq : TBase
     }
   }
 
-  public long Timeout
-  {
-    get
-    {
-      return _timeout;
-    }
-    set
-    {
-      __isset.timeout = true;
-      this._timeout = value;
-    }
-  }
+  public long Time { get; set; }
+
+  public long StatementId { get; set; }
 
   public bool EnableRedirectQuery
   {
@@ -99,52 +87,48 @@ public partial class TSExecuteStatementReq : TBase
   public struct Isset
   {
     public bool fetchSize;
-    public bool timeout;
     public bool enableRedirectQuery;
     public bool jdbcQuery;
   }
 
-  public TSExecuteStatementReq()
+  public TSLastDataQueryReq()
   {
   }
 
-  public TSExecuteStatementReq(long sessionId, string statement, long statementId) : this()
+  public TSLastDataQueryReq(long sessionId, List<string> paths, long time, long statementId) : this()
   {
     this.SessionId = sessionId;
-    this.Statement = statement;
+    this.Paths = paths;
+    this.Time = time;
     this.StatementId = statementId;
   }
 
-  public TSExecuteStatementReq DeepCopy()
+  public TSLastDataQueryReq DeepCopy()
   {
-    var tmp77 = new TSExecuteStatementReq();
-    tmp77.SessionId = this.SessionId;
-    if((Statement != null))
+    var tmp324 = new TSLastDataQueryReq();
+    tmp324.SessionId = this.SessionId;
+    if((Paths != null))
     {
-      tmp77.Statement = this.Statement;
+      tmp324.Paths = this.Paths.DeepCopy();
     }
-    tmp77.StatementId = this.StatementId;
     if(__isset.fetchSize)
     {
-      tmp77.FetchSize = this.FetchSize;
+      tmp324.FetchSize = this.FetchSize;
     }
-    tmp77.__isset.fetchSize = this.__isset.fetchSize;
-    if(__isset.timeout)
-    {
-      tmp77.Timeout = this.Timeout;
-    }
-    tmp77.__isset.timeout = this.__isset.timeout;
+    tmp324.__isset.fetchSize = this.__isset.fetchSize;
+    tmp324.Time = this.Time;
+    tmp324.StatementId = this.StatementId;
     if(__isset.enableRedirectQuery)
     {
-      tmp77.EnableRedirectQuery = this.EnableRedirectQuery;
+      tmp324.EnableRedirectQuery = this.EnableRedirectQuery;
     }
-    tmp77.__isset.enableRedirectQuery = this.__isset.enableRedirectQuery;
+    tmp324.__isset.enableRedirectQuery = this.__isset.enableRedirectQuery;
     if(__isset.jdbcQuery)
     {
-      tmp77.JdbcQuery = this.JdbcQuery;
+      tmp324.JdbcQuery = this.JdbcQuery;
     }
-    tmp77.__isset.jdbcQuery = this.__isset.jdbcQuery;
-    return tmp77;
+    tmp324.__isset.jdbcQuery = this.__isset.jdbcQuery;
+    return tmp324;
   }
 
   public async global::System.Threading.Tasks.Task ReadAsync(TProtocol iprot, CancellationToken cancellationToken)
@@ -153,7 +137,8 @@ public partial class TSExecuteStatementReq : TBase
     try
     {
       bool isset_sessionId = false;
-      bool isset_statement = false;
+      bool isset_paths = false;
+      bool isset_time = false;
       bool isset_statementId = false;
       TField field;
       await iprot.ReadStructBeginAsync(cancellationToken);
@@ -179,10 +164,20 @@ public partial class TSExecuteStatementReq : TBase
             }
             break;
           case 2:
-            if (field.Type == TType.String)
+            if (field.Type == TType.List)
             {
-              Statement = await iprot.ReadStringAsync(cancellationToken);
-              isset_statement = true;
+              {
+                TList _list325 = await iprot.ReadListBeginAsync(cancellationToken);
+                Paths = new List<string>(_list325.Count);
+                for(int _i326 = 0; _i326 < _list325.Count; ++_i326)
+                {
+                  string _elem327;
+                  _elem327 = await iprot.ReadStringAsync(cancellationToken);
+                  Paths.Add(_elem327);
+                }
+                await iprot.ReadListEndAsync(cancellationToken);
+              }
+              isset_paths = true;
             }
             else
             {
@@ -190,17 +185,6 @@ public partial class TSExecuteStatementReq : TBase
             }
             break;
           case 3:
-            if (field.Type == TType.I64)
-            {
-              StatementId = await iprot.ReadI64Async(cancellationToken);
-              isset_statementId = true;
-            }
-            else
-            {
-              await TProtocolUtil.SkipAsync(iprot, field.Type, cancellationToken);
-            }
-            break;
-          case 4:
             if (field.Type == TType.I32)
             {
               FetchSize = await iprot.ReadI32Async(cancellationToken);
@@ -210,10 +194,22 @@ public partial class TSExecuteStatementReq : TBase
               await TProtocolUtil.SkipAsync(iprot, field.Type, cancellationToken);
             }
             break;
+          case 4:
+            if (field.Type == TType.I64)
+            {
+              Time = await iprot.ReadI64Async(cancellationToken);
+              isset_time = true;
+            }
+            else
+            {
+              await TProtocolUtil.SkipAsync(iprot, field.Type, cancellationToken);
+            }
+            break;
           case 5:
             if (field.Type == TType.I64)
             {
-              Timeout = await iprot.ReadI64Async(cancellationToken);
+              StatementId = await iprot.ReadI64Async(cancellationToken);
+              isset_statementId = true;
             }
             else
             {
@@ -253,7 +249,11 @@ public partial class TSExecuteStatementReq : TBase
       {
         throw new TProtocolException(TProtocolException.INVALID_DATA);
       }
-      if (!isset_statement)
+      if (!isset_paths)
+      {
+        throw new TProtocolException(TProtocolException.INVALID_DATA);
+      }
+      if (!isset_time)
       {
         throw new TProtocolException(TProtocolException.INVALID_DATA);
       }
@@ -273,7 +273,7 @@ public partial class TSExecuteStatementReq : TBase
     oprot.IncrementRecursionDepth();
     try
     {
-      var struc = new TStruct("TSExecuteStatementReq");
+      var struc = new TStruct("TSLastDataQueryReq");
       await oprot.WriteStructBeginAsync(struc, cancellationToken);
       var field = new TField();
       field.Name = "sessionId";
@@ -282,39 +282,43 @@ public partial class TSExecuteStatementReq : TBase
       await oprot.WriteFieldBeginAsync(field, cancellationToken);
       await oprot.WriteI64Async(SessionId, cancellationToken);
       await oprot.WriteFieldEndAsync(cancellationToken);
-      if((Statement != null))
+      if((Paths != null))
       {
-        field.Name = "statement";
-        field.Type = TType.String;
+        field.Name = "paths";
+        field.Type = TType.List;
         field.ID = 2;
         await oprot.WriteFieldBeginAsync(field, cancellationToken);
-        await oprot.WriteStringAsync(Statement, cancellationToken);
+        {
+          await oprot.WriteListBeginAsync(new TList(TType.String, Paths.Count), cancellationToken);
+          foreach (string _iter328 in Paths)
+          {
+            await oprot.WriteStringAsync(_iter328, cancellationToken);
+          }
+          await oprot.WriteListEndAsync(cancellationToken);
+        }
         await oprot.WriteFieldEndAsync(cancellationToken);
       }
-      field.Name = "statementId";
-      field.Type = TType.I64;
-      field.ID = 3;
-      await oprot.WriteFieldBeginAsync(field, cancellationToken);
-      await oprot.WriteI64Async(StatementId, cancellationToken);
-      await oprot.WriteFieldEndAsync(cancellationToken);
       if(__isset.fetchSize)
       {
         field.Name = "fetchSize";
         field.Type = TType.I32;
-        field.ID = 4;
+        field.ID = 3;
         await oprot.WriteFieldBeginAsync(field, cancellationToken);
         await oprot.WriteI32Async(FetchSize, cancellationToken);
         await oprot.WriteFieldEndAsync(cancellationToken);
       }
-      if(__isset.timeout)
-      {
-        field.Name = "timeout";
-        field.Type = TType.I64;
-        field.ID = 5;
-        await oprot.WriteFieldBeginAsync(field, cancellationToken);
-        await oprot.WriteI64Async(Timeout, cancellationToken);
-        await oprot.WriteFieldEndAsync(cancellationToken);
-      }
+      field.Name = "time";
+      field.Type = TType.I64;
+      field.ID = 4;
+      await oprot.WriteFieldBeginAsync(field, cancellationToken);
+      await oprot.WriteI64Async(Time, cancellationToken);
+      await oprot.WriteFieldEndAsync(cancellationToken);
+      field.Name = "statementId";
+      field.Type = TType.I64;
+      field.ID = 5;
+      await oprot.WriteFieldBeginAsync(field, cancellationToken);
+      await oprot.WriteI64Async(StatementId, cancellationToken);
+      await oprot.WriteFieldEndAsync(cancellationToken);
       if(__isset.enableRedirectQuery)
       {
         field.Name = "enableRedirectQuery";
@@ -344,13 +348,13 @@ public partial class TSExecuteStatementReq : TBase
 
   public override bool Equals(object that)
   {
-    if (!(that is TSExecuteStatementReq other)) return false;
+    if (!(that is TSLastDataQueryReq other)) return false;
     if (ReferenceEquals(this, other)) return true;
     return System.Object.Equals(SessionId, other.SessionId)
-      && System.Object.Equals(Statement, other.Statement)
-      && System.Object.Equals(StatementId, other.StatementId)
+      && TCollections.Equals(Paths, other.Paths)
       && ((__isset.fetchSize == other.__isset.fetchSize) && ((!__isset.fetchSize) || (System.Object.Equals(FetchSize, other.FetchSize))))
-      && ((__isset.timeout == other.__isset.timeout) && ((!__isset.timeout) || (System.Object.Equals(Timeout, other.Timeout))))
+      && System.Object.Equals(Time, other.Time)
+      && System.Object.Equals(StatementId, other.StatementId)
       && ((__isset.enableRedirectQuery == other.__isset.enableRedirectQuery) && ((!__isset.enableRedirectQuery) || (System.Object.Equals(EnableRedirectQuery, other.EnableRedirectQuery))))
       && ((__isset.jdbcQuery == other.__isset.jdbcQuery) && ((!__isset.jdbcQuery) || (System.Object.Equals(JdbcQuery, other.JdbcQuery))));
   }
@@ -359,19 +363,16 @@ public partial class TSExecuteStatementReq : TBase
     int hashcode = 157;
     unchecked {
       hashcode = (hashcode * 397) + SessionId.GetHashCode();
-      if((Statement != null))
+      if((Paths != null))
       {
-        hashcode = (hashcode * 397) + Statement.GetHashCode();
+        hashcode = (hashcode * 397) + TCollections.GetHashCode(Paths);
       }
-      hashcode = (hashcode * 397) + StatementId.GetHashCode();
       if(__isset.fetchSize)
       {
         hashcode = (hashcode * 397) + FetchSize.GetHashCode();
       }
-      if(__isset.timeout)
-      {
-        hashcode = (hashcode * 397) + Timeout.GetHashCode();
-      }
+      hashcode = (hashcode * 397) + Time.GetHashCode();
+      hashcode = (hashcode * 397) + StatementId.GetHashCode();
       if(__isset.enableRedirectQuery)
       {
         hashcode = (hashcode * 397) + EnableRedirectQuery.GetHashCode();
@@ -386,26 +387,23 @@ public partial class TSExecuteStatementReq : TBase
 
   public override string ToString()
   {
-    var sb = new StringBuilder("TSExecuteStatementReq(");
+    var sb = new StringBuilder("TSLastDataQueryReq(");
     sb.Append(", SessionId: ");
     SessionId.ToString(sb);
-    if((Statement != null))
+    if((Paths != null))
     {
-      sb.Append(", Statement: ");
-      Statement.ToString(sb);
+      sb.Append(", Paths: ");
+      Paths.ToString(sb);
     }
-    sb.Append(", StatementId: ");
-    StatementId.ToString(sb);
     if(__isset.fetchSize)
     {
       sb.Append(", FetchSize: ");
       FetchSize.ToString(sb);
     }
-    if(__isset.timeout)
-    {
-      sb.Append(", Timeout: ");
-      Timeout.ToString(sb);
-    }
+    sb.Append(", Time: ");
+    Time.ToString(sb);
+    sb.Append(", StatementId: ");
+    StatementId.ToString(sb);
     if(__isset.enableRedirectQuery)
     {
       sb.Append(", EnableRedirectQuery: ");

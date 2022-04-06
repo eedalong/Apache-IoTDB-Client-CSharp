@@ -29,24 +29,26 @@ using Thrift.Processor;
 #pragma warning disable IDE1006  // parts of the code use IDL spelling
 
 
-public partial class TSFetchMetadataReq : TBase
+public partial class TSQueryTemplateReq : TBase
 {
-  private string _columnPath;
+  private string _measurement;
 
   public long SessionId { get; set; }
 
-  public string Type { get; set; }
+  public string Name { get; set; }
 
-  public string ColumnPath
+  public int QueryType { get; set; }
+
+  public string Measurement
   {
     get
     {
-      return _columnPath;
+      return _measurement;
     }
     set
     {
-      __isset.columnPath = true;
-      this._columnPath = value;
+      __isset.measurement = true;
+      this._measurement = value;
     }
   }
 
@@ -54,33 +56,35 @@ public partial class TSFetchMetadataReq : TBase
   public Isset __isset;
   public struct Isset
   {
-    public bool columnPath;
+    public bool measurement;
   }
 
-  public TSFetchMetadataReq()
+  public TSQueryTemplateReq()
   {
   }
 
-  public TSFetchMetadataReq(long sessionId, string type) : this()
+  public TSQueryTemplateReq(long sessionId, string name, int queryType) : this()
   {
     this.SessionId = sessionId;
-    this.Type = type;
+    this.Name = name;
+    this.QueryType = queryType;
   }
 
-  public TSFetchMetadataReq DeepCopy()
+  public TSQueryTemplateReq DeepCopy()
   {
-    var tmp101 = new TSFetchMetadataReq();
-    tmp101.SessionId = this.SessionId;
-    if((Type != null))
+    var tmp409 = new TSQueryTemplateReq();
+    tmp409.SessionId = this.SessionId;
+    if((Name != null))
     {
-      tmp101.Type = this.Type;
+      tmp409.Name = this.Name;
     }
-    if((ColumnPath != null) && __isset.columnPath)
+    tmp409.QueryType = this.QueryType;
+    if((Measurement != null) && __isset.measurement)
     {
-      tmp101.ColumnPath = this.ColumnPath;
+      tmp409.Measurement = this.Measurement;
     }
-    tmp101.__isset.columnPath = this.__isset.columnPath;
-    return tmp101;
+    tmp409.__isset.measurement = this.__isset.measurement;
+    return tmp409;
   }
 
   public async global::System.Threading.Tasks.Task ReadAsync(TProtocol iprot, CancellationToken cancellationToken)
@@ -89,7 +93,8 @@ public partial class TSFetchMetadataReq : TBase
     try
     {
       bool isset_sessionId = false;
-      bool isset_type = false;
+      bool isset_name = false;
+      bool isset_queryType = false;
       TField field;
       await iprot.ReadStructBeginAsync(cancellationToken);
       while (true)
@@ -116,8 +121,8 @@ public partial class TSFetchMetadataReq : TBase
           case 2:
             if (field.Type == TType.String)
             {
-              Type = await iprot.ReadStringAsync(cancellationToken);
-              isset_type = true;
+              Name = await iprot.ReadStringAsync(cancellationToken);
+              isset_name = true;
             }
             else
             {
@@ -125,9 +130,20 @@ public partial class TSFetchMetadataReq : TBase
             }
             break;
           case 3:
+            if (field.Type == TType.I32)
+            {
+              QueryType = await iprot.ReadI32Async(cancellationToken);
+              isset_queryType = true;
+            }
+            else
+            {
+              await TProtocolUtil.SkipAsync(iprot, field.Type, cancellationToken);
+            }
+            break;
+          case 4:
             if (field.Type == TType.String)
             {
-              ColumnPath = await iprot.ReadStringAsync(cancellationToken);
+              Measurement = await iprot.ReadStringAsync(cancellationToken);
             }
             else
             {
@@ -147,7 +163,11 @@ public partial class TSFetchMetadataReq : TBase
       {
         throw new TProtocolException(TProtocolException.INVALID_DATA);
       }
-      if (!isset_type)
+      if (!isset_name)
+      {
+        throw new TProtocolException(TProtocolException.INVALID_DATA);
+      }
+      if (!isset_queryType)
       {
         throw new TProtocolException(TProtocolException.INVALID_DATA);
       }
@@ -163,7 +183,7 @@ public partial class TSFetchMetadataReq : TBase
     oprot.IncrementRecursionDepth();
     try
     {
-      var struc = new TStruct("TSFetchMetadataReq");
+      var struc = new TStruct("TSQueryTemplateReq");
       await oprot.WriteStructBeginAsync(struc, cancellationToken);
       var field = new TField();
       field.Name = "sessionId";
@@ -172,22 +192,28 @@ public partial class TSFetchMetadataReq : TBase
       await oprot.WriteFieldBeginAsync(field, cancellationToken);
       await oprot.WriteI64Async(SessionId, cancellationToken);
       await oprot.WriteFieldEndAsync(cancellationToken);
-      if((Type != null))
+      if((Name != null))
       {
-        field.Name = "type";
+        field.Name = "name";
         field.Type = TType.String;
         field.ID = 2;
         await oprot.WriteFieldBeginAsync(field, cancellationToken);
-        await oprot.WriteStringAsync(Type, cancellationToken);
+        await oprot.WriteStringAsync(Name, cancellationToken);
         await oprot.WriteFieldEndAsync(cancellationToken);
       }
-      if((ColumnPath != null) && __isset.columnPath)
+      field.Name = "queryType";
+      field.Type = TType.I32;
+      field.ID = 3;
+      await oprot.WriteFieldBeginAsync(field, cancellationToken);
+      await oprot.WriteI32Async(QueryType, cancellationToken);
+      await oprot.WriteFieldEndAsync(cancellationToken);
+      if((Measurement != null) && __isset.measurement)
       {
-        field.Name = "columnPath";
+        field.Name = "measurement";
         field.Type = TType.String;
-        field.ID = 3;
+        field.ID = 4;
         await oprot.WriteFieldBeginAsync(field, cancellationToken);
-        await oprot.WriteStringAsync(ColumnPath, cancellationToken);
+        await oprot.WriteStringAsync(Measurement, cancellationToken);
         await oprot.WriteFieldEndAsync(cancellationToken);
       }
       await oprot.WriteFieldStopAsync(cancellationToken);
@@ -201,24 +227,26 @@ public partial class TSFetchMetadataReq : TBase
 
   public override bool Equals(object that)
   {
-    if (!(that is TSFetchMetadataReq other)) return false;
+    if (!(that is TSQueryTemplateReq other)) return false;
     if (ReferenceEquals(this, other)) return true;
     return System.Object.Equals(SessionId, other.SessionId)
-      && System.Object.Equals(Type, other.Type)
-      && ((__isset.columnPath == other.__isset.columnPath) && ((!__isset.columnPath) || (System.Object.Equals(ColumnPath, other.ColumnPath))));
+      && System.Object.Equals(Name, other.Name)
+      && System.Object.Equals(QueryType, other.QueryType)
+      && ((__isset.measurement == other.__isset.measurement) && ((!__isset.measurement) || (System.Object.Equals(Measurement, other.Measurement))));
   }
 
   public override int GetHashCode() {
     int hashcode = 157;
     unchecked {
       hashcode = (hashcode * 397) + SessionId.GetHashCode();
-      if((Type != null))
+      if((Name != null))
       {
-        hashcode = (hashcode * 397) + Type.GetHashCode();
+        hashcode = (hashcode * 397) + Name.GetHashCode();
       }
-      if((ColumnPath != null) && __isset.columnPath)
+      hashcode = (hashcode * 397) + QueryType.GetHashCode();
+      if((Measurement != null) && __isset.measurement)
       {
-        hashcode = (hashcode * 397) + ColumnPath.GetHashCode();
+        hashcode = (hashcode * 397) + Measurement.GetHashCode();
       }
     }
     return hashcode;
@@ -226,18 +254,20 @@ public partial class TSFetchMetadataReq : TBase
 
   public override string ToString()
   {
-    var sb = new StringBuilder("TSFetchMetadataReq(");
+    var sb = new StringBuilder("TSQueryTemplateReq(");
     sb.Append(", SessionId: ");
     SessionId.ToString(sb);
-    if((Type != null))
+    if((Name != null))
     {
-      sb.Append(", Type: ");
-      Type.ToString(sb);
+      sb.Append(", Name: ");
+      Name.ToString(sb);
     }
-    if((ColumnPath != null) && __isset.columnPath)
+    sb.Append(", QueryType: ");
+    QueryType.ToString(sb);
+    if((Measurement != null) && __isset.measurement)
     {
-      sb.Append(", ColumnPath: ");
-      ColumnPath.ToString(sb);
+      sb.Append(", Measurement: ");
+      Measurement.ToString(sb);
     }
     sb.Append(')');
     return sb.ToString();
