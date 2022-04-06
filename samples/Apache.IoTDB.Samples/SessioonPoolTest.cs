@@ -16,17 +16,20 @@ namespace Apache.IoTDB.Samples
         public bool debug = false;
         private int pool_size = 2;
 
-        public SessionPoolTest(string _host = "localhost"){
+        public SessionPoolTest(string _host = "localhost")
+        {
             host = _host;
         }
 
         public void Test()
         {
             Task task;
-
+            task = TestInsertAlignedRecord();
+            task.Wait();
+            task = TestCreateAlignedTimeseries();
+            task.Wait();
             task = TestInsertRecord();
             task.Wait();
-
             task = TestCreateMultiTimeSeries();
             task.Wait();
             task = TestGetTimeZone();
@@ -84,7 +87,7 @@ namespace Apache.IoTDB.Samples
             System.Diagnostics.Debug.Assert(status == 0);
             var measures = new List<string>
                 {"TEST_CSHARP_CLIENT_TS1", "TEST_CSHARP_CLIENT_TS2", "TEST_CSHARP_CLIENT_TS3"};
-            var values = new List<object> {"test_text", true, (int) 123};
+            var values = new List<object> { "test_text", true, (int)123 };
             var tasks = new List<Task<int>>();
             var start_ms = DateTime.Now.Ticks / 10000;
             for (var timestamp = 1; timestamp <= fetch_size * processed_size; timestamp++)
@@ -97,10 +100,48 @@ namespace Apache.IoTDB.Samples
 
             Task.WaitAll(tasks.ToArray());
             var end_ms = DateTime.Now.Ticks / 10000;
-            Console.WriteLine(string.Format("total insert record time is {0}", end_ms - start_ms));
+            Console.WriteLine(string.Format("total insert aligned record time is {0}", end_ms - start_ms));
             status = await session_pool.DeleteStorageGroupAsync("root.TEST_CSHARP_CLIENT_GROUP_97209");
             await session_pool.Close();
             Console.WriteLine("TestInsertRecordAsync Passed");
+        }
+
+        public async Task TestInsertAlignedRecord()
+        {
+            var session_pool = new SessionPool(host, port, pool_size);
+            int status;
+            await session_pool.Open(false);
+            if (debug) session_pool.OpenDebugMode();
+
+            System.Diagnostics.Debug.Assert(session_pool.IsOpen());
+            status = await session_pool.DeleteStorageGroupAsync("root.TEST_CSHARP_CLIENT_GROUP_97209");
+
+            string prefixPath = "root.TEST_CSHARP_CLIENT_GROUP_97209.TEST_CSHARP_CLIENT_DEVICE";
+            var measurements = new List<string> { "TEST_CSHARP_CLIENT_TS1", "TEST_CSHARP_CLIENT_TS2", "TEST_CSHARP_CLIENT_TS3" };
+            var types = new List<TSDataType> { TSDataType.TEXT, TSDataType.BOOLEAN, TSDataType.INT32 };
+            var encodings = new List<TSEncoding> { TSEncoding.PLAIN, TSEncoding.PLAIN, TSEncoding.PLAIN };
+            var compressors = new List<Compressor> { Compressor.UNCOMPRESSED, Compressor.UNCOMPRESSED, Compressor.UNCOMPRESSED };
+            status = await session_pool.CreateAlignedTimeseriesAsync(prefixPath, measurements, types, encodings, compressors);
+            System.Diagnostics.Debug.Assert(status == 0);
+
+            var measures = new List<string>
+                {"TEST_CSHARP_CLIENT_TS1", "TEST_CSHARP_CLIENT_TS2", "TEST_CSHARP_CLIENT_TS3"};
+            var values = new List<object> { "test_text", true, (int)123 };
+            var tasks = new List<Task<int>>();
+            var start_ms = DateTime.Now.Ticks / 10000;
+            for (var timestamp = 1; timestamp <= fetch_size * processed_size; timestamp++)
+            {
+                var rowRecord = new RowRecord(timestamp, values, measures);
+                var task = session_pool.InsertAlignedRecordAsync(
+                    "root.TEST_CSHARP_CLIENT_GROUP_97209.TEST_CSHARP_CLIENT_DEVICE", rowRecord);
+                tasks.Add(task);
+            }
+            Task.WaitAll(tasks.ToArray());
+            var end_ms = DateTime.Now.Ticks / 10000;
+            Console.WriteLine(string.Format("total insert record time is {0}", end_ms - start_ms));
+            // status = await session_pool.DeleteStorageGroupAsync("root.TEST_CSHARP_CLIENT_GROUP_97209");
+            await session_pool.Close();
+            Console.WriteLine("TestInsertAlignedRecordAsync Passed");
         }
 
         public async Task TestCreateMultiTimeSeries()
@@ -220,8 +261,8 @@ namespace Apache.IoTDB.Samples
                 TSDataType.INT32, TSEncoding.PLAIN, Compressor.UNCOMPRESSED);
             System.Diagnostics.Debug.Assert(status == 0);
 
-            var measures = new List<string> {"TEST_CSHARP_CLIENT_TS1", "TEST_CSHARP_CLIENT_TS2"};
-            var values = new List<object> {(int) 1, (int) 2};
+            var measures = new List<string> { "TEST_CSHARP_CLIENT_TS1", "TEST_CSHARP_CLIENT_TS2" };
+            var values = new List<object> { (int)1, (int)2 };
             var rowRecord = new RowRecord(1, values, measures);
             status = await session_pool.InsertRecordAsync(
                 "root.TEST_CSHARP_CLIENT_GROUP_97209.TEST_CSHARP_CLIENT_DEVICE", rowRecord);
@@ -301,7 +342,7 @@ namespace Apache.IoTDB.Samples
             for (var i = 0; i < 3; i++) device_id.Add("root.TEST_CSHARP_CLIENT_GROUP_97209.TEST_CSHARP_CLIENT_DEVICE");
 
             var measurements_lst = new List<List<string>>() { };
-            measurements_lst.Add(new List<string>() {"TEST_CSHARP_CLIENT_TS1", "TEST_CSHARP_CLIENT_TS2"});
+            measurements_lst.Add(new List<string>() { "TEST_CSHARP_CLIENT_TS1", "TEST_CSHARP_CLIENT_TS2" });
             measurements_lst.Add(new List<string>()
             {
                 "TEST_CSHARP_CLIENT_TS1", "TEST_CSHARP_CLIENT_TS2", "TEST_CSHARP_CLIENT_TS3", "TEST_CSHARP_CLIENT_TS4"
@@ -312,11 +353,11 @@ namespace Apache.IoTDB.Samples
                 "TEST_CSHARP_CLIENT_TS5", "TEST_CSHARP_CLIENT_TS6"
             });
             var values_lst = new List<List<object>>() { };
-            values_lst.Add(new List<object>() {true, (int) 123});
-            values_lst.Add(new List<object>() {true, (int) 123, (long) 456, (double) 1.1});
+            values_lst.Add(new List<object>() { true, (int)123 });
+            values_lst.Add(new List<object>() { true, (int)123, (long)456, (double)1.1 });
             values_lst.Add(new List<object>()
                 {true, (int) 123, (long) 456, (double) 1.1, (float) 10001.1, "test_record"});
-            var timestamp_lst = new List<long>() {1, 2, 3};
+            var timestamp_lst = new List<long>() { 1, 2, 3 };
             var rowRecords = new List<RowRecord>() { };
             for (var i = 0; i < 3; i++)
             {
@@ -341,8 +382,8 @@ namespace Apache.IoTDB.Samples
             for (var timestamp = 4; timestamp <= fetch_size * processed_size; timestamp++)
             {
                 device_id.Add("root.TEST_CSHARP_CLIENT_GROUP_97209.TEST_CSHARP_CLIENT_DEVICE");
-                rowRecords.Add(new RowRecord(timestamp, new List<object>() {true, (int) 123},
-                    new List<string>() {"TEST_CSHARP_CLIENT_TS1", "TEST_CSHARP_CLIENT_TS2"}));
+                rowRecords.Add(new RowRecord(timestamp, new List<object>() { true, (int)123 },
+                    new List<string>() { "TEST_CSHARP_CLIENT_TS1", "TEST_CSHARP_CLIENT_TS2" }));
                 if (timestamp % fetch_size == 0)
                 {
                     tasks.Add(session_pool.InsertRecordsAsync(device_id, rowRecords));
@@ -402,7 +443,7 @@ namespace Apache.IoTDB.Samples
                 TSEncoding.PLAIN, Compressor.SNAPPY);
             var device_id = "root.TEST_CSHARP_CLIENT_GROUP_97209.TEST_CSHARP_CLIENT_DEVICE";
             var measurements_lst = new List<List<string>>() { };
-            measurements_lst.Add(new List<string>() {"TEST_CSHARP_CLIENT_TS1", "TEST_CSHARP_CLIENT_TS2"});
+            measurements_lst.Add(new List<string>() { "TEST_CSHARP_CLIENT_TS1", "TEST_CSHARP_CLIENT_TS2" });
             measurements_lst.Add(new List<string>()
             {
                 "TEST_CSHARP_CLIENT_TS1", "TEST_CSHARP_CLIENT_TS2", "TEST_CSHARP_CLIENT_TS3", "TEST_CSHARP_CLIENT_TS4"
@@ -413,11 +454,11 @@ namespace Apache.IoTDB.Samples
                 "TEST_CSHARP_CLIENT_TS5", "TEST_CSHARP_CLIENT_TS6"
             });
             var values_lst = new List<List<object>>() { };
-            values_lst.Add(new List<object>() {true, (int) 123});
-            values_lst.Add(new List<object>() {true, (int) 123, (long) 456, (double) 1.1});
+            values_lst.Add(new List<object>() { true, (int)123 });
+            values_lst.Add(new List<object>() { true, (int)123, (long)456, (double)1.1 });
             values_lst.Add(new List<object>()
                 {true, (int) 123, (long) 456, (double) 1.1, (float) 10001.1, "test_record"});
-            var timestamp_lst = new List<long>() {1, 2, 3};
+            var timestamp_lst = new List<long>() { 1, 2, 3 };
             var rowRecords = new List<RowRecord>() { };
             for (var i = 0; i < 3; i++)
             {
@@ -438,8 +479,8 @@ namespace Apache.IoTDB.Samples
             var tasks = new List<Task<int>>();
             for (var timestamp = 4; timestamp <= fetch_size * processed_size; timestamp++)
             {
-                rowRecords.Add(new RowRecord(timestamp, new List<object>() {true, (int) 123},
-                    new List<string>() {"TEST_CSHARP_CLIENT_TS1", "TEST_CSHARP_CLIENT_TS2"}));
+                rowRecords.Add(new RowRecord(timestamp, new List<object>() { true, (int)123 },
+                    new List<string>() { "TEST_CSHARP_CLIENT_TS1", "TEST_CSHARP_CLIENT_TS2" }));
                 if (timestamp % fetch_size == 0)
                 {
                     tasks.Add(session_pool.InsertRecordsOfOneDeviceAsync(device_id, rowRecords));
@@ -483,7 +524,7 @@ namespace Apache.IoTDB.Samples
                 new() {"iotdb", true, (int) 12}, new() {"c#", false, (int) 13},
                 new() {"client", true, (int) 14}
             };
-            var timestamp_lst = new List<long> {1, 2, 3};
+            var timestamp_lst = new List<long> { 1, 2, 3 };
             var tablet = new Tablet(device_id, measurement_lst, value_lst, timestamp_lst);
             status = await session_pool.InsertTabletAsync(tablet);
             System.Diagnostics.Debug.Assert(status == 0);
@@ -501,7 +542,7 @@ namespace Apache.IoTDB.Samples
             for (var timestamp = 4; timestamp <= fetch_size * processed_size; timestamp++)
             {
                 timestamp_lst.Add(timestamp);
-                value_lst.Add(new List<object>() {"iotdb", true, (int) timestamp});
+                value_lst.Add(new List<object>() { "iotdb", true, (int)timestamp });
                 if (timestamp % fetch_size == 0)
                 {
                     tablet = new Tablet(device_id, measurement_lst, value_lst, timestamp_lst);
@@ -597,8 +638,8 @@ namespace Apache.IoTDB.Samples
                 var local_device_id = "root.TEST_CSHARP_CLIENT_GROUP_97209.TEST_CSHARP_CLIENT_DEVICE1";
                 var local_measurements = new List<string>()
                     {"TEST_CSHARP_CLIENT_TS1", "TEST_CSHARP_CLIENT_TS2", "TEST_CSHARP_CLIENT_TS3"};
-                var local_value = new List<List<object>>() {new() {"iotdb", true, (int) timestamp}};
-                var local_timestamp = new List<long> {timestamp};
+                var local_value = new List<List<object>>() { new() { "iotdb", true, (int)timestamp } };
+                var local_timestamp = new List<long> { timestamp };
                 var tablet = new Tablet(local_device_id, local_measurements, local_value, local_timestamp);
                 tablets.Add(tablet);
                 if (timestamp % fetch_size == 0)
@@ -671,6 +712,50 @@ namespace Apache.IoTDB.Samples
             await session_pool.DeleteStorageGroupAsync("root.TEST_CSHARP_CLIENT_GROUP_97209");
             await session_pool.Close();
             Console.WriteLine("TestCreateTimeSeries Passed!");
+        }
+
+        public async Task TestCreateAlignedTimeseries()
+        {
+            var session_pool = new SessionPool(host, port, user, passwd, pool_size);
+            await session_pool.Open(false);
+            var status = 0;
+            if (debug) session_pool.OpenDebugMode();
+
+            status = await session_pool.DeleteStorageGroupAsync("root.TEST_CSHARP_CLIENT_GROUP_97209");
+
+            string prefixPath = "root.TEST_CSHARP_CLIENT_GROUP_97209.TEST_CSHARP_CLIENT_DEVICE";
+            var measurement_lst = new List<string>()
+            {
+                "TEST_CSHARP_CLIENT_TS1",
+                "TEST_CSHARP_CLIENT_TS2",
+                "TEST_CSHARP_CLIENT_TS3",
+                "TEST_CSHARP_CLIENT_TS4",
+                "TEST_CSHARP_CLIENT_TS5",
+                "TEST_CSHARP_CLIENT_TS6"
+            };
+            var data_type_lst = new List<TSDataType>()
+            {
+                TSDataType.BOOLEAN, TSDataType.INT32, TSDataType.INT64, TSDataType.FLOAT, TSDataType.DOUBLE,
+                TSDataType.TEXT
+            };
+            var encoding_lst = new List<TSEncoding>()
+            {
+                TSEncoding.PLAIN, TSEncoding.PLAIN, TSEncoding.PLAIN, TSEncoding.PLAIN, TSEncoding.PLAIN,
+                TSEncoding.PLAIN
+            };
+            var compressor_lst = new List<Compressor>()
+            {
+                Compressor.SNAPPY, Compressor.SNAPPY, Compressor.SNAPPY, Compressor.SNAPPY, Compressor.SNAPPY,
+                Compressor.SNAPPY
+            };
+            status = await session_pool.CreateAlignedTimeseriesAsync(prefixPath, measurement_lst, data_type_lst, encoding_lst,
+                compressor_lst);
+            System.Diagnostics.Debug.Assert(status == 0);
+            status = await session_pool.DeleteStorageGroupAsync("root.TEST_CSHARP_CLIENT_GROUP_97209");
+            System.Diagnostics.Debug.Assert(status == 0);
+            await session_pool.Close();
+            Console.WriteLine("TestCreateAlignedimeSeries Passed!");
+
         }
 
         public async Task TestDeleteStorageGroups()
@@ -755,7 +840,7 @@ namespace Apache.IoTDB.Samples
 
             var measures = new List<string>
                 {"TEST_CSHARP_CLIENT_TS1", "TEST_CSHARP_CLIENT_TS2", "TEST_CSHARP_CLIENT_TS3"};
-            var values = new List<object> {"test_text", true, (int) 123};
+            var values = new List<object> { "test_text", true, (int)123 };
             status = await session_pool.InsertRecordAsync(
                 "root.TEST_CSHARP_CLIENT_GROUP_97209.TEST_CSHARP_CLIENT_DEVICE", new RowRecord(1, values, measures));
             System.Diagnostics.Debug.Assert(status == 0);
@@ -817,7 +902,7 @@ namespace Apache.IoTDB.Samples
             System.Diagnostics.Debug.Assert(status == 0);
             var measures = new List<string>
                 {"TEST_CSHARP_CLIENT_TS1", "TEST_CSHARP_CLIENT_TS2", "TEST_CSHARP_CLIENT_TS3"};
-            var values = new List<object> {"test_text", true, (int) 123};
+            var values = new List<object> { "test_text", true, (int)123 };
             var tasks = new List<Task<int>>();
             var start_ms = DateTime.Now.Ticks / 10000;
             for (var timestamp = 1; timestamp <= fetch_size * processed_size; timestamp++)
@@ -874,7 +959,7 @@ namespace Apache.IoTDB.Samples
             for (var i = 0; i < 3; i++) device_id.Add("root.TEST_CSHARP_CLIENT_GROUP_97209.TEST_CSHARP_CLIENT_DEVICE");
 
             var measurements_lst = new List<List<string>>() { };
-            measurements_lst.Add(new List<string>() {"TEST_CSHARP_CLIENT_TS1", "TEST_CSHARP_CLIENT_TS2"});
+            measurements_lst.Add(new List<string>() { "TEST_CSHARP_CLIENT_TS1", "TEST_CSHARP_CLIENT_TS2" });
             measurements_lst.Add(new List<string>()
             {
                 "TEST_CSHARP_CLIENT_TS1", "TEST_CSHARP_CLIENT_TS2", "TEST_CSHARP_CLIENT_TS3", "TEST_CSHARP_CLIENT_TS4"
@@ -885,11 +970,11 @@ namespace Apache.IoTDB.Samples
                 "TEST_CSHARP_CLIENT_TS5", "TEST_CSHARP_CLIENT_TS6"
             });
             var values_lst = new List<List<object>>() { };
-            values_lst.Add(new List<object>() {true, (int) 123});
-            values_lst.Add(new List<object>() {true, (int) 123, (long) 456, (double) 1.1});
+            values_lst.Add(new List<object>() { true, (int)123 });
+            values_lst.Add(new List<object>() { true, (int)123, (long)456, (double)1.1 });
             values_lst.Add(new List<object>()
                 {true, (int) 123, (long) 456, (double) 1.1, (float) 10001.1, "test_record"});
-            var timestamp_lst = new List<long>() {1, 2, 3};
+            var timestamp_lst = new List<long>() { 1, 2, 3 };
             var rowRecords = new List<RowRecord>() { };
             for (var i = 0; i < 3; i++)
             {
@@ -913,8 +998,8 @@ namespace Apache.IoTDB.Samples
             for (var timestamp = 4; timestamp <= fetch_size * processed_size; timestamp++)
             {
                 device_id.Add("root.TEST_CSHARP_CLIENT_GROUP_97209.TEST_CSHARP_CLIENT_DEVICE");
-                rowRecords.Add(new RowRecord(timestamp, new List<object>() {true, (int) 123},
-                    new List<string>() {"TEST_CSHARP_CLIENT_TS1", "TEST_CSHARP_CLIENT_TS2"}));
+                rowRecords.Add(new RowRecord(timestamp, new List<object>() { true, (int)123 },
+                    new List<string>() { "TEST_CSHARP_CLIENT_TS1", "TEST_CSHARP_CLIENT_TS2" }));
                 if (timestamp % fetch_size == 0)
                 {
                     tasks.Add(session_pool.TestInsertRecordsAsync(device_id, rowRecords));
@@ -961,7 +1046,7 @@ namespace Apache.IoTDB.Samples
                 new() {"iotdb", true, (int) 12}, new() {"c#", false, (int) 13},
                 new() {"client", true, (int) 14}
             };
-            var timestamp_lst = new List<long> {2, 1, 3};
+            var timestamp_lst = new List<long> { 2, 1, 3 };
             var tablet = new Tablet(device_id, measurement_lst, value_lst, timestamp_lst);
             status = await session_pool.TestInsertTabletAsync(tablet);
             System.Diagnostics.Debug.Assert(status == 0);
@@ -979,7 +1064,7 @@ namespace Apache.IoTDB.Samples
             for (var timestamp = 4; timestamp <= fetch_size * processed_size; timestamp++)
             {
                 timestamp_lst.Add(timestamp);
-                value_lst.Add(new List<object>() {"iotdb", true, (int) timestamp});
+                value_lst.Add(new List<object>() { "iotdb", true, (int)timestamp });
                 if (timestamp % (fetch_size / 32) == 0)
                 {
                     tablet = new Tablet(device_id, measurement_lst, value_lst, timestamp_lst);
@@ -1074,8 +1159,8 @@ namespace Apache.IoTDB.Samples
                 var local_device_id = "root.TEST_CSHARP_CLIENT_GROUP_97209.TEST_CSHARP_CLIENT_DEVICE1";
                 var local_measurements = new List<string>()
                     {"TEST_CSHARP_CLIENT_TS1", "TEST_CSHARP_CLIENT_TS2", "TEST_CSHARP_CLIENT_TS3"};
-                var local_value = new List<List<object>>() {new() {"iotdb", true, (int) timestamp}};
-                var local_timestamp = new List<long> {timestamp};
+                var local_value = new List<List<object>>() { new() { "iotdb", true, (int)timestamp } };
+                var local_timestamp = new List<long> { timestamp };
                 var tablet = new Tablet(local_device_id, local_measurements, local_value, local_timestamp);
                 tablets.Add(tablet);
                 if (timestamp % fetch_size == 0)

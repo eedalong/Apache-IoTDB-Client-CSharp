@@ -19,7 +19,7 @@ namespace Apache.IoTDB
     {
         private static int SuccessCode => 200;
         private static readonly TSProtocolVersion ProtocolVersion = TSProtocolVersion.IOTDB_SERVICE_PROTOCOL_V3;
-        
+
         private readonly string _username;
         private readonly string _password;
         private string _zoneId;
@@ -29,7 +29,7 @@ namespace Apache.IoTDB
         private readonly int _poolSize = 4;
         private readonly Utils _utilFunctions = new Utils();
 
-        
+
         private bool _debugMode;
         private bool _isClose = true;
         private ConcurrentClientQueue _clients;
@@ -48,10 +48,10 @@ namespace Apache.IoTDB
         }
 
         public SessionPool(
-            string host, 
-            int port, 
-            string username, 
-            string password, 
+            string host,
+            int port,
+            string username,
+            string password,
             int poolSize = 8)
         {
             _host = host;
@@ -65,11 +65,11 @@ namespace Apache.IoTDB
         }
 
         public SessionPool(
-            string host, 
-            int port, 
-            string username, 
-            string password, 
-            int fetchSize, 
+            string host,
+            int port,
+            string username,
+            string password,
+            int fetchSize,
             int poolSize = 8)
         {
             _host = host;
@@ -83,12 +83,12 @@ namespace Apache.IoTDB
         }
 
         public SessionPool(
-            string host, 
-            int port, 
-            string username = "root", 
+            string host,
+            int port,
+            string username = "root",
             string password = "root",
-            int fetchSize = 1000, 
-            string zoneId = "UTC+08:00", 
+            int fetchSize = 1000,
+            string zoneId = "UTC+08:00",
             int poolSize = 8)
         {
             _host = host;
@@ -109,7 +109,7 @@ namespace Apache.IoTDB
                 config = new LoggingConfiguration();
                 config.AddRule(LogLevel.Debug, LogLevel.Fatal, new ConsoleTarget("logconsole"));
             }
-            
+
             LogManager.Configuration = config;
             _logger = LogManager.GetCurrentClassLogger();
         }
@@ -122,7 +122,7 @@ namespace Apache.IoTDB
         public async Task Open(bool enableRpcCompression)
         {
             _clients = new ConcurrentClientQueue();
-            
+
             for (var index = 0; index < _poolSize; index++)
             {
                 _clients.Add(await CreateAndOpen(enableRpcCompression));
@@ -152,7 +152,7 @@ namespace Apache.IoTDB
                 finally
                 {
                     _isClose = true;
-                    
+
                     client.Transport?.Close();
                 }
             }
@@ -161,7 +161,7 @@ namespace Apache.IoTDB
         public async Task SetTimeZone(string zoneId)
         {
             _zoneId = zoneId;
-            
+
             foreach (var client in _clients.ClientQueue.AsEnumerable())
             {
                 var req = new TSSetTimeZoneReq(client.SessionId, zoneId);
@@ -188,7 +188,7 @@ namespace Apache.IoTDB
             }
 
             var client = _clients.Take();
-            
+
             try
             {
                 var response = await client.ServiceClient.getTimeZoneAsync(client.SessionId);
@@ -201,7 +201,7 @@ namespace Apache.IoTDB
             }
             finally
             {
-                _clients.Add(client); 
+                _clients.Add(client);
             }
         }
 
@@ -210,26 +210,26 @@ namespace Apache.IoTDB
             var tcpClient = new TcpClient(_host, _port);
 
             var transport = new TFramedTransport(new TSocketTransport(tcpClient, null));
-            
+
             if (!transport.IsOpen)
             {
                 await transport.OpenAsync(new CancellationToken());
             }
 
-            var client = enableRpcCompression ? 
-                new TSIService.Client(new TCompactProtocol(transport)) : 
+            var client = enableRpcCompression ?
+                new TSIService.Client(new TCompactProtocol(transport)) :
                 new TSIService.Client(new TBinaryProtocol(transport));
 
             var openReq = new TSOpenSessionReq(ProtocolVersion, _zoneId)
             {
-                Username = _username, 
+                Username = _username,
                 Password = _password
             };
-            
+
             try
             {
                 var openResp = await client.openSessionAsync(openReq);
-                
+
                 if (openResp.ServerProtocolVersion != ProtocolVersion)
                 {
                     throw new TException($"Protocol Differ, Client version is {ProtocolVersion} but Server version is {openResp.ServerProtocolVersion}", null);
@@ -242,21 +242,21 @@ namespace Apache.IoTDB
 
                 var sessionId = openResp.SessionId;
                 var statementId = await client.requestStatementIdAsync(sessionId);
-                
+
                 _isClose = false;
-            
+
                 var returnClient = new Client(
-                    client, 
-                    sessionId, 
-                    statementId, 
+                    client,
+                    sessionId,
+                    statementId,
                     transport);
-            
+
                 return returnClient;
             }
             catch (Exception)
             {
                 transport.Close();
-                
+
                 throw;
             }
         }
@@ -264,16 +264,16 @@ namespace Apache.IoTDB
         public async Task<int> SetStorageGroup(string groupName)
         {
             var client = _clients.Take();
-            
+
             try
             {
                 var status = await client.ServiceClient.setStorageGroupAsync(client.SessionId, groupName);
-                
+
                 if (_debugMode)
                 {
                     _logger.Info("set storage group {0} successfully, server message is {1}", groupName, status.Message);
                 }
-                
+
                 return _utilFunctions.VerifySuccess(status, SuccessCode);
             }
             catch (TException e)
@@ -287,22 +287,22 @@ namespace Apache.IoTDB
         }
 
         public async Task<int> CreateTimeSeries(
-            string tsPath, 
-            TSDataType dataType, 
+            string tsPath,
+            TSDataType dataType,
             TSEncoding encoding,
             Compressor compressor)
         {
             var client = _clients.Take();
             var req = new TSCreateTimeseriesReq(
-                client.SessionId, 
-                tsPath, 
-                (int) dataType, 
-                (int) encoding,
-                (int) compressor);
+                client.SessionId,
+                tsPath,
+                (int)dataType,
+                (int)encoding,
+                (int)compressor);
             try
             {
                 var status = await client.ServiceClient.createTimeseriesAsync(req);
-                
+
                 if (_debugMode)
                 {
                     _logger.Info("creating time series {0} successfully, server message is {1}", tsPath, status.Message);
@@ -321,6 +321,46 @@ namespace Apache.IoTDB
 
         }
 
+        public async Task<int> CreateAlignedTimeseriesAsync(
+            string prefixPath,
+            List<string> measurements,
+            List<TSDataType> dataTypeLst,
+            List<TSEncoding> encodingLst,
+            List<Compressor> compressorLst)
+        {
+            var client = _clients.Take();
+            var dataTypes = dataTypeLst.ConvertAll(x => (int)x);
+            var encodings = encodingLst.ConvertAll(x => (int)x);
+            var compressors = compressorLst.ConvertAll(x => (int)x);
+
+            var req = new TSCreateAlignedTimeseriesReq(
+                client.SessionId,
+                prefixPath,
+                measurements,
+                dataTypes,
+                encodings,
+                compressors);
+            try
+            {
+                var status = await client.ServiceClient.createAlignedTimeseriesAsync(req);
+
+                if (_debugMode)
+                {
+                    _logger.Info("creating aligned time series {0} successfully, server message is {1}", prefixPath, status.Message);
+                }
+
+                return _utilFunctions.VerifySuccess(status, SuccessCode);
+            }
+            catch (TException e)
+            {
+                throw new TException($"create aligned time series {prefixPath} failed", e);
+            }
+            finally
+            {
+                _clients.Add(client);
+            }
+        }
+
         public async Task<int> DeleteStorageGroupAsync(string groupName)
         {
             var client = _clients.Take();
@@ -328,8 +368,8 @@ namespace Apache.IoTDB
             {
                 var status = await client.ServiceClient.deleteStorageGroupsAsync(
                     client.SessionId,
-                    new List<string> {groupName});
-                
+                    new List<string> { groupName });
+
                 if (_debugMode)
                 {
                     _logger.Info($"delete storage group {groupName} successfully, server message is {status?.Message}");
@@ -343,7 +383,7 @@ namespace Apache.IoTDB
             }
             finally
             {
-                _clients.Add(client); 
+                _clients.Add(client);
             }
         }
 
@@ -354,11 +394,11 @@ namespace Apache.IoTDB
             try
             {
                 var status = await client.ServiceClient.deleteStorageGroupsAsync(client.SessionId, groupNames);
-                
+
                 if (_debugMode)
                 {
                     _logger.Info(
-                        "delete storage group(s) {0} successfully, server message is {1}", 
+                        "delete storage group(s) {0} successfully, server message is {1}",
                         groupNames,
                         status.Message);
                 }
@@ -376,27 +416,27 @@ namespace Apache.IoTDB
         }
 
         public async Task<int> CreateMultiTimeSeriesAsync(
-            List<string> tsPathLst, 
+            List<string> tsPathLst,
             List<TSDataType> dataTypeLst,
-            List<TSEncoding> encodingLst, 
+            List<TSEncoding> encodingLst,
             List<Compressor> compressorLst)
         {
             var client = _clients.Take();
-            var dataTypes = dataTypeLst.ConvertAll(x => (int) x);
-            var encodings = encodingLst.ConvertAll(x => (int) x);
-            var compressors = compressorLst.ConvertAll(x => (int) x);
+            var dataTypes = dataTypeLst.ConvertAll(x => (int)x);
+            var encodings = encodingLst.ConvertAll(x => (int)x);
+            var compressors = compressorLst.ConvertAll(x => (int)x);
 
             var req = new TSCreateMultiTimeseriesReq(client.SessionId, tsPathLst, dataTypes, encodings, compressors);
-            
+
             try
             {
                 var status = await client.ServiceClient.createMultiTimeseriesAsync(req);
-                
+
                 if (_debugMode)
                 {
                     _logger.Info("creating multiple time series {0}, server message is {1}", tsPathLst, status.Message);
                 }
-                
+
                 return _utilFunctions.VerifySuccess(status, SuccessCode);
             }
             catch (TException e)
@@ -412,16 +452,16 @@ namespace Apache.IoTDB
         public async Task<int> DeleteTimeSeriesAsync(List<string> pathList)
         {
             var client = _clients.Take();
-            
+
             try
             {
                 var status = await client.ServiceClient.deleteTimeseriesAsync(client.SessionId, pathList);
-                
+
                 if (_debugMode)
                 {
                     _logger.Info("deleting multiple time series {0}, server message is {1}", pathList, status.Message);
                 }
-                
+
                 return _utilFunctions.VerifySuccess(status, SuccessCode);
             }
             catch (TException e)
@@ -436,7 +476,7 @@ namespace Apache.IoTDB
 
         public async Task<int> DeleteTimeSeriesAsync(string tsPath)
         {
-            return await DeleteTimeSeriesAsync(new List<string> {tsPath});
+            return await DeleteTimeSeriesAsync(new List<string> { tsPath });
         }
 
         public async Task<bool> CheckTimeSeriesExistsAsync(string tsPath)
@@ -458,16 +498,16 @@ namespace Apache.IoTDB
         {
             var client = _clients.Take();
             var req = new TSDeleteDataReq(client.SessionId, tsPathLst, startTime, endTime);
-            
+
             try
             {
                 var status = await client.ServiceClient.deleteDataAsync(req);
-                
+
                 if (_debugMode)
                 {
                     _logger.Info(
                         "delete data from {0}, server message is {1}",
-                        tsPathLst, 
+                        tsPathLst,
                         status.Message);
                 }
 
@@ -489,6 +529,34 @@ namespace Apache.IoTDB
             var client = _clients.Take();
             var req = new TSInsertRecordReq(client.SessionId, deviceId, record.Measurements, record.ToBytes(),
                 record.Timestamps);
+            try
+            {
+                var status = await client.ServiceClient.insertRecordAsync(req);
+
+                if (_debugMode)
+                {
+                    _logger.Info("insert one record to device {0}， server message: {1}", deviceId, status.Message);
+                }
+
+                return _utilFunctions.VerifySuccess(status, SuccessCode);
+            }
+            catch (TException e)
+            {
+                throw new TException("Record insertion failed", e);
+            }
+            finally
+            {
+                _clients.Add(client);
+            }
+        }
+        public async Task<int> InsertAlignedRecordAsync(string deviceId, RowRecord record)
+        {
+            var client = _clients.Take();
+            var req = new TSInsertRecordReq(client.SessionId, deviceId, record.Measurements, record.ToBytes(),
+                record.Timestamps);
+            req.IsAligned = true;
+            // ASSERT that the insert plan is aligned    
+            System.Diagnostics.Debug.Assert(req.IsAligned == true);
             try
             {
                 var status = await client.ServiceClient.insertRecordAsync(req);
@@ -535,13 +603,13 @@ namespace Apache.IoTDB
         public async Task<int> InsertRecordsAsync(List<string> deviceId, List<RowRecord> rowRecords)
         {
             var client = _clients.Take();
-            
+
             var request = GenInsertRecordsReq(deviceId, rowRecords, client.SessionId);
 
             try
             {
                 var status = await client.ServiceClient.insertRecordsAsync(request);
-                
+
                 if (_debugMode)
                 {
                     _logger.Info("insert multiple records to devices {0}, server message: {1}", deviceId, status.Message);
@@ -562,12 +630,12 @@ namespace Apache.IoTDB
         public TSInsertTabletReq GenInsertTabletReq(Tablet tablet, long sessionId)
         {
             return new TSInsertTabletReq(
-                sessionId, 
-                tablet.DeviceId, 
+                sessionId,
+                tablet.DeviceId,
                 tablet.Measurements,
-                tablet.GetBinaryValues(), 
-                tablet.GetBinaryTimestamps(), 
-                tablet.GetDataTypes(), 
+                tablet.GetBinaryValues(),
+                tablet.GetBinaryTimestamps(),
+                tablet.GetDataTypes(),
                 tablet.RowNumber);
         }
 
@@ -575,11 +643,11 @@ namespace Apache.IoTDB
         {
             var client = _clients.Take();
             var req = GenInsertTabletReq(tablet, client.SessionId);
-            
+
             try
             {
                 var status = await client.ServiceClient.insertTabletAsync(req);
-                
+
                 if (_debugMode)
                 {
                     _logger.Info("insert one tablet to device {0}, server message: {1}", tablet.DeviceId, status.Message);
@@ -605,7 +673,7 @@ namespace Apache.IoTDB
             var timestampsLst = new List<byte[]>();
             var typeLst = new List<List<int>>();
             var sizeLst = new List<int>();
-            
+
             foreach (var tablet in tabletLst)
             {
                 var dataTypeValues = tablet.GetDataTypes();
@@ -618,12 +686,12 @@ namespace Apache.IoTDB
             }
 
             return new TSInsertTabletsReq(
-                sessionId, 
-                deviceIdLst, 
-                measurementsLst, 
-                valuesLst, 
+                sessionId,
+                deviceIdLst,
+                measurementsLst,
+                valuesLst,
                 timestampsLst,
-                typeLst, 
+                typeLst,
                 sizeLst);
         }
 
@@ -631,16 +699,16 @@ namespace Apache.IoTDB
         {
             var client = _clients.Take();
             var req = GenInsertTabletsReq(tabletLst, client.SessionId);
-            
+
             try
             {
                 var status = await client.ServiceClient.insertTabletsAsync(req);
-                
+
                 if (_debugMode)
                 {
                     _logger.Info("insert multiple tablets, message: {0}", status.Message);
                 }
-                
+
                 return _utilFunctions.VerifySuccess(status, SuccessCode);
             }
             catch (TException e)
@@ -663,17 +731,17 @@ namespace Apache.IoTDB
 
         private TSInsertRecordsOfOneDeviceReq GenInsertRecordsOfOneDeviceRequest(
             string deviceId,
-            List<RowRecord> records, 
+            List<RowRecord> records,
             long sessionId)
         {
             var values = records.Select(row => row.ToBytes());
             var measurementsLst = records.Select(x => x.Measurements).ToList();
             var timestampLst = records.Select(x => x.Timestamps).ToList();
-            
+
             return new TSInsertRecordsOfOneDeviceReq(
-                sessionId, 
-                deviceId, 
-                measurementsLst, 
+                sessionId,
+                deviceId,
+                measurementsLst,
                 values.ToList(),
                 timestampLst);
         }
@@ -681,16 +749,16 @@ namespace Apache.IoTDB
         public async Task<int> InsertRecordsOfOneDeviceSortedAsync(string deviceId, List<RowRecord> rowRecords)
         {
             var client = _clients.Take();
-            
+
             var timestampLst = rowRecords.Select(x => x.Timestamps).ToList();
-            
+
             if (!_utilFunctions.IsSorted(timestampLst))
             {
                 throw new TException("insert records of one device error: timestamp not sorted", null);
             }
 
             var req = GenInsertRecordsOfOneDeviceRequest(deviceId, rowRecords, client.SessionId);
-            
+
             try
             {
                 var status = await client.ServiceClient.insertRecordsOfOneDeviceAsync(req);
@@ -699,7 +767,7 @@ namespace Apache.IoTDB
                 {
                     _logger.Info("insert records of one device, message: {0}", status.Message);
                 }
-                
+
                 return _utilFunctions.VerifySuccess(status, SuccessCode);
             }
             catch (TException e)
@@ -715,18 +783,18 @@ namespace Apache.IoTDB
         public async Task<int> TestInsertRecordAsync(string deviceId, RowRecord record)
         {
             var client = _clients.Take();
-            
+
             var req = new TSInsertRecordReq(
-                client.SessionId, 
-                deviceId, 
-                record.Measurements, 
+                client.SessionId,
+                deviceId,
+                record.Measurements,
                 record.ToBytes(),
                 record.Timestamps);
 
             try
             {
                 var status = await client.ServiceClient.testInsertRecordAsync(req);
-                
+
                 if (_debugMode)
                 {
                     _logger.Info("insert one record to device {0}， server message: {1}", deviceId, status.Message);
@@ -752,7 +820,7 @@ namespace Apache.IoTDB
             try
             {
                 var status = await client.ServiceClient.testInsertRecordsAsync(req);
-                
+
                 if (_debugMode)
                 {
                     _logger.Info("insert multiple records to devices {0}, server message: {1}", deviceId, status.Message);
@@ -773,7 +841,7 @@ namespace Apache.IoTDB
         public async Task<int> TestInsertTabletAsync(Tablet tablet)
         {
             var client = _clients.Take();
-            
+
             var req = GenInsertTabletReq(tablet, client.SessionId);
 
             try
@@ -801,9 +869,9 @@ namespace Apache.IoTDB
         public async Task<int> TestInsertTabletsAsync(List<Tablet> tabletLst)
         {
             var client = _clients.Take();
-            
+
             var req = GenInsertTabletsReq(tabletLst, client.SessionId);
-            
+
             try
             {
                 var status = await client.ServiceClient.testInsertTabletsAsync(req);
@@ -842,14 +910,14 @@ namespace Apache.IoTDB
             catch (TException e)
             {
                 _clients.Add(client);
-                
+
                 throw new TException("could not execute query statement", e);
             }
 
             if (_utilFunctions.VerifySuccess(status, SuccessCode) == -1)
             {
                 _clients.Add(client);
-                
+
                 throw new TException("execute query failed", null);
             }
 
@@ -859,7 +927,7 @@ namespace Apache.IoTDB
             {
                 FetchSize = _fetchSize
             };
-            
+
             return sessionDataset;
         }
 
@@ -867,7 +935,7 @@ namespace Apache.IoTDB
         {
             var client = _clients.Take();
             var req = new TSExecuteStatementReq(client.SessionId, sql, client.StatementId);
-            
+
             try
             {
                 var resp = await client.ServiceClient.executeUpdateStatementAsync(req);
