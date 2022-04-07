@@ -692,6 +692,33 @@ namespace Apache.IoTDB
                 _clients.Add(client);
             }
         }
+        public async Task<int> InsertAlignedTabletAsync(Tablet tablet)
+        {
+            var client = _clients.Take();
+            var req = GenInsertTabletReq(tablet, client.SessionId);
+            req.IsAligned = true;
+
+            try
+            {
+                var status = await client.ServiceClient.insertTabletAsync(req);
+
+                if (_debugMode)
+                {
+                    _logger.Info("insert one aligned tablet to device {0}, server message: {1}", tablet.DeviceId, status.Message);
+                }
+
+                return _utilFunctions.VerifySuccess(status, SuccessCode);
+            }
+            catch (TException e)
+            {
+                throw new TException("Aligned tablet insertion failed", e);
+            }
+            finally
+            {
+                _clients.Add(client);
+            }
+        }
+
 
         public TSInsertTabletsReq GenInsertTabletsReq(List<Tablet> tabletLst, long sessionId)
         {
@@ -751,10 +778,44 @@ namespace Apache.IoTDB
             }
         }
 
+        public async Task<int> InsertAlignedTabletsAsync(List<Tablet> tabletLst)
+        {
+            var client = _clients.Take();
+            var req = GenInsertTabletsReq(tabletLst, client.SessionId);
+            req.IsAligned = true;
+
+            try
+            {
+                var status = await client.ServiceClient.insertTabletsAsync(req);
+
+                if (_debugMode)
+                {
+                    _logger.Info("insert multiple aligned tablets, message: {0}", status.Message);
+                }
+
+                return _utilFunctions.VerifySuccess(status, SuccessCode);
+            }
+            catch (TException e)
+            {
+                _clients.Add(client);
+
+                throw new TException("Multiple aligned tablets insertion failed", e);
+            }
+            finally
+            {
+                _clients.Add(client);
+            }
+        }
+
         public async Task<int> InsertRecordsOfOneDeviceAsync(string deviceId, List<RowRecord> rowRecords)
         {
             var sortedRowRecords = rowRecords.OrderBy(x => x.Timestamps).ToList();
             return await InsertRecordsOfOneDeviceSortedAsync(deviceId, sortedRowRecords);
+        }
+        public async Task<int> InsertAlignedRecordsOfOneDeviceAsync(string deviceId, List<RowRecord> rowRecords)
+        {
+            var sortedRowRecords = rowRecords.OrderBy(x => x.Timestamps).ToList();
+            return await InsertAlignedRecordsOfOneDeviceSortedAsync(deviceId, sortedRowRecords);
         }
 
         private TSInsertRecordsOfOneDeviceReq GenInsertRecordsOfOneDeviceRequest(
@@ -801,6 +862,40 @@ namespace Apache.IoTDB
             catch (TException e)
             {
                 throw new TException("Sorted records of one device insertion failed", e);
+            }
+            finally
+            {
+                _clients.Add(client);
+            }
+        }
+        public async Task<int> InsertAlignedRecordsOfOneDeviceSortedAsync(string deviceId, List<RowRecord> rowRecords)
+        {
+            var client = _clients.Take();
+
+            var timestampLst = rowRecords.Select(x => x.Timestamps).ToList();
+
+            if (!_utilFunctions.IsSorted(timestampLst))
+            {
+                throw new TException("insert records of one device error: timestamp not sorted", null);
+            }
+
+            var req = GenInsertRecordsOfOneDeviceRequest(deviceId, rowRecords, client.SessionId);
+            req.IsAligned = true;
+
+            try
+            {
+                var status = await client.ServiceClient.insertRecordsOfOneDeviceAsync(req);
+
+                if (_debugMode)
+                {
+                    _logger.Info("insert aligned records of one device, message: {0}", status.Message);
+                }
+
+                return _utilFunctions.VerifySuccess(status, SuccessCode);
+            }
+            catch (TException e)
+            {
+                throw new TException("Sorted aligned records of one device insertion failed", e);
             }
             finally
             {
@@ -985,5 +1080,14 @@ namespace Apache.IoTDB
                 _clients.Add(client);
             }
         }
+
+        // public async Task<int> CreateSchemaTemplateAsync(Template template)
+        // {
+
+        // }
+
+
+
+
     }
 }
