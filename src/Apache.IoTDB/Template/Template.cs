@@ -121,10 +121,5 @@ namespace Apache.IoTDB
             return buffer.GetBuffer();
 
         }
-
-
-
-
-
     }
 }

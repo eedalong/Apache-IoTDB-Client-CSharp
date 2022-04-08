@@ -16,6 +16,7 @@ namespace Apache.IoTDB.Samples
         public int processed_size = 4;
         public bool debug = false;
         private int pool_size = 2;
+        public static string test_template_name = "TEST_CSHARP_CLIENT_TEMPLATE_97209";
         public static string test_group_name = "root.GROUP_92709";
         public static string test_device = "device_";
         public static string test_measurement = "ts";
@@ -23,10 +24,10 @@ namespace Apache.IoTDB.Samples
         public static List<int> measurement_count = new List<int>() { 0, 1, 2, 3, 4, 5, 6 };
         public static List<string> test_devices = new List<string>(
             device_count.ConvertAll(x => test_device + x.ToString()).ToArray()
-            );
+        );
         public List<string> test_measurements = new List<string>(
             measurement_count.ConvertAll(x => test_measurement + x.ToString()).ToArray()
-            );
+        );
 
 
         public SessionPoolTest(string _host = "localhost")
@@ -37,9 +38,12 @@ namespace Apache.IoTDB.Samples
         public void Test()
         {
             Task task;
-            task = TestSetAndUnsetSchemaTemplate();
+            task = TestAddAlignedMeasurements();
             task.Wait();
-
+            // task = TestAddUnalignedMeasurements();
+            // task.Wait();
+            // task = TestSetAndUnsetSchemaTemplate();
+            // task.Wait();
             // task = TestCreateAndDropSchemaTemplate();
             // task.Wait();
             // task = TestInsertAlignedRecord();
