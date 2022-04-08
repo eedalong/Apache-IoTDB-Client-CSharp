@@ -37,6 +37,7 @@ namespace Apache.IoTDB.Samples
                 Console.WriteLine("template name :\t{0}", t);
             }
             status = await session_pool.DropSchemaTemplateAsync(test_template_name);
+            System.Diagnostics.Debug.Assert(status == 0);
             status = await session_pool.DeleteStorageGroupAsync(test_group_name);
             await session_pool.Close();
             Console.WriteLine("TestCreateAndDropSchemaTemplate Passed!");
