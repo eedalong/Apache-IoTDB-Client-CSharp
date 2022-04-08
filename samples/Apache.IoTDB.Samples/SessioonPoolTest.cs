@@ -37,6 +37,11 @@ namespace Apache.IoTDB.Samples
         public void Test()
         {
             Task task;
+            task = TestSetAndUnsetSchemaTemplate();
+            task.Wait();
+
+            // task = TestCreateAndDropSchemaTemplate();
+            // task.Wait();
             // task = TestInsertAlignedRecord();
             // task.Wait();
             // task = TestCreateAlignedTimeseries();
@@ -49,40 +54,40 @@ namespace Apache.IoTDB.Samples
             // task.Wait();
             // task = TestInsertAlignedTablets();
             // task.Wait();
-            task = TestInsertRecord();
-            task.Wait();
-            task = TestCreateMultiTimeSeries();
-            task.Wait();
-            task = TestGetTimeZone();
-            task.Wait();
-            task = TestInsertStrRecord();
-            task.Wait();
-            task = TestInsertRecords();
-            task.Wait();
-            task = TestInsertRecordsOfOneDevice();
-            task.Wait();
-            task = TestInsertTablet();
-            task.Wait();
-            task = TestInsertTablets();
-            task.Wait();
-            task = TestSetAndDeleteStorageGroup();
-            task.Wait();
-            task = TestCreateTimeSeries();
-            task.Wait();
-            task = TestDeleteTimeSeries();
-            task.Wait();
-            task = TestDeleteStorageGroups();
-            task.Wait();
-            task = TestCheckTimeSeriesExists();
-            task.Wait();
-            task = TestSetTimeZone();
-            task.Wait();
-            task = TestDeleteData();
-            task.Wait();
-            task = TestNonSql();
-            task.Wait();
-            task = TestSqlQuery();
-            task.Wait();
+            // task = TestInsertRecord();
+            // task.Wait();
+            // task = TestCreateMultiTimeSeries();
+            // task.Wait();
+            // task = TestGetTimeZone();
+            // task.Wait();
+            // task = TestInsertStrRecord();
+            // task.Wait();
+            // task = TestInsertRecords();
+            // task.Wait();
+            // task = TestInsertRecordsOfOneDevice();
+            // task.Wait();
+            // task = TestInsertTablet();
+            // task.Wait();
+            // task = TestInsertTablets();
+            // task.Wait();
+            // task = TestSetAndDeleteStorageGroup();
+            // task.Wait();
+            // task = TestCreateTimeSeries();
+            // task.Wait();
+            // task = TestDeleteTimeSeries();
+            // task.Wait();
+            // task = TestDeleteStorageGroups();
+            // task.Wait();
+            // task = TestCheckTimeSeriesExists();
+            // task.Wait();
+            // task = TestSetTimeZone();
+            // task.Wait();
+            // task = TestDeleteData();
+            // task.Wait();
+            // task = TestNonSql();
+            // task.Wait();
+            // task = TestSqlQuery();
+            // task.Wait();
         }
 
         public async Task TestInsertRecord()

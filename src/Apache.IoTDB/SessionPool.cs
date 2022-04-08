@@ -1081,10 +1081,372 @@ namespace Apache.IoTDB
             }
         }
 
-        // public async Task<int> CreateSchemaTemplateAsync(Template template)
-        // {
+        public async Task<int> CreateSchemaTemplateAsync(Template template)
+        {
+            var client = _clients.Take();
+            var req = new TSCreateSchemaTemplateReq(client.SessionId, template.Name, template.ToBytes());
+            try
+            {
+                var status = await client.ServiceClient.createSchemaTemplateAsync(req);
 
-        // }
+                if (_debugMode)
+                {
+                    _logger.Info("create schema template {0} message: {1}", template.Name, status.Message);
+                }
+
+                return _utilFunctions.VerifySuccess(status, SuccessCode);
+            }
+            catch (TException e)
+            {
+                throw new TException("schema template creation failed", e);
+            }
+            finally
+            {
+                _clients.Add(client);
+            }
+        }
+
+        public async Task<int> DropSchemaTemplateAsync(string templateName)
+        {
+            var client = _clients.Take();
+            var req = new TSDropSchemaTemplateReq(client.SessionId, templateName);
+            try
+            {
+                var status = await client.ServiceClient.dropSchemaTemplateAsync(req);
+
+                if (_debugMode)
+                {
+                    _logger.Info("drop schema template {0} message: {1}", templateName, status.Message);
+                }
+
+                return _utilFunctions.VerifySuccess(status, SuccessCode);
+            }
+            catch (TException e)
+            {
+                throw new TException("schema template drop failed", e);
+            }
+            finally
+            {
+                _clients.Add(client);
+            }
+        }
+
+        public async Task<int> SetSchemaTemplateAsync(string templateName, string prefixPath)
+        {
+            var client = _clients.Take();
+            var req = new TSSetSchemaTemplateReq(client.SessionId, templateName, prefixPath);
+            try
+            {
+                var status = await client.ServiceClient.setSchemaTemplateAsync(req);
+
+                if (_debugMode)
+                {
+                    _logger.Info("set schema template {0} message: {1}", templateName, status.Message);
+                }
+
+                return _utilFunctions.VerifySuccess(status, SuccessCode);
+            }
+            catch (TException e)
+            {
+                throw new TException("schema template setting failed", e);
+            }
+            finally
+            {
+                _clients.Add(client);
+            }
+        }
+
+        public async Task<int> UnsetSchemaTemplateAsync(string prefixPath, string templateName)
+        {
+            var client = _clients.Take();
+            var req = new TSUnsetSchemaTemplateReq(client.SessionId, prefixPath, templateName);
+            try
+            {
+                var status = await client.ServiceClient.unsetSchemaTemplateAsync(req);
+
+                if (_debugMode)
+                {
+                    _logger.Info("unset schema template {0} message: {1}", templateName, status.Message);
+                }
+
+                return _utilFunctions.VerifySuccess(status, SuccessCode);
+            }
+            catch (TException e)
+            {
+                throw new TException("schema template unsetting failed", e);
+            }
+            finally
+            {
+                _clients.Add(client);
+            }
+        }
+        public async Task<int> AddAlignedMeasurementsInTemplateAsync(string templateName, List<MeasurementNode> measurementNodes)
+        {
+            var client = _clients.Take();
+            var measurements = measurementNodes.ConvertAll(m => m.Name);
+            var dataTypes = measurementNodes.ConvertAll(m => (int)m.DataType);
+            var encodings = measurementNodes.ConvertAll(m => (int)m.Encoding);
+            var compressors = measurementNodes.ConvertAll(m => (int)m.Compressor);
+            var req = new TSAppendSchemaTemplateReq(client.SessionId, templateName, true, measurements, dataTypes, encodings, compressors);
+            try
+            {
+                var status = await client.ServiceClient.appendSchemaTemplateAsync(req);
+
+                if (_debugMode)
+                {
+                    _logger.Info("add aligned measurements in template {0} message: {1}", templateName, status.Message);
+                }
+
+                return _utilFunctions.VerifySuccess(status, SuccessCode);
+            }
+            catch (TException e)
+            {
+                throw new TException("add aligned measurements in template failed", e);
+            }
+            finally
+            {
+                _clients.Add(client);
+            }
+        }
+
+        public async Task<int> AddUnalignedMeasurementsInTemplateAsync(string templateName, List<MeasurementNode> measurementNodes)
+        {
+            var client = _clients.Take();
+            var measurements = measurementNodes.ConvertAll(m => m.Name);
+            var dataTypes = measurementNodes.ConvertAll(m => (int)m.DataType);
+            var encodings = measurementNodes.ConvertAll(m => (int)m.Encoding);
+            var compressors = measurementNodes.ConvertAll(m => (int)m.Compressor);
+            var req = new TSAppendSchemaTemplateReq(client.SessionId, templateName, false, measurements, dataTypes, encodings, compressors);
+            try
+            {
+                var status = await client.ServiceClient.appendSchemaTemplateAsync(req);
+
+                if (_debugMode)
+                {
+                    _logger.Info("add unaligned measurements in template {0} message: {1}", templateName, status.Message);
+                }
+
+                return _utilFunctions.VerifySuccess(status, SuccessCode);
+            }
+            catch (TException e)
+            {
+                throw new TException("add unaligned measurements in template failed", e);
+            }
+            finally
+            {
+                _clients.Add(client);
+            }
+        }
+        public async Task<int> DeleteNodeInTemplateAsync(string templateName, string path)
+        {
+            var client = _clients.Take();
+            var req = new TSPruneSchemaTemplateReq(client.SessionId, templateName, path);
+            try
+            {
+                var status = await client.ServiceClient.pruneSchemaTemplateAsync(req);
+
+                if (_debugMode)
+                {
+                    _logger.Info("delete node in template {0} message: {1}", templateName, status.Message);
+                }
+
+                return _utilFunctions.VerifySuccess(status, SuccessCode);
+            }
+            catch (TException e)
+            {
+                throw new TException("delete node in template failed", e);
+            }
+            finally
+            {
+                _clients.Add(client);
+            }
+        }
+
+        public async Task<int> CountMeasurementsInTemplateAsync(string name)
+        {
+            var client = _clients.Take();
+            var req = new TSQueryTemplateReq(client.SessionId, name, (int)TemplateQueryType.COUNT_MEASUREMENTS);
+            try
+            {
+                var resp = await client.ServiceClient.querySchemaTemplateAsync(req);
+                var status = resp.Status;
+                if (_debugMode)
+                {
+                    _logger.Info("count measurements in template {0} message: {1}", name, status.Message);
+                }
+
+                _utilFunctions.VerifySuccess(status, SuccessCode);
+                return resp.Count;
+            }
+            catch (TException e)
+            {
+                throw new TException("count measurements in template failed", e);
+            }
+            finally
+            {
+                _clients.Add(client);
+            }
+        }
+        public async Task<bool> IsMeasurementInTemplateAsync(string templateName, string path)
+        {
+            var client = _clients.Take();
+            var req = new TSQueryTemplateReq(client.SessionId, templateName, (int)TemplateQueryType.IS_MEASUREMENT);
+            req.Measurement = path;
+            try
+            {
+                var resp = await client.ServiceClient.querySchemaTemplateAsync(req);
+                var status = resp.Status;
+                if (_debugMode)
+                {
+                    _logger.Info("is measurement in template {0} message: {1}", templateName, status.Message);
+                }
+
+                _utilFunctions.VerifySuccess(status, SuccessCode);
+                return resp.Result;
+            }
+            catch (TException e)
+            {
+                throw new TException("is measurement in template failed", e);
+            }
+            finally
+            {
+                _clients.Add(client);
+            }
+        }
+
+        public async Task<bool> IsPathExistInTemplate(string templateName, string path)
+        {
+            var client = _clients.Take();
+            var req = new TSQueryTemplateReq(client.SessionId, templateName, (int)TemplateQueryType.PATH_EXIST);
+            req.Measurement = path;
+            try
+            {
+                var resp = await client.ServiceClient.querySchemaTemplateAsync(req);
+                var status = resp.Status;
+                if (_debugMode)
+                {
+                    _logger.Info("is path exist in template {0} message: {1}", templateName, status.Message);
+                }
+
+                _utilFunctions.VerifySuccess(status, SuccessCode);
+                return resp.Result;
+            }
+            catch (TException e)
+            {
+                throw new TException("is path exist in template failed", e);
+            }
+            finally
+            {
+                _clients.Add(client);
+            }
+        }
+
+        public async Task<List<string>> ShowMeasurementsInTemplateAsync(string templateName, string pattern = "")
+        {
+            var client = _clients.Take();
+            var req = new TSQueryTemplateReq(client.SessionId, templateName, (int)TemplateQueryType.SHOW_MEASUREMENTS);
+            req.Measurement = pattern;
+            try
+            {
+                var resp = await client.ServiceClient.querySchemaTemplateAsync(req);
+                var status = resp.Status;
+                if (_debugMode)
+                {
+                    _logger.Info("get measurements in template {0} message: {1}", templateName, status.Message);
+                }
+
+                _utilFunctions.VerifySuccess(status, SuccessCode);
+                return resp.Measurements;
+            }
+            catch (TException e)
+            {
+                throw new TException("get measurements in template failed", e);
+            }
+            finally
+            {
+                _clients.Add(client);
+            }
+        }
+        public async Task<List<string>> ShowAllTemplatesAsync()
+        {
+            var client = _clients.Take();
+            var req = new TSQueryTemplateReq(client.SessionId, "", (int)TemplateQueryType.SHOW_TEMPLATES);
+            try
+            {
+                var resp = await client.ServiceClient.querySchemaTemplateAsync(req);
+                var status = resp.Status;
+                if (_debugMode)
+                {
+                    _logger.Info("get all templates message: {0}", status.Message);
+                }
+
+                _utilFunctions.VerifySuccess(status, SuccessCode);
+                return resp.Measurements;
+            }
+            catch (TException e)
+            {
+                throw new TException("get all templates failed", e);
+            }
+            finally
+            {
+                _clients.Add(client);
+            }
+        }
+        public async Task<List<string>> ShowPathsTemplateSetOnAsync(string templateName)
+        {
+            var client = _clients.Take();
+            var req = new TSQueryTemplateReq(client.SessionId, templateName, (int)TemplateQueryType.SHOW_SET_TEMPLATES);
+            try
+            {
+                var resp = await client.ServiceClient.querySchemaTemplateAsync(req);
+                var status = resp.Status;
+                if (_debugMode)
+                {
+                    _logger.Info("get paths template set on {0} message: {1}", templateName, status.Message);
+                }
+
+                _utilFunctions.VerifySuccess(status, SuccessCode);
+                return resp.Measurements;
+            }
+            catch (TException e)
+            {
+                throw new TException("get paths template set on failed", e);
+            }
+            finally
+            {
+                _clients.Add(client);
+            }
+        }
+        public async Task<List<string>> ShowPathsTemplateUsingOnAsync(string templateName)
+        {
+            var client = _clients.Take();
+            var req = new TSQueryTemplateReq(client.SessionId, templateName, (int)TemplateQueryType.SHOW_USING_TEMPLATES);
+            try
+            {
+                var resp = await client.ServiceClient.querySchemaTemplateAsync(req);
+                var status = resp.Status;
+                if (_debugMode)
+                {
+                    _logger.Info("get paths template using on {0} message: {1}", templateName, status.Message);
+                }
+
+                _utilFunctions.VerifySuccess(status, SuccessCode);
+                return resp.Measurements;
+            }
+            catch (TException e)
+            {
+                throw new TException("get paths template using on failed", e);
+            }
+            finally
+            {
+                _clients.Add(client);
+            }
+        }
+
+
+
+
+
 
 
 

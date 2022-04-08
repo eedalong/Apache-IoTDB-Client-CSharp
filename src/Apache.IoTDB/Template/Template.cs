@@ -18,6 +18,7 @@ namespace Apache.IoTDB
         public Template(string name)
         {
             this.name = name;
+            this.children = new Dictionary<string, TemplateNode>();
             this.shareTime = false;
         }
         public string Name

@@ -114,7 +114,7 @@ namespace Apache.IoTDB.Samples
             await res.Close();
             Console.WriteLine(res_count + " " + fetch_size * processed_size);
             System.Diagnostics.Debug.Assert(res_count == fetch_size * processed_size);
-            // status = await session_pool.DeleteStorageGroupAsync("root.TEST_CSHARP_CLIENT_GROUP_97209");
+            status = await session_pool.DeleteStorageGroupAsync(test_group_name);
             System.Diagnostics.Debug.Assert(status == 0);
             await session_pool.Close();
             Console.WriteLine("TestInsertAlignedRecordsOfOneDevice Passed!");
