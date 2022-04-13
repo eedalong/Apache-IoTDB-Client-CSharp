@@ -8,7 +8,7 @@ namespace Apache.IoTDB.Samples
 {
     public partial class SessionPoolTest
     {
-        public async Task TestInsertTablet()
+        public async Task TestInsertAlignedTablet()
         {
             var session_pool = new SessionPool(host, port, pool_size);
             var status = 0;
@@ -19,11 +19,10 @@ namespace Apache.IoTDB.Samples
             await session_pool.DeleteStorageGroupAsync(test_group_name);
             var device_id = string.Format("{0}.{1}", test_group_name, test_device);
             var measurement_lst = new List<string>
-            {
-                    test_measurements[1],
+                {   test_measurements[1],
                     test_measurements[2],
                     test_measurements[3]
-            };
+                };
             var value_lst = new List<List<object>>
             {
                 new() {"iotdb", true, (int) 12}, new() {"c#", false, (int) 13},
@@ -31,10 +30,10 @@ namespace Apache.IoTDB.Samples
             };
             var timestamp_lst = new List<long> { 1, 2, 3 };
             var tablet = new Tablet(device_id, measurement_lst, value_lst, timestamp_lst);
-            status = await session_pool.InsertTabletAsync(tablet);
+            status = await session_pool.InsertAlignedTabletAsync(tablet);
             System.Diagnostics.Debug.Assert(status == 0);
             var res = await session_pool.ExecuteQueryStatementAsync(
-                 "select * from " + string.Format("{0}.{1}", test_group_name, test_device) + " where time<15");
+                "select * from " + string.Format("{0}.{1}", test_group_name, test_device) + " where time<15");
             res.ShowTableNames();
             while (res.HasNext()) Console.WriteLine(res.Next());
 
@@ -51,11 +50,12 @@ namespace Apache.IoTDB.Samples
                 if (timestamp % fetch_size == 0)
                 {
                     tablet = new Tablet(device_id, measurement_lst, value_lst, timestamp_lst);
-                    tasks.Add(session_pool.InsertTabletAsync(tablet));
+                    tasks.Add(session_pool.InsertAlignedTabletAsync(tablet));
                     value_lst = new List<List<object>>() { };
                     timestamp_lst = new List<long>() { };
                 }
             }
+            Console.WriteLine(tasks.Count);
 
             Task.WaitAll(tasks.ToArray());
             var end_ms = DateTime.Now.Ticks / 10000;
@@ -76,10 +76,10 @@ namespace Apache.IoTDB.Samples
             status = await session_pool.DeleteStorageGroupAsync(test_group_name);
             System.Diagnostics.Debug.Assert(status == 0);
             await session_pool.Close();
-            Console.WriteLine("TestInsertTablet Passed!");
+            Console.WriteLine("TestInsertAlignedTablet Passed!");
         }
 
-        public async Task TestInsertTablets()
+        public async Task TestInsertAlignedTablets()
         {
             var session_pool = new SessionPool(host, port, pool_size);
             var status = 0;
@@ -95,8 +95,8 @@ namespace Apache.IoTDB.Samples
             };
             var measurements_lst = new List<List<string>>()
             {
-                new() {test_measurements[1], test_measurements[2], test_measurements[3]},
-                new() {test_measurements[1], test_measurements[2], test_measurements[3]}
+                new() {test_measurements[1], test_measurements[2], test_measurements[3] },
+                new() {test_measurements[1], test_measurements[2], test_measurements[3] }
             };
             var values_lst = new List<List<List<object>>>()
             {
@@ -120,17 +120,16 @@ namespace Apache.IoTDB.Samples
                 tablets.Add(tablet);
             }
 
-            status = await session_pool.InsertTabletsAsync(tablets);
-            // System.Diagnostics.Debug.Assert(status == 0);
+            status = await session_pool.InsertAlignedTabletsAsync(tablets);
+            System.Diagnostics.Debug.Assert(status == 0);
             var res = await session_pool.ExecuteQueryStatementAsync(
                 "select * from " + string.Format("{0}.{1}", test_group_name, test_devices[1]) + " where time<15");
             res.ShowTableNames();
             while (res.HasNext()) Console.WriteLine(res.Next());
 
             // large data test
-
             var tasks = new List<Task<int>>();
-            // tablets = new List<Tablet>();
+            // tablets = new List<Tablet>() { };
             for (var timestamp = 4; timestamp <= processed_size * fetch_size; timestamp++)
             {
                 var local_device_id = string.Format("{0}.{1}", test_group_name, test_devices[1]);
@@ -142,7 +141,7 @@ namespace Apache.IoTDB.Samples
                 tablets.Add(tablet);
                 if (timestamp % fetch_size == 0)
                 {
-                    tasks.Add(session_pool.InsertTabletsAsync(tablets));
+                    tasks.Add(session_pool.InsertAlignedTabletsAsync(tablets));
                     tablets = new List<Tablet>() { };
                 }
             }
@@ -164,7 +163,7 @@ namespace Apache.IoTDB.Samples
             status = await session_pool.DeleteStorageGroupAsync(test_group_name);
             System.Diagnostics.Debug.Assert(status == 0);
             await session_pool.Close();
-            Console.WriteLine("TestInsertTablets Passed!");
+            Console.WriteLine("TestInsertAlignedTablets Passed!");
         }
     }
 }
