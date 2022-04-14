@@ -29,25 +29,39 @@ using Thrift.Processor;
 #pragma warning disable IDE1006  // parts of the code use IDL spelling
 
 
-public partial class TSCloseSessionReq : TBase
+public partial class TSUnsetSchemaTemplateReq : TBase
 {
 
   public long SessionId { get; set; }
 
-  public TSCloseSessionReq()
+  public string PrefixPath { get; set; }
+
+  public string TemplateName { get; set; }
+
+  public TSUnsetSchemaTemplateReq()
   {
   }
 
-  public TSCloseSessionReq(long sessionId) : this()
+  public TSUnsetSchemaTemplateReq(long sessionId, string prefixPath, string templateName) : this()
   {
     this.SessionId = sessionId;
+    this.PrefixPath = prefixPath;
+    this.TemplateName = templateName;
   }
 
-  public TSCloseSessionReq DeepCopy()
+  public TSUnsetSchemaTemplateReq DeepCopy()
   {
-    var tmp75 = new TSCloseSessionReq();
-    tmp75.SessionId = this.SessionId;
-    return tmp75;
+    var tmp417 = new TSUnsetSchemaTemplateReq();
+    tmp417.SessionId = this.SessionId;
+    if((PrefixPath != null))
+    {
+      tmp417.PrefixPath = this.PrefixPath;
+    }
+    if((TemplateName != null))
+    {
+      tmp417.TemplateName = this.TemplateName;
+    }
+    return tmp417;
   }
 
   public async global::System.Threading.Tasks.Task ReadAsync(TProtocol iprot, CancellationToken cancellationToken)
@@ -56,6 +70,8 @@ public partial class TSCloseSessionReq : TBase
     try
     {
       bool isset_sessionId = false;
+      bool isset_prefixPath = false;
+      bool isset_templateName = false;
       TField field;
       await iprot.ReadStructBeginAsync(cancellationToken);
       while (true)
@@ -79,6 +95,28 @@ public partial class TSCloseSessionReq : TBase
               await TProtocolUtil.SkipAsync(iprot, field.Type, cancellationToken);
             }
             break;
+          case 2:
+            if (field.Type == TType.String)
+            {
+              PrefixPath = await iprot.ReadStringAsync(cancellationToken);
+              isset_prefixPath = true;
+            }
+            else
+            {
+              await TProtocolUtil.SkipAsync(iprot, field.Type, cancellationToken);
+            }
+            break;
+          case 3:
+            if (field.Type == TType.String)
+            {
+              TemplateName = await iprot.ReadStringAsync(cancellationToken);
+              isset_templateName = true;
+            }
+            else
+            {
+              await TProtocolUtil.SkipAsync(iprot, field.Type, cancellationToken);
+            }
+            break;
           default: 
             await TProtocolUtil.SkipAsync(iprot, field.Type, cancellationToken);
             break;
@@ -89,6 +127,14 @@ public partial class TSCloseSessionReq : TBase
 
       await iprot.ReadStructEndAsync(cancellationToken);
       if (!isset_sessionId)
+      {
+        throw new TProtocolException(TProtocolException.INVALID_DATA);
+      }
+      if (!isset_prefixPath)
+      {
+        throw new TProtocolException(TProtocolException.INVALID_DATA);
+      }
+      if (!isset_templateName)
       {
         throw new TProtocolException(TProtocolException.INVALID_DATA);
       }
@@ -104,7 +150,7 @@ public partial class TSCloseSessionReq : TBase
     oprot.IncrementRecursionDepth();
     try
     {
-      var struc = new TStruct("TSCloseSessionReq");
+      var struc = new TStruct("TSUnsetSchemaTemplateReq");
       await oprot.WriteStructBeginAsync(struc, cancellationToken);
       var field = new TField();
       field.Name = "sessionId";
@@ -113,6 +159,24 @@ public partial class TSCloseSessionReq : TBase
       await oprot.WriteFieldBeginAsync(field, cancellationToken);
       await oprot.WriteI64Async(SessionId, cancellationToken);
       await oprot.WriteFieldEndAsync(cancellationToken);
+      if((PrefixPath != null))
+      {
+        field.Name = "prefixPath";
+        field.Type = TType.String;
+        field.ID = 2;
+        await oprot.WriteFieldBeginAsync(field, cancellationToken);
+        await oprot.WriteStringAsync(PrefixPath, cancellationToken);
+        await oprot.WriteFieldEndAsync(cancellationToken);
+      }
+      if((TemplateName != null))
+      {
+        field.Name = "templateName";
+        field.Type = TType.String;
+        field.ID = 3;
+        await oprot.WriteFieldBeginAsync(field, cancellationToken);
+        await oprot.WriteStringAsync(TemplateName, cancellationToken);
+        await oprot.WriteFieldEndAsync(cancellationToken);
+      }
       await oprot.WriteFieldStopAsync(cancellationToken);
       await oprot.WriteStructEndAsync(cancellationToken);
     }
@@ -124,24 +188,44 @@ public partial class TSCloseSessionReq : TBase
 
   public override bool Equals(object that)
   {
-    if (!(that is TSCloseSessionReq other)) return false;
+    if (!(that is TSUnsetSchemaTemplateReq other)) return false;
     if (ReferenceEquals(this, other)) return true;
-    return System.Object.Equals(SessionId, other.SessionId);
+    return System.Object.Equals(SessionId, other.SessionId)
+      && System.Object.Equals(PrefixPath, other.PrefixPath)
+      && System.Object.Equals(TemplateName, other.TemplateName);
   }
 
   public override int GetHashCode() {
     int hashcode = 157;
     unchecked {
       hashcode = (hashcode * 397) + SessionId.GetHashCode();
+      if((PrefixPath != null))
+      {
+        hashcode = (hashcode * 397) + PrefixPath.GetHashCode();
+      }
+      if((TemplateName != null))
+      {
+        hashcode = (hashcode * 397) + TemplateName.GetHashCode();
+      }
     }
     return hashcode;
   }
 
   public override string ToString()
   {
-    var sb = new StringBuilder("TSCloseSessionReq(");
+    var sb = new StringBuilder("TSUnsetSchemaTemplateReq(");
     sb.Append(", SessionId: ");
     SessionId.ToString(sb);
+    if((PrefixPath != null))
+    {
+      sb.Append(", PrefixPath: ");
+      PrefixPath.ToString(sb);
+    }
+    if((TemplateName != null))
+    {
+      sb.Append(", TemplateName: ");
+      TemplateName.ToString(sb);
+    }
     sb.Append(')');
     return sb.ToString();
   }

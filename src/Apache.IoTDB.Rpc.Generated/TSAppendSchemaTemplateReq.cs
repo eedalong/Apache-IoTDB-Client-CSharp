@@ -29,90 +29,64 @@ using Thrift.Processor;
 #pragma warning disable IDE1006  // parts of the code use IDL spelling
 
 
-public partial class TSInsertTabletReq : TBase
+public partial class TSAppendSchemaTemplateReq : TBase
 {
-  private bool _isAligned;
 
   public long SessionId { get; set; }
 
-  public string PrefixPath { get; set; }
+  public string Name { get; set; }
+
+  public bool IsAligned { get; set; }
 
   public List<string> Measurements { get; set; }
 
-  public byte[] Values { get; set; }
+  public List<int> DataTypes { get; set; }
 
-  public byte[] Timestamps { get; set; }
+  public List<int> Encodings { get; set; }
 
-  public List<int> Types { get; set; }
+  public List<int> Compressors { get; set; }
 
-  public int Size { get; set; }
-
-  public bool IsAligned
-  {
-    get
-    {
-      return _isAligned;
-    }
-    set
-    {
-      __isset.isAligned = true;
-      this._isAligned = value;
-    }
-  }
-
-
-  public Isset __isset;
-  public struct Isset
-  {
-    public bool isAligned;
-  }
-
-  public TSInsertTabletReq()
+  public TSAppendSchemaTemplateReq()
   {
   }
 
-  public TSInsertTabletReq(long sessionId, string prefixPath, List<string> measurements, byte[] values, byte[] timestamps, List<int> types, int size) : this()
+  public TSAppendSchemaTemplateReq(long sessionId, string name, bool isAligned, List<string> measurements, List<int> dataTypes, List<int> encodings, List<int> compressors) : this()
   {
     this.SessionId = sessionId;
-    this.PrefixPath = prefixPath;
+    this.Name = name;
+    this.IsAligned = isAligned;
     this.Measurements = measurements;
-    this.Values = values;
-    this.Timestamps = timestamps;
-    this.Types = types;
-    this.Size = size;
+    this.DataTypes = dataTypes;
+    this.Encodings = encodings;
+    this.Compressors = compressors;
   }
 
-  public TSInsertTabletReq DeepCopy()
+  public TSAppendSchemaTemplateReq DeepCopy()
   {
-    var tmp123 = new TSInsertTabletReq();
-    tmp123.SessionId = this.SessionId;
-    if((PrefixPath != null))
+    var tmp389 = new TSAppendSchemaTemplateReq();
+    tmp389.SessionId = this.SessionId;
+    if((Name != null))
     {
-      tmp123.PrefixPath = this.PrefixPath;
+      tmp389.Name = this.Name;
     }
+    tmp389.IsAligned = this.IsAligned;
     if((Measurements != null))
     {
-      tmp123.Measurements = this.Measurements.DeepCopy();
+      tmp389.Measurements = this.Measurements.DeepCopy();
     }
-    if((Values != null))
+    if((DataTypes != null))
     {
-      tmp123.Values = this.Values.ToArray();
+      tmp389.DataTypes = this.DataTypes.DeepCopy();
     }
-    if((Timestamps != null))
+    if((Encodings != null))
     {
-      tmp123.Timestamps = this.Timestamps.ToArray();
+      tmp389.Encodings = this.Encodings.DeepCopy();
     }
-    if((Types != null))
+    if((Compressors != null))
     {
-      tmp123.Types = this.Types.DeepCopy();
+      tmp389.Compressors = this.Compressors.DeepCopy();
     }
-    tmp123.Size = this.Size;
-    if(__isset.isAligned)
-    {
-      tmp123.IsAligned = this.IsAligned;
-    }
-    tmp123.__isset.isAligned = this.__isset.isAligned;
-    return tmp123;
+    return tmp389;
   }
 
   public async global::System.Threading.Tasks.Task ReadAsync(TProtocol iprot, CancellationToken cancellationToken)
@@ -121,12 +95,12 @@ public partial class TSInsertTabletReq : TBase
     try
     {
       bool isset_sessionId = false;
-      bool isset_prefixPath = false;
+      bool isset_name = false;
+      bool isset_isAligned = false;
       bool isset_measurements = false;
-      bool isset_values = false;
-      bool isset_timestamps = false;
-      bool isset_types = false;
-      bool isset_size = false;
+      bool isset_dataTypes = false;
+      bool isset_encodings = false;
+      bool isset_compressors = false;
       TField field;
       await iprot.ReadStructBeginAsync(cancellationToken);
       while (true)
@@ -153,8 +127,8 @@ public partial class TSInsertTabletReq : TBase
           case 2:
             if (field.Type == TType.String)
             {
-              PrefixPath = await iprot.ReadStringAsync(cancellationToken);
-              isset_prefixPath = true;
+              Name = await iprot.ReadStringAsync(cancellationToken);
+              isset_name = true;
             }
             else
             {
@@ -162,16 +136,27 @@ public partial class TSInsertTabletReq : TBase
             }
             break;
           case 3:
+            if (field.Type == TType.Bool)
+            {
+              IsAligned = await iprot.ReadBoolAsync(cancellationToken);
+              isset_isAligned = true;
+            }
+            else
+            {
+              await TProtocolUtil.SkipAsync(iprot, field.Type, cancellationToken);
+            }
+            break;
+          case 4:
             if (field.Type == TType.List)
             {
               {
-                TList _list124 = await iprot.ReadListBeginAsync(cancellationToken);
-                Measurements = new List<string>(_list124.Count);
-                for(int _i125 = 0; _i125 < _list124.Count; ++_i125)
+                TList _list390 = await iprot.ReadListBeginAsync(cancellationToken);
+                Measurements = new List<string>(_list390.Count);
+                for(int _i391 = 0; _i391 < _list390.Count; ++_i391)
                 {
-                  string _elem126;
-                  _elem126 = await iprot.ReadStringAsync(cancellationToken);
-                  Measurements.Add(_elem126);
+                  string _elem392;
+                  _elem392 = await iprot.ReadStringAsync(cancellationToken);
+                  Measurements.Add(_elem392);
                 }
                 await iprot.ReadListEndAsync(cancellationToken);
               }
@@ -182,22 +167,21 @@ public partial class TSInsertTabletReq : TBase
               await TProtocolUtil.SkipAsync(iprot, field.Type, cancellationToken);
             }
             break;
-          case 4:
-            if (field.Type == TType.String)
-            {
-              Values = await iprot.ReadBinaryAsync(cancellationToken);
-              isset_values = true;
-            }
-            else
-            {
-              await TProtocolUtil.SkipAsync(iprot, field.Type, cancellationToken);
-            }
-            break;
           case 5:
-            if (field.Type == TType.String)
+            if (field.Type == TType.List)
             {
-              Timestamps = await iprot.ReadBinaryAsync(cancellationToken);
-              isset_timestamps = true;
+              {
+                TList _list393 = await iprot.ReadListBeginAsync(cancellationToken);
+                DataTypes = new List<int>(_list393.Count);
+                for(int _i394 = 0; _i394 < _list393.Count; ++_i394)
+                {
+                  int _elem395;
+                  _elem395 = await iprot.ReadI32Async(cancellationToken);
+                  DataTypes.Add(_elem395);
+                }
+                await iprot.ReadListEndAsync(cancellationToken);
+              }
+              isset_dataTypes = true;
             }
             else
             {
@@ -208,17 +192,17 @@ public partial class TSInsertTabletReq : TBase
             if (field.Type == TType.List)
             {
               {
-                TList _list127 = await iprot.ReadListBeginAsync(cancellationToken);
-                Types = new List<int>(_list127.Count);
-                for(int _i128 = 0; _i128 < _list127.Count; ++_i128)
+                TList _list396 = await iprot.ReadListBeginAsync(cancellationToken);
+                Encodings = new List<int>(_list396.Count);
+                for(int _i397 = 0; _i397 < _list396.Count; ++_i397)
                 {
-                  int _elem129;
-                  _elem129 = await iprot.ReadI32Async(cancellationToken);
-                  Types.Add(_elem129);
+                  int _elem398;
+                  _elem398 = await iprot.ReadI32Async(cancellationToken);
+                  Encodings.Add(_elem398);
                 }
                 await iprot.ReadListEndAsync(cancellationToken);
               }
-              isset_types = true;
+              isset_encodings = true;
             }
             else
             {
@@ -226,20 +210,20 @@ public partial class TSInsertTabletReq : TBase
             }
             break;
           case 7:
-            if (field.Type == TType.I32)
+            if (field.Type == TType.List)
             {
-              Size = await iprot.ReadI32Async(cancellationToken);
-              isset_size = true;
-            }
-            else
-            {
-              await TProtocolUtil.SkipAsync(iprot, field.Type, cancellationToken);
-            }
-            break;
-          case 8:
-            if (field.Type == TType.Bool)
-            {
-              IsAligned = await iprot.ReadBoolAsync(cancellationToken);
+              {
+                TList _list399 = await iprot.ReadListBeginAsync(cancellationToken);
+                Compressors = new List<int>(_list399.Count);
+                for(int _i400 = 0; _i400 < _list399.Count; ++_i400)
+                {
+                  int _elem401;
+                  _elem401 = await iprot.ReadI32Async(cancellationToken);
+                  Compressors.Add(_elem401);
+                }
+                await iprot.ReadListEndAsync(cancellationToken);
+              }
+              isset_compressors = true;
             }
             else
             {
@@ -259,7 +243,11 @@ public partial class TSInsertTabletReq : TBase
       {
         throw new TProtocolException(TProtocolException.INVALID_DATA);
       }
-      if (!isset_prefixPath)
+      if (!isset_name)
+      {
+        throw new TProtocolException(TProtocolException.INVALID_DATA);
+      }
+      if (!isset_isAligned)
       {
         throw new TProtocolException(TProtocolException.INVALID_DATA);
       }
@@ -267,19 +255,15 @@ public partial class TSInsertTabletReq : TBase
       {
         throw new TProtocolException(TProtocolException.INVALID_DATA);
       }
-      if (!isset_values)
+      if (!isset_dataTypes)
       {
         throw new TProtocolException(TProtocolException.INVALID_DATA);
       }
-      if (!isset_timestamps)
+      if (!isset_encodings)
       {
         throw new TProtocolException(TProtocolException.INVALID_DATA);
       }
-      if (!isset_types)
-      {
-        throw new TProtocolException(TProtocolException.INVALID_DATA);
-      }
-      if (!isset_size)
+      if (!isset_compressors)
       {
         throw new TProtocolException(TProtocolException.INVALID_DATA);
       }
@@ -295,7 +279,7 @@ public partial class TSInsertTabletReq : TBase
     oprot.IncrementRecursionDepth();
     try
     {
-      var struc = new TStruct("TSInsertTabletReq");
+      var struc = new TStruct("TSAppendSchemaTemplateReq");
       await oprot.WriteStructBeginAsync(struc, cancellationToken);
       var field = new TField();
       field.Name = "sessionId";
@@ -304,78 +288,83 @@ public partial class TSInsertTabletReq : TBase
       await oprot.WriteFieldBeginAsync(field, cancellationToken);
       await oprot.WriteI64Async(SessionId, cancellationToken);
       await oprot.WriteFieldEndAsync(cancellationToken);
-      if((PrefixPath != null))
+      if((Name != null))
       {
-        field.Name = "prefixPath";
+        field.Name = "name";
         field.Type = TType.String;
         field.ID = 2;
         await oprot.WriteFieldBeginAsync(field, cancellationToken);
-        await oprot.WriteStringAsync(PrefixPath, cancellationToken);
+        await oprot.WriteStringAsync(Name, cancellationToken);
         await oprot.WriteFieldEndAsync(cancellationToken);
       }
+      field.Name = "isAligned";
+      field.Type = TType.Bool;
+      field.ID = 3;
+      await oprot.WriteFieldBeginAsync(field, cancellationToken);
+      await oprot.WriteBoolAsync(IsAligned, cancellationToken);
+      await oprot.WriteFieldEndAsync(cancellationToken);
       if((Measurements != null))
       {
         field.Name = "measurements";
         field.Type = TType.List;
-        field.ID = 3;
+        field.ID = 4;
         await oprot.WriteFieldBeginAsync(field, cancellationToken);
         {
           await oprot.WriteListBeginAsync(new TList(TType.String, Measurements.Count), cancellationToken);
-          foreach (string _iter130 in Measurements)
+          foreach (string _iter402 in Measurements)
           {
-            await oprot.WriteStringAsync(_iter130, cancellationToken);
+            await oprot.WriteStringAsync(_iter402, cancellationToken);
           }
           await oprot.WriteListEndAsync(cancellationToken);
         }
         await oprot.WriteFieldEndAsync(cancellationToken);
       }
-      if((Values != null))
+      if((DataTypes != null))
       {
-        field.Name = "values";
-        field.Type = TType.String;
-        field.ID = 4;
-        await oprot.WriteFieldBeginAsync(field, cancellationToken);
-        await oprot.WriteBinaryAsync(Values, cancellationToken);
-        await oprot.WriteFieldEndAsync(cancellationToken);
-      }
-      if((Timestamps != null))
-      {
-        field.Name = "timestamps";
-        field.Type = TType.String;
+        field.Name = "dataTypes";
+        field.Type = TType.List;
         field.ID = 5;
         await oprot.WriteFieldBeginAsync(field, cancellationToken);
-        await oprot.WriteBinaryAsync(Timestamps, cancellationToken);
+        {
+          await oprot.WriteListBeginAsync(new TList(TType.I32, DataTypes.Count), cancellationToken);
+          foreach (int _iter403 in DataTypes)
+          {
+            await oprot.WriteI32Async(_iter403, cancellationToken);
+          }
+          await oprot.WriteListEndAsync(cancellationToken);
+        }
         await oprot.WriteFieldEndAsync(cancellationToken);
       }
-      if((Types != null))
+      if((Encodings != null))
       {
-        field.Name = "types";
+        field.Name = "encodings";
         field.Type = TType.List;
         field.ID = 6;
         await oprot.WriteFieldBeginAsync(field, cancellationToken);
         {
-          await oprot.WriteListBeginAsync(new TList(TType.I32, Types.Count), cancellationToken);
-          foreach (int _iter131 in Types)
+          await oprot.WriteListBeginAsync(new TList(TType.I32, Encodings.Count), cancellationToken);
+          foreach (int _iter404 in Encodings)
           {
-            await oprot.WriteI32Async(_iter131, cancellationToken);
+            await oprot.WriteI32Async(_iter404, cancellationToken);
           }
           await oprot.WriteListEndAsync(cancellationToken);
         }
         await oprot.WriteFieldEndAsync(cancellationToken);
       }
-      field.Name = "size";
-      field.Type = TType.I32;
-      field.ID = 7;
-      await oprot.WriteFieldBeginAsync(field, cancellationToken);
-      await oprot.WriteI32Async(Size, cancellationToken);
-      await oprot.WriteFieldEndAsync(cancellationToken);
-      if(__isset.isAligned)
+      if((Compressors != null))
       {
-        field.Name = "isAligned";
-        field.Type = TType.Bool;
-        field.ID = 8;
+        field.Name = "compressors";
+        field.Type = TType.List;
+        field.ID = 7;
         await oprot.WriteFieldBeginAsync(field, cancellationToken);
-        await oprot.WriteBoolAsync(IsAligned, cancellationToken);
+        {
+          await oprot.WriteListBeginAsync(new TList(TType.I32, Compressors.Count), cancellationToken);
+          foreach (int _iter405 in Compressors)
+          {
+            await oprot.WriteI32Async(_iter405, cancellationToken);
+          }
+          await oprot.WriteListEndAsync(cancellationToken);
+        }
         await oprot.WriteFieldEndAsync(cancellationToken);
       }
       await oprot.WriteFieldStopAsync(cancellationToken);
@@ -389,46 +378,41 @@ public partial class TSInsertTabletReq : TBase
 
   public override bool Equals(object that)
   {
-    if (!(that is TSInsertTabletReq other)) return false;
+    if (!(that is TSAppendSchemaTemplateReq other)) return false;
     if (ReferenceEquals(this, other)) return true;
     return System.Object.Equals(SessionId, other.SessionId)
-      && System.Object.Equals(PrefixPath, other.PrefixPath)
+      && System.Object.Equals(Name, other.Name)
+      && System.Object.Equals(IsAligned, other.IsAligned)
       && TCollections.Equals(Measurements, other.Measurements)
-      && TCollections.Equals(Values, other.Values)
-      && TCollections.Equals(Timestamps, other.Timestamps)
-      && TCollections.Equals(Types, other.Types)
-      && System.Object.Equals(Size, other.Size)
-      && ((__isset.isAligned == other.__isset.isAligned) && ((!__isset.isAligned) || (System.Object.Equals(IsAligned, other.IsAligned))));
+      && TCollections.Equals(DataTypes, other.DataTypes)
+      && TCollections.Equals(Encodings, other.Encodings)
+      && TCollections.Equals(Compressors, other.Compressors);
   }
 
   public override int GetHashCode() {
     int hashcode = 157;
     unchecked {
       hashcode = (hashcode * 397) + SessionId.GetHashCode();
-      if((PrefixPath != null))
+      if((Name != null))
       {
-        hashcode = (hashcode * 397) + PrefixPath.GetHashCode();
+        hashcode = (hashcode * 397) + Name.GetHashCode();
       }
+      hashcode = (hashcode * 397) + IsAligned.GetHashCode();
       if((Measurements != null))
       {
         hashcode = (hashcode * 397) + TCollections.GetHashCode(Measurements);
       }
-      if((Values != null))
+      if((DataTypes != null))
       {
-        hashcode = (hashcode * 397) + Values.GetHashCode();
+        hashcode = (hashcode * 397) + TCollections.GetHashCode(DataTypes);
       }
-      if((Timestamps != null))
+      if((Encodings != null))
       {
-        hashcode = (hashcode * 397) + Timestamps.GetHashCode();
+        hashcode = (hashcode * 397) + TCollections.GetHashCode(Encodings);
       }
-      if((Types != null))
+      if((Compressors != null))
       {
-        hashcode = (hashcode * 397) + TCollections.GetHashCode(Types);
-      }
-      hashcode = (hashcode * 397) + Size.GetHashCode();
-      if(__isset.isAligned)
-      {
-        hashcode = (hashcode * 397) + IsAligned.GetHashCode();
+        hashcode = (hashcode * 397) + TCollections.GetHashCode(Compressors);
       }
     }
     return hashcode;
@@ -436,40 +420,35 @@ public partial class TSInsertTabletReq : TBase
 
   public override string ToString()
   {
-    var sb = new StringBuilder("TSInsertTabletReq(");
+    var sb = new StringBuilder("TSAppendSchemaTemplateReq(");
     sb.Append(", SessionId: ");
     SessionId.ToString(sb);
-    if((PrefixPath != null))
+    if((Name != null))
     {
-      sb.Append(", PrefixPath: ");
-      PrefixPath.ToString(sb);
+      sb.Append(", Name: ");
+      Name.ToString(sb);
     }
+    sb.Append(", IsAligned: ");
+    IsAligned.ToString(sb);
     if((Measurements != null))
     {
       sb.Append(", Measurements: ");
       Measurements.ToString(sb);
     }
-    if((Values != null))
+    if((DataTypes != null))
     {
-      sb.Append(", Values: ");
-      Values.ToString(sb);
+      sb.Append(", DataTypes: ");
+      DataTypes.ToString(sb);
     }
-    if((Timestamps != null))
+    if((Encodings != null))
     {
-      sb.Append(", Timestamps: ");
-      Timestamps.ToString(sb);
+      sb.Append(", Encodings: ");
+      Encodings.ToString(sb);
     }
-    if((Types != null))
+    if((Compressors != null))
     {
-      sb.Append(", Types: ");
-      Types.ToString(sb);
-    }
-    sb.Append(", Size: ");
-    Size.ToString(sb);
-    if(__isset.isAligned)
-    {
-      sb.Append(", IsAligned: ");
-      IsAligned.ToString(sb);
+      sb.Append(", Compressors: ");
+      Compressors.ToString(sb);
     }
     sb.Append(')');
     return sb.ToString();
