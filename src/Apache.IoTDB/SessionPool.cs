@@ -269,7 +269,6 @@ namespace Apache.IoTDB
 
             try
             {
-                Console.WriteLine("First Try Session id :\t {0}", client.SessionId);
                 var status = await client.ServiceClient.setStorageGroupAsync(client.SessionId, groupName);
 
                 if (_debugMode)
@@ -286,7 +285,6 @@ namespace Apache.IoTDB
                 client = _clients.Take();
                 try
                 {
-                    Console.WriteLine("Second Try Session id :\t {0}", client.SessionId);
                     var status = await client.ServiceClient.setStorageGroupAsync(client.SessionId, groupName);
                     if (_debugMode)
                     {
@@ -302,7 +300,6 @@ namespace Apache.IoTDB
             finally
             {
                 _clients.Add(client);
-                Console.WriteLine("client queue size :\t {0}", _clients.ClientQueue.Count);
             }
         }
 
