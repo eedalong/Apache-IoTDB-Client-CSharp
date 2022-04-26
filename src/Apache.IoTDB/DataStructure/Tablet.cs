@@ -74,6 +74,18 @@ namespace Apache.IoTDB.DataStructure
             DataTypes = dataTypes;
             RowNumber = timestamps.Count;
             ColNumber = measurements.Count;
+
+            // reset bitmap
+            if (BitMaps != null)
+            {
+                foreach (var bitmap in BitMaps)
+                {
+                    if (bitmap != null)
+                    {
+                        bitmap.reset();
+                    }
+                }
+            }
         }
 
         public byte[] GetBinaryTimestamps()
@@ -137,14 +149,14 @@ namespace Apache.IoTDB.DataStructure
             for (var i = 0; i < ColNumber; i++)
             {
                 var dataType = DataTypes[i];
+                var values = _values[i];
 
                 switch (dataType)
                 {
                     case TSDataType.BOOLEAN:
                         {
-                            for (var j = 0; j < RowNumber; j++)
+                            foreach (var value in values)
                             {
-                                var value = _values[i][j];
                                 buffer.AddBool(value != null ? (bool)value : false);
                             }
 
@@ -152,9 +164,8 @@ namespace Apache.IoTDB.DataStructure
                         }
                     case TSDataType.INT32:
                         {
-                            for (var j = 0; j < RowNumber; j++)
+                            foreach (var value in values)
                             {
-                                var value = _values[i][j];
                                 buffer.AddInt(value != null ? (int)value : int.MinValue);
                             }
 
@@ -162,9 +173,8 @@ namespace Apache.IoTDB.DataStructure
                         }
                     case TSDataType.INT64:
                         {
-                            for (var j = 0; j < RowNumber; j++)
+                            foreach (var value in values)
                             {
-                                var value = _values[i][j];
                                 buffer.AddLong(value != null ? (long)value : long.MinValue);
                             }
 
@@ -172,9 +182,8 @@ namespace Apache.IoTDB.DataStructure
                         }
                     case TSDataType.FLOAT:
                         {
-                            for (int j = 0; j < RowNumber; j++)
+                            foreach (var value in values)
                             {
-                                var value = _values[i][j];
                                 buffer.AddFloat(value != null ? (float)value : float.MinValue);
                             }
 
@@ -182,9 +191,8 @@ namespace Apache.IoTDB.DataStructure
                         }
                     case TSDataType.DOUBLE:
                         {
-                            for (var j = 0; j < RowNumber; j++)
+                            foreach (var value in values)
                             {
-                                var value = _values[i][j];
                                 buffer.AddDouble(value != null ? (double)value : double.MinValue);
                             }
 
@@ -192,9 +200,8 @@ namespace Apache.IoTDB.DataStructure
                         }
                     case TSDataType.TEXT:
                         {
-                            for (var j = 0; j < RowNumber; j++)
+                            foreach (var value in values)
                             {
-                                var value = _values[i][j];
                                 buffer.AddStr(value != null ? (string)value : string.Empty);
                             }
 
