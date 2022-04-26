@@ -134,6 +134,9 @@ namespace Apache.IoTDB.DataStructure
                     case string s:
                         estimateSize += s.Length;
                         break;
+                    default:
+                        estimateSize += 4;
+                        break;
                 }
             }
 
@@ -144,17 +147,17 @@ namespace Apache.IoTDB.DataStructure
         public byte[] GetBinaryValues()
         {
             var estimateSize = EstimateBufferSize();
+            // Console.WriteLine("Estimate size : {0}", estimateSize);
             var buffer = new ByteBuffer(estimateSize);
 
             for (var i = 0; i < ColNumber; i++)
             {
                 var dataType = DataTypes[i];
-                var values = _values[i];
 
                 // set bitmap
                 for (var j = 0; j < RowNumber; j++)
                 {
-                    var value = values[j];
+                    var value = _values[j][i];
                     if (value == null)
                     {
                         if (BitMaps == null)
@@ -176,7 +179,6 @@ namespace Apache.IoTDB.DataStructure
                             for (int j = 0; j < RowNumber; j++)
                             {
                                 var value = _values[j][i];
-                                Console.WriteLine("bool value is " + value);
                                 buffer.AddBool(value != null ? (bool)value : false);
                             }
 
