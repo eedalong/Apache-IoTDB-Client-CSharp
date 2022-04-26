@@ -22,33 +22,35 @@ namespace Apache.IoTDB.DataStructure
     {
         private readonly List<long> _timestamps;
         private readonly List<List<object>> _values;
-        
+
         public string DeviceId { get; }
         public List<string> Measurements { get; }
+        public BitMap[] BitMaps;
         public int RowNumber { get; }
         public int ColNumber { get; }
 
         private readonly Utils _utilFunctions = new Utils();
 
         public Tablet(
-            string deviceId, 
-            List<string> measurements, 
+            string deviceId,
+            List<string> measurements,
+            List<TSDataType> dataTypes,
             List<List<object>> values,
             List<long> timestamps)
         {
             if (timestamps.Count != values.Count)
             {
                 throw new TException(
-                    $"Input error. TimeStamp. Timestamps.Count({timestamps.Count}) does not equal to Values.Count({values.Count}).", 
+                    $"Input error. TimeStamp. Timestamps.Count({timestamps.Count}) does not equal to Values.Count({values.Count}).",
                     null);
             }
-            
+
             if (!_utilFunctions.IsSorted(timestamps))
             {
                 var sorted = timestamps
                     .Select((x, index) => (timestamp: x, values: values[index]))
                     .OrderBy(x => x.timestamp).ToList();
-                
+
                 _timestamps = sorted.Select(x => x.timestamp).ToList();
                 _values = sorted.Select(x => x.values).ToList();
             }
@@ -67,7 +69,7 @@ namespace Apache.IoTDB.DataStructure
         public byte[] GetBinaryTimestamps()
         {
             var buffer = new ByteBuffer(new byte[] { });
-            
+
             foreach (var timestamp in _timestamps)
             {
                 buffer.AddLong(timestamp);
@@ -79,28 +81,28 @@ namespace Apache.IoTDB.DataStructure
         public List<int> GetDataTypes()
         {
             var dataTypeValues = new List<int>();
-            
+
             foreach (var valueType in _values[0].Select(value => value))
             {
                 switch (valueType)
                 {
                     case bool _:
-                        dataTypeValues.Add((int) TSDataType.BOOLEAN);
+                        dataTypeValues.Add((int)TSDataType.BOOLEAN);
                         break;
                     case int _:
-                        dataTypeValues.Add((int) TSDataType.INT32);
+                        dataTypeValues.Add((int)TSDataType.INT32);
                         break;
                     case long _:
-                        dataTypeValues.Add((int) TSDataType.INT64);
+                        dataTypeValues.Add((int)TSDataType.INT64);
                         break;
                     case float _:
-                        dataTypeValues.Add((int) TSDataType.FLOAT);
+                        dataTypeValues.Add((int)TSDataType.FLOAT);
                         break;
                     case double _:
-                        dataTypeValues.Add((int) TSDataType.DOUBLE);
+                        dataTypeValues.Add((int)TSDataType.DOUBLE);
                         break;
                     case string _:
-                        dataTypeValues.Add((int) TSDataType.TEXT);
+                        dataTypeValues.Add((int)TSDataType.TEXT);
                         break;
                 }
             }
@@ -111,7 +113,7 @@ namespace Apache.IoTDB.DataStructure
         private int EstimateBufferSize()
         {
             var estimateSize = 0;
-            
+
             // estimate one row size
             foreach (var value in _values[0])
             {
@@ -146,74 +148,82 @@ namespace Apache.IoTDB.DataStructure
         {
             var estimateSize = EstimateBufferSize();
             var buffer = new ByteBuffer(estimateSize);
-            
+
             for (var i = 0; i < ColNumber; i++)
             {
                 var value = _values[0][i];
-                
+
                 switch (value)
                 {
                     case bool _:
-                    {
-                        for (var j = 0; j < RowNumber; j++)
                         {
-                            buffer.AddBool((bool) _values[j][i]);
-                        }
+                            for (var j = 0; j < RowNumber; j++)
+                            {
+                                buffer.AddBool((bool)_values[j][i]);
+                            }
 
-                        break;
-                    }
+                            break;
+                        }
                     case int _:
-                    {
-                        for (var j = 0; j < RowNumber; j++)
                         {
-                            buffer.AddInt((int) _values[j][i]);
-                        }
+                            for (var j = 0; j < RowNumber; j++)
+                            {
+                                buffer.AddInt((int)_values[j][i]);
+                            }
 
-                        break;
-                    }
+                            break;
+                        }
                     case long _:
-                    {
-                        for (var j = 0; j < RowNumber; j++)
                         {
-                            buffer.AddLong((long) _values[j][i]);
-                        }
+                            for (var j = 0; j < RowNumber; j++)
+                            {
+                                buffer.AddLong((long)_values[j][i]);
+                            }
 
-                        break;
-                    }
+                            break;
+                        }
                     case float _:
-                    {
-                        for (int j = 0; j < RowNumber; j++)
                         {
-                            buffer.AddFloat((float) _values[j][i]);
-                        }
+                            for (int j = 0; j < RowNumber; j++)
+                            {
+                                buffer.AddFloat((float)_values[j][i]);
+                            }
 
-                        break;
-                    }
+                            break;
+                        }
                     case double _:
-                    {
-                        for (var j = 0; j < RowNumber; j++)
                         {
-                            buffer.AddDouble((double) _values[j][i]);
-                        }
+                            for (var j = 0; j < RowNumber; j++)
+                            {
+                                buffer.AddDouble((double)_values[j][i]);
+                            }
 
-                        break;
-                    }
+                            break;
+                        }
                     case string _:
-                    {
-                        for (var j = 0; j < RowNumber; j++)
                         {
-                            buffer.AddStr((string) _values[j][i]);
-                        }
+                            for (var j = 0; j < RowNumber; j++)
+                            {
+                                buffer.AddStr((string)_values[j][i]);
+                            }
 
-                        break;
-                    }
+                            break;
+                        }
                     default:
                         throw new TException($"Unsupported data type {value}", null);
-                    
+
                 }
             }
 
-            return  buffer.GetBuffer();
+            return buffer.GetBuffer();
+        }
+        public void InitBitMaps()
+        {
+            BitMaps = new BitMap[ColNumber];
+            for (var i = 0; i < ColNumber; i++)
+            {
+                BitMaps[i] = new BitMap(RowNumber);
+            }
         }
     }
 }
