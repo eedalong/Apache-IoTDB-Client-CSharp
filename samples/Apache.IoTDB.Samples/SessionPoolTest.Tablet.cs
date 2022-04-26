@@ -30,7 +30,8 @@ namespace Apache.IoTDB.Samples
                 new() {"client", true, (int) 14}
             };
             var timestamp_lst = new List<long> { 1, 2, 3 };
-            var tablet = new Tablet(device_id, measurement_lst, value_lst, timestamp_lst);
+            var datatype_lst = new List<TSDataType> { TSDataType.TEXT, TSDataType.BOOLEAN, TSDataType.INT32 };
+            var tablet = new Tablet(device_id, measurement_lst, datatype_lst, value_lst, timestamp_lst);
             status = await session_pool.InsertTabletAsync(tablet);
             System.Diagnostics.Debug.Assert(status == 0);
             var res = await session_pool.ExecuteQueryStatementAsync(
@@ -50,7 +51,7 @@ namespace Apache.IoTDB.Samples
                 value_lst.Add(new List<object>() { "iotdb", true, (int)timestamp });
                 if (timestamp % fetch_size == 0)
                 {
-                    tablet = new Tablet(device_id, measurement_lst, value_lst, timestamp_lst);
+                    tablet = new Tablet(device_id, measurement_lst, datatype_lst, value_lst, timestamp_lst);
                     tasks.Add(session_pool.InsertTabletAsync(tablet));
                     value_lst = new List<List<object>>() { };
                     timestamp_lst = new List<long>() { };
@@ -111,12 +112,17 @@ namespace Apache.IoTDB.Samples
                     new List<object>() {"client_2", true, (int) 3}
                 }
             };
+            var datatype_lst = new List<List<TSDataType>>()
+            {
+                new() {TSDataType.TEXT, TSDataType.BOOLEAN, TSDataType.INT32},
+                new() {TSDataType.TEXT, TSDataType.BOOLEAN, TSDataType.INT32}
+            };
             var timestamp_lst = new List<List<long>>()
                 {new() {2, 1, 3}, new() {3, 1, 2}};
             var tablets = new List<Tablet>() { };
             for (var i = 0; i < device_id.Count; i++)
             {
-                var tablet = new Tablet(device_id[i], measurements_lst[i], values_lst[i], timestamp_lst[i]);
+                var tablet = new Tablet(device_id[i], measurements_lst[i], datatype_lst[i], values_lst[i], timestamp_lst[i]);
                 tablets.Add(tablet);
             }
 
@@ -138,7 +144,8 @@ namespace Apache.IoTDB.Samples
                     {test_measurements[1], test_measurements[2], test_measurements[3]};
                 var local_value = new List<List<object>>() { new() { "iotdb", true, (int)timestamp } };
                 var local_timestamp = new List<long> { timestamp };
-                var tablet = new Tablet(local_device_id, local_measurements, local_value, local_timestamp);
+                var local_data_type = new List<TSDataType> { TSDataType.TEXT, TSDataType.BOOLEAN, TSDataType.INT32 };
+                var tablet = new Tablet(local_device_id, local_measurements, local_data_type, local_value, local_timestamp);
                 tablets.Add(tablet);
                 if (timestamp % fetch_size == 0)
                 {
@@ -165,6 +172,43 @@ namespace Apache.IoTDB.Samples
             System.Diagnostics.Debug.Assert(status == 0);
             await session_pool.Close();
             Console.WriteLine("TestInsertTablets Passed!");
+        }
+        public async Task TestInsertTabletWithNullValue()
+        {
+            var session_pool = new SessionPool(host, port, pool_size);
+            var status = 0;
+            await session_pool.Open(false);
+            if (debug) session_pool.OpenDebugMode();
+
+            System.Diagnostics.Debug.Assert(session_pool.IsOpen());
+            await session_pool.DeleteStorageGroupAsync(test_group_name);
+            var device_id = string.Format("{0}.{1}", test_group_name, test_device);
+            var measurements = new List<string>() { test_measurements[1], test_measurements[2], test_measurements[3] };
+            var values = new List<List<object>>()
+            {
+                new List<object>() {null, true, (int) 12}, new List<object>() {"c#", null, (int) 13},
+                new List<object>() {"client", true, null}
+            };
+            var datatype = new List<TSDataType>() { TSDataType.TEXT, TSDataType.BOOLEAN, TSDataType.INT32 };
+            var timestamp = new List<long>() { 2, 1, 3 };
+            var tablet = new Tablet(device_id, measurements, datatype, values, timestamp);
+            status = await session_pool.InsertTabletAsync(tablet);
+            System.Diagnostics.Debug.Assert(status == 0);
+            var res = await session_pool.ExecuteQueryStatementAsync(
+                "select * from " + string.Format("{0}.{1}", test_group_name, test_device));
+            res.ShowTableNames();
+            var res_count = 0;
+            while (res.HasNext())
+            {
+                Console.WriteLine(res.Next());
+                res_count += 1;
+            }
+
+            await res.Close();
+            status = await session_pool.DeleteStorageGroupAsync(test_group_name);
+            System.Diagnostics.Debug.Assert(status == 0);
+            await session_pool.Close();
+            Console.WriteLine("TestInsertTabletsWithNullValue Passed!");
         }
     }
 }

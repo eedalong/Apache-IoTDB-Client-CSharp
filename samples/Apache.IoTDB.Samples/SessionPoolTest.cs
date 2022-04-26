@@ -61,6 +61,8 @@ namespace Apache.IoTDB.Samples
             task.Wait();
             task = TestInsertTablet();
             task.Wait();
+            task = TestInsertTabletWithNullValue();
+            task.Wait();
             task = TestInsertTablets();
             task.Wait();
             task = TestAddAlignedMeasurements();
