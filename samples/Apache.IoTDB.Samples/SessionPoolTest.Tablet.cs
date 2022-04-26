@@ -173,5 +173,42 @@ namespace Apache.IoTDB.Samples
             await session_pool.Close();
             Console.WriteLine("TestInsertTablets Passed!");
         }
+        public async Task TestInsertTabletWithNullValue()
+        {
+            var session_pool = new SessionPool(host, port, pool_size);
+            var status = 0;
+            await session_pool.Open(false);
+            if (debug) session_pool.OpenDebugMode();
+
+            System.Diagnostics.Debug.Assert(session_pool.IsOpen());
+            await session_pool.DeleteStorageGroupAsync(test_group_name);
+            var device_id = string.Format("{0}.{1}", test_group_name, test_device);
+            var measurements = new List<string>() { test_measurements[1], test_measurements[2], test_measurements[3] };
+            var values = new List<List<object>>()
+            {
+                new List<object>() {null, true, (int) 12}, new List<object>() {"c#", null, (int) 13},
+                new List<object>() {"client", true, null}
+            };
+            var datatype = new List<TSDataType>() { TSDataType.TEXT, TSDataType.BOOLEAN, TSDataType.INT32 };
+            var timestamp = new List<long>() { 2, 1, 3 };
+            var tablet = new Tablet(device_id, measurements, datatype, values, timestamp);
+            status = await session_pool.InsertTabletAsync(tablet);
+            System.Diagnostics.Debug.Assert(status == 0);
+            var res = await session_pool.ExecuteQueryStatementAsync(
+                "select * from " + string.Format("{0}.{1}", test_group_name, test_device));
+            res.ShowTableNames();
+            var res_count = 0;
+            while (res.HasNext())
+            {
+                Console.WriteLine(res.Next());
+                res_count += 1;
+            }
+
+            await res.Close();
+            status = await session_pool.DeleteStorageGroupAsync(test_group_name);
+            System.Diagnostics.Debug.Assert(status == 0);
+            await session_pool.Close();
+            Console.WriteLine("TestInsertTabletsWithNullValue Passed!");
+        }
     }
 }
