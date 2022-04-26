@@ -258,13 +258,5 @@ namespace Apache.IoTDB.DataStructure
 
             return buffer.GetBuffer();
         }
-        public void InitBitMaps()
-        {
-            BitMaps = new BitMap[ColNumber];
-            for (var i = 0; i < ColNumber; i++)
-            {
-                BitMaps[i] = new BitMap(RowNumber);
-            }
-        }
     }
 }
