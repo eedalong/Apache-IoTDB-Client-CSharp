@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Thrift;
@@ -143,7 +144,8 @@ namespace Apache.IoTDB.DataStructure
                         {
                             for (var j = 0; j < RowNumber; j++)
                             {
-                                buffer.AddBool((bool)_values[j][i]);
+                                var value = _values[i][j];
+                                buffer.AddBool(value != null ? (bool)value : false);
                             }
 
                             break;
@@ -152,7 +154,8 @@ namespace Apache.IoTDB.DataStructure
                         {
                             for (var j = 0; j < RowNumber; j++)
                             {
-                                buffer.AddInt((int)_values[j][i]);
+                                var value = _values[i][j];
+                                buffer.AddInt(value != null ? (int)value : int.MinValue);
                             }
 
                             break;
@@ -161,7 +164,8 @@ namespace Apache.IoTDB.DataStructure
                         {
                             for (var j = 0; j < RowNumber; j++)
                             {
-                                buffer.AddLong((long)_values[j][i]);
+                                var value = _values[i][j];
+                                buffer.AddLong(value != null ? (long)value : long.MinValue);
                             }
 
                             break;
@@ -170,7 +174,8 @@ namespace Apache.IoTDB.DataStructure
                         {
                             for (int j = 0; j < RowNumber; j++)
                             {
-                                buffer.AddFloat((float)_values[j][i]);
+                                var value = _values[i][j];
+                                buffer.AddFloat(value != null ? (float)value : float.MinValue);
                             }
 
                             break;
@@ -179,7 +184,8 @@ namespace Apache.IoTDB.DataStructure
                         {
                             for (var j = 0; j < RowNumber; j++)
                             {
-                                buffer.AddDouble((double)_values[j][i]);
+                                var value = _values[i][j];
+                                buffer.AddDouble(value != null ? (double)value : double.MinValue);
                             }
 
                             break;
@@ -188,7 +194,8 @@ namespace Apache.IoTDB.DataStructure
                         {
                             for (var j = 0; j < RowNumber; j++)
                             {
-                                buffer.AddStr((string)_values[j][i]);
+                                var value = _values[i][j];
+                                buffer.AddStr(value != null ? (string)value : string.Empty);
                             }
 
                             break;
