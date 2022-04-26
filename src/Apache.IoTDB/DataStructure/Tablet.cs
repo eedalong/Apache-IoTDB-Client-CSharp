@@ -151,6 +151,24 @@ namespace Apache.IoTDB.DataStructure
                 var dataType = DataTypes[i];
                 var values = _values[i];
 
+                // set bitmap
+                for (var j = 0; j < RowNumber; j++)
+                {
+                    var value = values[j];
+                    if (value == null)
+                    {
+                        if (BitMaps == null)
+                        {
+                            BitMaps = new BitMap[ColNumber];
+                        }
+                        if (BitMaps[i] == null)
+                        {
+                            BitMaps[i] = new BitMap(RowNumber);
+                        }
+                        BitMaps[i].mark(j);
+                    }
+                }
+
                 switch (dataType)
                 {
                     case TSDataType.BOOLEAN:
@@ -210,6 +228,22 @@ namespace Apache.IoTDB.DataStructure
                     default:
                         throw new TException($"Unsupported data type {dataType}", null);
 
+                }
+            }
+            if (BitMaps != null)
+            {
+                foreach (var bitmap in BitMaps)
+                {
+                    bool columnHasNull = bitmap != null && !bitmap.isAllUnmarked();
+                    buffer.AddBool((bool)columnHasNull);
+                    if (columnHasNull)
+                    {
+                        var bytes = bitmap.getByteArray();
+                        for (int i = 0; i < RowNumber / 8 + 1; i++)
+                        {
+                            buffer.AddByte(bytes[i]);
+                        }
+                    }
                 }
             }
 
