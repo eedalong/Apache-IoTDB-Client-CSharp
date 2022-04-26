@@ -25,6 +25,7 @@ namespace Apache.IoTDB.DataStructure
 
         public string DeviceId { get; }
         public List<string> Measurements { get; }
+        public List<TSDataType> DataTypes { get; }
         public BitMap[] BitMaps;
         public int RowNumber { get; }
         public int ColNumber { get; }
@@ -41,7 +42,14 @@ namespace Apache.IoTDB.DataStructure
             if (timestamps.Count != values.Count)
             {
                 throw new TException(
-                    $"Input error. TimeStamp. Timestamps.Count({timestamps.Count}) does not equal to Values.Count({values.Count}).",
+                    $"Input error. Timestamps.Count({timestamps.Count}) does not equal to Values.Count({values.Count}).",
+                    null);
+            }
+
+            if (measurements.Count != dataTypes.Count)
+            {
+                throw new TException(
+                    $"Input error. Measurements.Count({measurements.Count}) does not equal to DataTypes.Count({dataTypes.Count}).",
                     null);
             }
 
@@ -62,6 +70,7 @@ namespace Apache.IoTDB.DataStructure
 
             DeviceId = deviceId;
             Measurements = measurements;
+            DataTypes = dataTypes;
             RowNumber = timestamps.Count;
             ColNumber = measurements.Count;
         }
@@ -80,32 +89,7 @@ namespace Apache.IoTDB.DataStructure
 
         public List<int> GetDataTypes()
         {
-            var dataTypeValues = new List<int>();
-
-            foreach (var valueType in _values[0].Select(value => value))
-            {
-                switch (valueType)
-                {
-                    case bool _:
-                        dataTypeValues.Add((int)TSDataType.BOOLEAN);
-                        break;
-                    case int _:
-                        dataTypeValues.Add((int)TSDataType.INT32);
-                        break;
-                    case long _:
-                        dataTypeValues.Add((int)TSDataType.INT64);
-                        break;
-                    case float _:
-                        dataTypeValues.Add((int)TSDataType.FLOAT);
-                        break;
-                    case double _:
-                        dataTypeValues.Add((int)TSDataType.DOUBLE);
-                        break;
-                    case string _:
-                        dataTypeValues.Add((int)TSDataType.TEXT);
-                        break;
-                }
-            }
+            var dataTypeValues = DataTypes.ConvertAll(x => (int)x);
 
             return dataTypeValues;
         }
@@ -151,11 +135,11 @@ namespace Apache.IoTDB.DataStructure
 
             for (var i = 0; i < ColNumber; i++)
             {
-                var value = _values[0][i];
+                var dataType = DataTypes[i];
 
-                switch (value)
+                switch (dataType)
                 {
-                    case bool _:
+                    case TSDataType.BOOLEAN:
                         {
                             for (var j = 0; j < RowNumber; j++)
                             {
@@ -164,7 +148,7 @@ namespace Apache.IoTDB.DataStructure
 
                             break;
                         }
-                    case int _:
+                    case TSDataType.INT32:
                         {
                             for (var j = 0; j < RowNumber; j++)
                             {
@@ -173,7 +157,7 @@ namespace Apache.IoTDB.DataStructure
 
                             break;
                         }
-                    case long _:
+                    case TSDataType.INT64:
                         {
                             for (var j = 0; j < RowNumber; j++)
                             {
@@ -182,7 +166,7 @@ namespace Apache.IoTDB.DataStructure
 
                             break;
                         }
-                    case float _:
+                    case TSDataType.FLOAT:
                         {
                             for (int j = 0; j < RowNumber; j++)
                             {
@@ -191,7 +175,7 @@ namespace Apache.IoTDB.DataStructure
 
                             break;
                         }
-                    case double _:
+                    case TSDataType.DOUBLE:
                         {
                             for (var j = 0; j < RowNumber; j++)
                             {
@@ -200,7 +184,7 @@ namespace Apache.IoTDB.DataStructure
 
                             break;
                         }
-                    case string _:
+                    case TSDataType.TEXT:
                         {
                             for (var j = 0; j < RowNumber; j++)
                             {
@@ -210,7 +194,7 @@ namespace Apache.IoTDB.DataStructure
                             break;
                         }
                     default:
-                        throw new TException($"Unsupported data type {value}", null);
+                        throw new TException($"Unsupported data type {dataType}", null);
 
                 }
             }
