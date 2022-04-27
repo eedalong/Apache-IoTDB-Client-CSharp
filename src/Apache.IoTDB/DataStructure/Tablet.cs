@@ -46,14 +46,14 @@ namespace Apache.IoTDB.DataStructure
         {
             if (timestamps.Count != values.Count)
             {
-                throw new TException(
+                throw new Exception(
                     $"Input error. Timestamps.Count({timestamps.Count}) does not equal to Values.Count({values.Count}).",
                     null);
             }
 
             if (measurements.Count != dataTypes.Count)
             {
-                throw new TException(
+                throw new Exception(
                     $"Input error. Measurements.Count({measurements.Count}) does not equal to DataTypes.Count({dataTypes.Count}).",
                     null);
             }
@@ -99,7 +99,7 @@ namespace Apache.IoTDB.DataStructure
         {
             if (timestamps.Count != values.Count)
             {
-                throw new TException(
+                throw new Exception(
                     $"Input error. Timestamps.Count({timestamps.Count}) does not equal to Values.Count({values.Count}).",
                     null);
             }
@@ -122,6 +122,7 @@ namespace Apache.IoTDB.DataStructure
             Measurements = measurements;
             RowNumber = timestamps.Count;
             ColNumber = measurements.Count;
+            DataTypes = new List<TSDataType>();
             for (int i = 0; i < ColNumber; i++)
             {
                 bool columnAllNull = true;
@@ -131,6 +132,9 @@ namespace Apache.IoTDB.DataStructure
                     {
                         switch (_values[j][i])
                         {
+                            case bool _:
+                                DataTypes.Add(TSDataType.BOOLEAN);
+                                break;
                             case int _:
                                 DataTypes.Add(TSDataType.INT32);
                                 break;
@@ -157,7 +161,7 @@ namespace Apache.IoTDB.DataStructure
                 }
                 if (columnAllNull)
                 {
-                    throw new TException($"Input error. Column {measurements[i]} of device {deviceId} is empty.", null);
+                    throw new Exception($"Input error. Column {measurements[i]} of device {deviceId} is empty.", null);
                 }
             }
 
@@ -233,7 +237,6 @@ namespace Apache.IoTDB.DataStructure
         public byte[] GetBinaryValues()
         {
             var estimateSize = EstimateBufferSize();
-            // Console.WriteLine("Estimate size : {0}", estimateSize);
             var buffer = new ByteBuffer(estimateSize);
 
             for (var i = 0; i < ColNumber; i++)
@@ -321,8 +324,7 @@ namespace Apache.IoTDB.DataStructure
                             break;
                         }
                     default:
-                        throw new TException($"Unsupported data type {dataType}", null);
-
+                        throw new Exception($"Unsupported data type {dataType}", null);
                 }
             }
             if (BitMaps != null)
