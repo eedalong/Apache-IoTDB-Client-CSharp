@@ -237,6 +237,7 @@ namespace Apache.IoTDB.DataStructure
         public byte[] GetBinaryValues()
         {
             var estimateSize = EstimateBufferSize();
+            // Console.WriteLine("Estimate size : {0}", estimateSize);
             var buffer = new ByteBuffer(estimateSize);
 
             for (var i = 0; i < ColNumber; i++)
