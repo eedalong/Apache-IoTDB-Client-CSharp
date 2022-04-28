@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using Thrift;
 
@@ -45,14 +46,14 @@ namespace Apache.IoTDB.DataStructure
         {
             if (timestamps.Count != values.Count)
             {
-                throw new TException(
+                throw new Exception(
                     $"Input error. Timestamps.Count({timestamps.Count}) does not equal to Values.Count({values.Count}).",
                     null);
             }
 
             if (measurements.Count != dataTypes.Count)
             {
-                throw new TException(
+                throw new Exception(
                     $"Input error. Measurements.Count({measurements.Count}) does not equal to DataTypes.Count({dataTypes.Count}).",
                     null);
             }
@@ -77,6 +78,92 @@ namespace Apache.IoTDB.DataStructure
             DataTypes = dataTypes;
             RowNumber = timestamps.Count;
             ColNumber = measurements.Count;
+
+            // reset bitmap
+            if (BitMaps != null)
+            {
+                foreach (var bitmap in BitMaps)
+                {
+                    if (bitmap != null)
+                    {
+                        bitmap.reset();
+                    }
+                }
+            }
+        }
+        public Tablet(
+            string deviceId,
+            List<string> measurements,
+            List<List<object>> values,
+            List<long> timestamps)
+        {
+            if (timestamps.Count != values.Count)
+            {
+                throw new Exception(
+                    $"Input error. Timestamps.Count({timestamps.Count}) does not equal to Values.Count({values.Count}).",
+                    null);
+            }
+            if (!_utilFunctions.IsSorted(timestamps))
+            {
+                var sorted = timestamps
+                    .Select((x, index) => (timestamp: x, values: values[index]))
+                    .OrderBy(x => x.timestamp).ToList();
+
+                _timestamps = sorted.Select(x => x.timestamp).ToList();
+                _values = sorted.Select(x => x.values).ToList();
+            }
+            else
+            {
+                _values = values;
+                _timestamps = timestamps;
+            }
+
+            DeviceId = deviceId;
+            Measurements = measurements;
+            RowNumber = timestamps.Count;
+            ColNumber = measurements.Count;
+            DataTypes = new List<TSDataType>();
+            for (int i = 0; i < ColNumber; i++)
+            {
+                bool columnAllNull = true;
+                for (int j = 0; j < RowNumber; j++)
+                {
+                    if (_values[j][i] != null)
+                    {
+                        switch (_values[j][i])
+                        {
+                            case bool _:
+                                DataTypes.Add(TSDataType.BOOLEAN);
+                                break;
+                            case int _:
+                                DataTypes.Add(TSDataType.INT32);
+                                break;
+                            case long _:
+                                DataTypes.Add(TSDataType.INT64);
+                                break;
+                            case float _:
+                                DataTypes.Add(TSDataType.FLOAT);
+                                break;
+                            case double _:
+                                DataTypes.Add(TSDataType.DOUBLE);
+                                break;
+                            case string _:
+                                DataTypes.Add(TSDataType.TEXT);
+                                break;
+                            default:
+                                throw new Exception(
+                                    $"Input error. Data type {_values[j][i].GetType().Name} is not supported.",
+                                    null);
+                        }
+                        columnAllNull = false;
+                        break;
+                    }
+                }
+                if (columnAllNull)
+                {
+                    throw new Exception($"Input error. Column {measurements[i]} of device {deviceId} is empty.", null);
+                }
+            }
 
             // reset bitmap
             if (BitMaps != null)
@@ -238,8 +325,7 @@ namespace Apache.IoTDB.DataStructure
                             break;
                         }
                     default:
-                        throw new TException($"Unsupported data type {dataType}", null);
-
+                        throw new Exception($"Unsupported data type {dataType}", null);
                 }
             }
             if (BitMaps != null)
