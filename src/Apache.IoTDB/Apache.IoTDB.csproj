@@ -9,7 +9,14 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Apache.IoTDB.Rpc.Generated\Apache.IoTDB.Rpc.Generated.csproj" />
+      <ProjectReference Include="..\Apache.IoTDB.Rpc.Generated\Apache.IoTDB.Rpc.Generated.csproj" Version="[0.13.0.1]"/>
     </ItemGroup>
+
+    <PropertyGroup>
+        <Version>0.13.0.5</Version>
+        <Authors>eedalong, lausannel, Aiemu</Authors>
+        <Company>LiuLin Lab</Company>
+        <PackageDescription>C# client for Apache IoTDB</PackageDescription>
+    </PropertyGroup>
 
 </Project>
