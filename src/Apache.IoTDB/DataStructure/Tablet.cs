@@ -202,31 +202,32 @@ namespace Apache.IoTDB.DataStructure
             var estimateSize = 0;
 
             // estimate one row size
-            foreach (var value in _values[0])
+            foreach (var dataType in DataTypes)
             {
-                switch (value)
+                switch (dataType)
                 {
-                    case bool _:
+                    case TSDataType.BOOLEAN:
                         estimateSize += 1;
                         break;
-                    case int _:
+                    case TSDataType.INT32:
                         estimateSize += 4;
                         break;
-                    case long _:
+                    case TSDataType.INT64:
                         estimateSize += 8;
                         break;
-                    case float _:
+                    case TSDataType.FLOAT:
                         estimateSize += 4;
                         break;
-                    case double _:
+                    case TSDataType.DOUBLE:
                         estimateSize += 8;
                         break;
-                    case string s:
-                        estimateSize += s.Length;
+                    case TSDataType.TEXT:
+                        estimateSize += 8;
                         break;
                     default:
-                        estimateSize += 4;
-                        break;
+                        throw new Exception(
+                            $"Input error. Data type {dataType} is not supported.",
+                            null);
                 }
             }
 
