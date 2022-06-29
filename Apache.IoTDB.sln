@@ -20,8 +20,13 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{DEAC57D3-4B3A-4650-85E3-5A179CD1DBAD}"
 	ProjectSection(SolutionItems) = preProject
 		docs\bytebuffer_zh.md = docs\bytebuffer_zh.md
+		PUBLISH.md = PUBLISH.md
+		README.md = README.md
+		README_ZH.md = README_ZH.md
 		docs\time_profile_zh.pdf = docs\time_profile_zh.pdf
 	EndProjectSection
+EndProject
+Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{4D457769-80CB-401F-9155-C3125C04FACD}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -45,6 +50,10 @@ Global
 		{133ECF70-6B6B-492B-A2A4-AA759CEE54BB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{133ECF70-6B6B-492B-A2A4-AA759CEE54BB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{133ECF70-6B6B-492B-A2A4-AA759CEE54BB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4D457769-80CB-401F-9155-C3125C04FACD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4D457769-80CB-401F-9155-C3125C04FACD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4D457769-80CB-401F-9155-C3125C04FACD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4D457769-80CB-401F-9155-C3125C04FACD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

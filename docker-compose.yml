@@ -1,0 +1,8 @@
+version: '3.4'
+
+services:
+  apache.iotdb.samples:
+    image: ${DOCKER_REGISTRY-}apacheiotdbsamples
+    build:
+      context: .
+      dockerfile: samples/Apache.IoTDB.Samples/Dockerfile

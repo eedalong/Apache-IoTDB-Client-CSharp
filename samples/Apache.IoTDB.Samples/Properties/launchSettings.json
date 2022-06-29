@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "Apache.IoTDB.Samples": {
+      "commandName": "Project"
+    },
+    "Docker": {
+      "commandName": "Docker"
+    }
+  }
+}
