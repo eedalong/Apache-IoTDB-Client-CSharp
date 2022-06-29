@@ -1,38 +1,32 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.2.32616.157
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{AE9EFF1C-CB25-4089-B764-D834AC132501}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{11051AD6-88B3-44B4-A066-C59ED2E35AFD}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "samples", "samples", "{AF185F16-80A9-49A8-98B4-B761FD197FF7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Apache.IoTDB", "src\Apache.IoTDB\Apache.IoTDB.csproj", "{60FE924D-19EC-41A9-A114-70DD21A30545}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Apache.IoTDB", "src\Apache.IoTDB\Apache.IoTDB.csproj", "{60FE924D-19EC-41A9-A114-70DD21A30545}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Apache.IoTDB.Samples", "samples\Apache.IoTDB.Samples\Apache.IoTDB.Samples.csproj", "{5B88D865-EFFD-4A13-8489-2172777859F5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Apache.IoTDB.Samples", "samples\Apache.IoTDB.Samples\Apache.IoTDB.Samples.csproj", "{5B88D865-EFFD-4A13-8489-2172777859F5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Apache.IoTDB.Tests", "tests\Apache.IoTDB.Tests\Apache.IoTDB.Tests.csproj", "{414B31CD-57EB-478B-B734-542644CE48B0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Apache.IoTDB.Tests", "tests\Apache.IoTDB.Tests\Apache.IoTDB.Tests.csproj", "{414B31CD-57EB-478B-B734-542644CE48B0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Apache.IoTDB.Integration.Tests", "tests\Apache.IoTDB.Integration.Tests\Apache.IoTDB.Integration.Tests.csproj", "{133ECF70-6B6B-492B-A2A4-AA759CEE54BB}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Apache.IoTDB.Rpc.Generated", "src\Apache.IoTDB.Rpc.Generated\Apache.IoTDB.Rpc.Generated.csproj", "{1B5DB3F2-3004-460C-A2DA-E54A656F8AA7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Apache.IoTDB.Integration.Tests", "tests\Apache.IoTDB.Integration.Tests\Apache.IoTDB.Integration.Tests.csproj", "{133ECF70-6B6B-492B-A2A4-AA759CEE54BB}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{DEAC57D3-4B3A-4650-85E3-5A179CD1DBAD}"
-ProjectSection(SolutionItems) = preProject
-	docs\bytebuffer_zh.md = docs\bytebuffer_zh.md
-	docs\time_profile_zh.pdf = docs\time_profile_zh.pdf
-EndProjectSection
+	ProjectSection(SolutionItems) = preProject
+		docs\bytebuffer_zh.md = docs\bytebuffer_zh.md
+		docs\time_profile_zh.pdf = docs\time_profile_zh.pdf
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
-	EndGlobalSection
-	GlobalSection(NestedProjects) = preSolution
-		{60FE924D-19EC-41A9-A114-70DD21A30545} = {AE9EFF1C-CB25-4089-B764-D834AC132501}
-		{5B88D865-EFFD-4A13-8489-2172777859F5} = {AF185F16-80A9-49A8-98B4-B761FD197FF7}
-		{414B31CD-57EB-478B-B734-542644CE48B0} = {11051AD6-88B3-44B4-A066-C59ED2E35AFD}
-		{133ECF70-6B6B-492B-A2A4-AA759CEE54BB} = {11051AD6-88B3-44B4-A066-C59ED2E35AFD}
-		{1B5DB3F2-3004-460C-A2DA-E54A656F8AA7} = {AE9EFF1C-CB25-4089-B764-D834AC132501}
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{60FE924D-19EC-41A9-A114-70DD21A30545}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -51,9 +45,17 @@ Global
 		{133ECF70-6B6B-492B-A2A4-AA759CEE54BB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{133ECF70-6B6B-492B-A2A4-AA759CEE54BB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{133ECF70-6B6B-492B-A2A4-AA759CEE54BB}.Release|Any CPU.Build.0 = Release|Any CPU
-		{1B5DB3F2-3004-460C-A2DA-E54A656F8AA7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{1B5DB3F2-3004-460C-A2DA-E54A656F8AA7}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{1B5DB3F2-3004-460C-A2DA-E54A656F8AA7}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{1B5DB3F2-3004-460C-A2DA-E54A656F8AA7}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{60FE924D-19EC-41A9-A114-70DD21A30545} = {AE9EFF1C-CB25-4089-B764-D834AC132501}
+		{5B88D865-EFFD-4A13-8489-2172777859F5} = {AF185F16-80A9-49A8-98B4-B761FD197FF7}
+		{414B31CD-57EB-478B-B734-542644CE48B0} = {11051AD6-88B3-44B4-A066-C59ED2E35AFD}
+		{133ECF70-6B6B-492B-A2A4-AA759CEE54BB} = {11051AD6-88B3-44B4-A066-C59ED2E35AFD}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {F1C2DE69-7374-4521-9D86-500AA2517D4E}
 	EndGlobalSection
 EndGlobal
