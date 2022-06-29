@@ -46,7 +46,23 @@ namespace Apache.IoTDB
             _fetchSize = 1024;
             _poolSize = poolSize;
         }
-
+        public SessionPool(string connectionString)
+        {
+            Dictionary<string, string> pairs = new Dictionary<string, string>();
+            connectionString.Split(';', StringSplitOptions.RemoveEmptyEntries).ToList().ForEach(f =>
+                {
+                    var kv = f.Split('=');
+                    pairs.TryAdd(key: kv[0], value: kv[1]);
+                });
+            _host = pairs.GetValueOrDefault("Server") ?? "127.0.0.1";
+            _port = int.Parse(pairs.GetValueOrDefault("Port") ?? "6667");
+            _username = pairs.GetValueOrDefault("User") ?? "root";
+            _password = pairs.GetValueOrDefault("Password") ?? "root";
+            _fetchSize = int.Parse(pairs.GetValueOrDefault("fetchSize") ?? "1800");
+            _enableRpcCompression = bool.Parse(pairs.GetValueOrDefault("enableRpcCompression") ?? "false");
+            _poolSize = int.Parse(pairs.GetValueOrDefault("poolSize") ?? "8");
+            _zoneId = pairs.GetValueOrDefault("zoneId") ?? "UTC+08:00";
+        }
         public SessionPool(
             string host,
             int port,
