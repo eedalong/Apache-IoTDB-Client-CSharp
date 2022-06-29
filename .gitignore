@@ -67,3 +67,4 @@ publish/
 ### Rider ###
 .idea
 /.vs/Apache.IoTDB/FileContentIndex
+/.vs/ProjectEvaluation

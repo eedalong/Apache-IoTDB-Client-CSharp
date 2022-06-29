@@ -22,8 +22,8 @@ namespace Apache.IoTDB.Samples
             var types = new List<TSDataType> { TSDataType.TEXT, TSDataType.BOOLEAN, TSDataType.INT32 };
             var encodings = new List<TSEncoding> { TSEncoding.PLAIN, TSEncoding.PLAIN, TSEncoding.PLAIN };
             var compressors = new List<Compressor> { Compressor.UNCOMPRESSED, Compressor.UNCOMPRESSED, Compressor.UNCOMPRESSED };
-            status = await session_pool.CreateAlignedTimeseriesAsync(prefixPath, measurements, types, encodings, compressors);
-            System.Diagnostics.Debug.Assert(status == 0);
+            //status = await session_pool.CreateAlignedTimeseriesAsync(prefixPath, measurements, types, encodings, compressors);
+            //System.Diagnostics.Debug.Assert(status == 0);
 
             var measures = new List<string>
                 { test_measurements[1], test_measurements[2], test_measurements[3] };

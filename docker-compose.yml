@@ -3,6 +3,26 @@ version: '3.4'
 services:
   apache.iotdb.samples:
     image: ${DOCKER_REGISTRY-}apacheiotdbsamples
+    depends_on:
+      - iotdb
+    links:
+      - iotdb
     build:
       context: .
       dockerfile: samples/Apache.IoTDB.Samples/Dockerfile
+    networks:
+          - iotdb-network
+      
+  iotdb:
+   image: apache/iotdb:0.13.0-node
+   restart: always
+   container_name: iotdb
+   ports:
+         - 6667:6667
+   networks:
+          - iotdb-network
+
+networks: 
+  iotdb-network:
+      driver:  bridge
+

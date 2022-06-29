@@ -35,68 +35,67 @@ namespace Apache.IoTDB.Samples
             host = _host;
         }
 
-        public void Test()
+        public async Task Test()
         {
-            Task task;
 
-            task = TestInsertAlignedRecord();
-            task.Wait();
-            task = TestInsertAlignedRecords();
-            task.Wait();
-            task = TestInsertAlignedRecordsOfOneDevice();
-            task.Wait();
-            task = TestInsertAlignedTablet();
-            task.Wait();
-            task = TestInsertAlignedTablets();
-            task.Wait();
-            task = TestInsertRecord();
-            task.Wait();
-            task = TestCreateMultiTimeSeries();
-            task.Wait();
-            task = TestInsertStrRecord();
-            task.Wait();
-            task = TestInsertRecords();
-            task.Wait();
-            task = TestInsertRecordsOfOneDevice();
-            task.Wait();
-            task = TestInsertTablet();
-            task.Wait();
-            task = TestInsertTabletWithNullValue();
-            task.Wait();
-            task = TestInsertTablets();
-            task.Wait();
-            task = TestAddAlignedMeasurements();
-            task.Wait();
-            task = TestAddUnalignedMeasurements();
-            task.Wait();
-            task = TestSetAndUnsetSchemaTemplate();
-            task.Wait();
-            task = TestCreateAlignedTimeseries();
-            task.Wait();
-            task = TestCreateAndDropSchemaTemplate();
-            task.Wait();
-            task = TestDeleteNodeInTemplate();
-            task.Wait();
-            task = TestGetTimeZone();
-            task.Wait();
-            task = TestSetAndDeleteStorageGroup();
-            task.Wait();
-            task = TestCreateTimeSeries();
-            task.Wait();
-            task = TestDeleteTimeSeries();
-            task.Wait();
-            task = TestDeleteStorageGroups();
-            task.Wait();
-            task = TestCheckTimeSeriesExists();
-            task.Wait();
-            task = TestSetTimeZone();
-            task.Wait();
-            task = TestDeleteData();
-            task.Wait();
-            task = TestNonSql();
-            task.Wait();
-            task = TestSqlQuery();
-            task.Wait();
+            await TestInsertAlignedRecord();
+
+            await TestInsertAlignedRecords();
+
+            await TestInsertAlignedRecordsOfOneDevice();
+
+            await TestInsertAlignedTablet();
+
+            await TestInsertAlignedTablets();
+
+            await TestInsertRecord();
+
+            await TestCreateMultiTimeSeries();
+
+            await TestInsertStrRecord();
+
+            await TestInsertRecords();
+
+            await TestInsertRecordsOfOneDevice();
+
+            await TestInsertTablet();
+
+            await TestInsertTabletWithNullValue();
+
+            await TestInsertTablets();
+
+            await TestAddAlignedMeasurements();
+
+            await TestAddUnalignedMeasurements();
+
+            await TestSetAndUnsetSchemaTemplate();
+
+            await TestCreateAlignedTimeseries();
+
+            await TestCreateAndDropSchemaTemplate();
+
+            await TestDeleteNodeInTemplate();
+
+            await TestGetTimeZone();
+
+            await TestSetAndDeleteStorageGroup();
+
+            await TestCreateTimeSeries();
+
+            await TestDeleteTimeSeries();
+
+            await TestDeleteStorageGroups();
+
+            await TestCheckTimeSeriesExists();
+
+            await TestSetTimeZone();
+
+            await TestDeleteData();
+
+            await TestNonSql();
+ 
+        await TestSqlQuery();
+ 
         }
 
         public async Task TestGetTimeZone()
