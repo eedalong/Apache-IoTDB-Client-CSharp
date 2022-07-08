@@ -19,25 +19,10 @@ jobs:
     - name: Check out code into the CSharp module directory
       uses: actions/checkout@v2
 
-    - name: Cache local Maven repository
-      uses: actions/cache@v2
-      with:
-        path: ~/.m2/repository
-        key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-        restore-keys: |
-          ${{ runner.os }}-maven-
-
-    - name: Set Up IoTDB
-      run: |
-        sh -c "cd /tmp/ && rm -rf iotdb && git clone https://github.com/apache/iotdb.git && cd iotdb && mvn -Dmaven.test.skip=true package -am -pl server"
-        mkdir -p target/iotdb
-        unzip -o -q /tmp/iotdb/server/target/iotdb-server-*.zip -d target/iotdb
-
     - name: Set Docker & Run Test
       run: |
-        docker-compose -f samples/Apache.IoTDB.Samples/docker-compose.yml up --build --abort-on-container-exit --remove-orphans
+        docker-compose -f docker-compose.yml up --build --abort-on-container-exit --remove-orphans
         
     - name: Clean IoTDB & Shut Down Docker
       run: |
-        rm -rf /tmp/iotdb target
-        docker-compose -f samples/Apache.IoTDB.Samples/docker-compose.yml down
+        docker-compose -f docker-compose.yml down
