@@ -5,9 +5,8 @@ using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 using Apache.IoTDB.DataStructure;
-using NLog;
-using NLog.Config;
-using NLog.Targets;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Thrift;
 using Thrift.Protocol;
 using Thrift.Transport;
@@ -34,7 +33,7 @@ namespace Apache.IoTDB
         private bool _debugMode;
         private bool _isClose = true;
         private ConcurrentClientQueue _clients;
-        private Logger _logger;
+        private ILogger _logger;
 
         public SessionPool(string host, int port, int poolSize)
         {
@@ -47,7 +46,23 @@ namespace Apache.IoTDB
             _fetchSize = 1024;
             _poolSize = poolSize;
         }
-
+        public SessionPool(string connectionString)
+        {
+            Dictionary<string, string> pairs = new Dictionary<string, string>();
+            connectionString.Split(';', StringSplitOptions.RemoveEmptyEntries).ToList().ForEach(f =>
+                {
+                    var kv = f.Split('=');
+                    pairs.TryAdd(key: kv[0], value: kv[1]);
+                });
+            _host = pairs.GetValueOrDefault("Server") ?? "127.0.0.1";
+            _port = int.Parse(pairs.GetValueOrDefault("Port") ?? "6667");
+            _username = pairs.GetValueOrDefault("User") ?? "root";
+            _password = pairs.GetValueOrDefault("Password") ?? "root";
+            _fetchSize = int.Parse(pairs.GetValueOrDefault("fetchSize") ?? "1800");
+            _enableRpcCompression = bool.Parse(pairs.GetValueOrDefault("enableRpcCompression") ?? "false");
+            _poolSize = int.Parse(pairs.GetValueOrDefault("poolSize") ?? "8");
+            _zoneId = pairs.GetValueOrDefault("zoneId") ?? "UTC+08:00";
+        }
         public SessionPool(
             string host,
             int port,
@@ -101,18 +116,12 @@ namespace Apache.IoTDB
             _debugMode = false;
             _poolSize = poolSize;
         }
-
-        public void OpenDebugMode(LoggingConfiguration config = null)
+        ILoggerFactory factory;
+        public void OpenDebugMode(Action<ILoggingBuilder> configure)
         {
             _debugMode = true;
-            if (config == null)
-            {
-                config = new LoggingConfiguration();
-                config.AddRule(LogLevel.Debug, LogLevel.Fatal, new ConsoleTarget("logconsole"));
-            }
-
-            LogManager.Configuration = config;
-            _logger = LogManager.GetCurrentClassLogger();
+            factory= LoggerFactory.Create(configure);
+            _logger = factory.CreateLogger(nameof(Apache.IoTDB));
         }
 
         public void CloseDebugMode()
@@ -172,7 +181,7 @@ namespace Apache.IoTDB
                     var resp = await client.ServiceClient.setTimeZoneAsync(req);
                     if (_debugMode)
                     {
-                        _logger.Info("setting time zone_id as {0}, server message:{1}", zoneId, resp.Message);
+                        _logger.LogInformation("setting time zone_id as {0}, server message:{1}", zoneId, resp.Message);
                     }
                 }
                 catch (TException e)
@@ -273,7 +282,7 @@ namespace Apache.IoTDB
 
                 if (_debugMode)
                 {
-                    _logger.Info("set storage group {0} successfully, server message is {1}", groupName, status.Message);
+                    _logger.LogInformation("set storage group {0} successfully, server message is {1}", groupName, status.Message);
                 }
 
                 return _utilFunctions.VerifySuccess(status, SuccessCode);
@@ -288,7 +297,7 @@ namespace Apache.IoTDB
                     var status = await client.ServiceClient.setStorageGroupAsync(client.SessionId, groupName);
                     if (_debugMode)
                     {
-                        _logger.Info("set storage group {0} successfully, server message is {1}", groupName, status.Message);
+                        _logger.LogInformation("set storage group {0} successfully, server message is {1}", groupName, status.Message);
                     }
                     return _utilFunctions.VerifySuccess(status, SuccessCode);
                 }
@@ -322,7 +331,7 @@ namespace Apache.IoTDB
 
                 if (_debugMode)
                 {
-                    _logger.Info("creating time series {0} successfully, server message is {1}", tsPath, status.Message);
+                    _logger.LogInformation("creating time series {0} successfully, server message is {1}", tsPath, status.Message);
                 }
 
                 return _utilFunctions.VerifySuccess(status, SuccessCode);
@@ -337,7 +346,7 @@ namespace Apache.IoTDB
                     var status = await client.ServiceClient.createTimeseriesAsync(req);
                     if (_debugMode)
                     {
-                        _logger.Info("creating time series {0} successfully, server message is {1}", tsPath, status.Message);
+                        _logger.LogInformation("creating time series {0} successfully, server message is {1}", tsPath, status.Message);
                     }
                     return _utilFunctions.VerifySuccess(status, SuccessCode);
                 }
@@ -378,7 +387,7 @@ namespace Apache.IoTDB
 
                 if (_debugMode)
                 {
-                    _logger.Info("creating aligned time series {0} successfully, server message is {1}", prefixPath, status.Message);
+                    _logger.LogInformation("creating aligned time series {0} successfully, server message is {1}", prefixPath, status.Message);
                 }
 
                 return _utilFunctions.VerifySuccess(status, SuccessCode);
@@ -393,7 +402,7 @@ namespace Apache.IoTDB
                     var status = await client.ServiceClient.createAlignedTimeseriesAsync(req);
                     if (_debugMode)
                     {
-                        _logger.Info("creating aligned time series {0} successfully, server message is {1}", prefixPath, status.Message);
+                        _logger.LogInformation("creating aligned time series {0} successfully, server message is {1}", prefixPath, status.Message);
                     }
                     return _utilFunctions.VerifySuccess(status, SuccessCode);
                 }
@@ -419,7 +428,7 @@ namespace Apache.IoTDB
 
                 if (_debugMode)
                 {
-                    _logger.Info($"delete storage group {groupName} successfully, server message is {status?.Message}");
+                    _logger.LogInformation($"delete storage group {groupName} successfully, server message is {status?.Message}");
                 }
 
                 return _utilFunctions.VerifySuccess(status, SuccessCode);
@@ -436,7 +445,7 @@ namespace Apache.IoTDB
 
                     if (_debugMode)
                     {
-                        _logger.Info($"delete storage group {groupName} successfully, server message is {status?.Message}");
+                        _logger.LogInformation($"delete storage group {groupName} successfully, server message is {status?.Message}");
                     }
 
                     return _utilFunctions.VerifySuccess(status, SuccessCode);
@@ -462,7 +471,7 @@ namespace Apache.IoTDB
 
                 if (_debugMode)
                 {
-                    _logger.Info(
+                    _logger.LogInformation(
                         "delete storage group(s) {0} successfully, server message is {1}",
                         groupNames,
                         status.Message);
@@ -480,7 +489,7 @@ namespace Apache.IoTDB
 
                     if (_debugMode)
                     {
-                        _logger.Info(
+                        _logger.LogInformation(
                             "delete storage group(s) {0} successfully, server message is {1}",
                             groupNames,
                             status.Message);
@@ -518,7 +527,7 @@ namespace Apache.IoTDB
 
                 if (_debugMode)
                 {
-                    _logger.Info("creating multiple time series {0}, server message is {1}", tsPathLst, status.Message);
+                    _logger.LogInformation("creating multiple time series {0}, server message is {1}", tsPathLst, status.Message);
                 }
 
                 return _utilFunctions.VerifySuccess(status, SuccessCode);
@@ -533,7 +542,7 @@ namespace Apache.IoTDB
                     var status = await client.ServiceClient.createMultiTimeseriesAsync(req);
                     if (_debugMode)
                     {
-                        _logger.Info("creating multiple time series {0}, server message is {1}", tsPathLst, status.Message);
+                        _logger.LogInformation("creating multiple time series {0}, server message is {1}", tsPathLst, status.Message);
                     }
                     return _utilFunctions.VerifySuccess(status, SuccessCode);
                 }
@@ -558,7 +567,7 @@ namespace Apache.IoTDB
 
                 if (_debugMode)
                 {
-                    _logger.Info("deleting multiple time series {0}, server message is {1}", pathList, status.Message);
+                    _logger.LogInformation("deleting multiple time series {0}, server message is {1}", pathList, status.Message);
                 }
 
                 return _utilFunctions.VerifySuccess(status, SuccessCode);
@@ -573,7 +582,7 @@ namespace Apache.IoTDB
 
                     if (_debugMode)
                     {
-                        _logger.Info("deleting multiple time series {0}, server message is {1}", pathList, status.Message);
+                        _logger.LogInformation("deleting multiple time series {0}, server message is {1}", pathList, status.Message);
                     }
 
                     return _utilFunctions.VerifySuccess(status, SuccessCode);
@@ -620,7 +629,7 @@ namespace Apache.IoTDB
 
                 if (_debugMode)
                 {
-                    _logger.Info(
+                    _logger.LogInformation(
                         "delete data from {0}, server message is {1}",
                         tsPathLst,
                         status.Message);
@@ -639,7 +648,7 @@ namespace Apache.IoTDB
 
                     if (_debugMode)
                     {
-                        _logger.Info(
+                        _logger.LogInformation(
                             "delete data from {0}, server message is {1}",
                             tsPathLst,
                             status.Message);
@@ -670,7 +679,7 @@ namespace Apache.IoTDB
 
                 if (_debugMode)
                 {
-                    _logger.Info("insert one record to device {0}， server message: {1}", deviceId, status.Message);
+                    _logger.LogInformation("insert one record to device {0}， server message: {1}", deviceId, status.Message);
                 }
 
                 return _utilFunctions.VerifySuccess(status, SuccessCode);
@@ -686,7 +695,7 @@ namespace Apache.IoTDB
 
                     if (_debugMode)
                     {
-                        _logger.Info("insert one record to device {0}， server message: {1}", deviceId, status.Message);
+                        _logger.LogInformation("insert one record to device {0}， server message: {1}", deviceId, status.Message);
                     }
 
                     return _utilFunctions.VerifySuccess(status, SuccessCode);
@@ -715,7 +724,7 @@ namespace Apache.IoTDB
 
                 if (_debugMode)
                 {
-                    _logger.Info("insert one record to device {0}， server message: {1}", deviceId, status.Message);
+                    _logger.LogInformation("insert one record to device {0}， server message: {1}", deviceId, status.Message);
                 }
 
                 return _utilFunctions.VerifySuccess(status, SuccessCode);
@@ -731,7 +740,7 @@ namespace Apache.IoTDB
 
                     if (_debugMode)
                     {
-                        _logger.Info("insert one record to device {0}， server message: {1}", deviceId, status.Message);
+                        _logger.LogInformation("insert one record to device {0}， server message: {1}", deviceId, status.Message);
                     }
 
                     return _utilFunctions.VerifySuccess(status, SuccessCode);
@@ -781,7 +790,7 @@ namespace Apache.IoTDB
 
                 if (_debugMode)
                 {
-                    _logger.Info("insert multiple records to devices {0}, server message: {1}", deviceId, status.Message);
+                    _logger.LogInformation("insert multiple records to devices {0}, server message: {1}", deviceId, status.Message);
                 }
 
                 return _utilFunctions.VerifySuccess(status, SuccessCode);
@@ -797,7 +806,7 @@ namespace Apache.IoTDB
 
                     if (_debugMode)
                     {
-                        _logger.Info("insert multiple records to devices {0}, server message: {1}", deviceId, status.Message);
+                        _logger.LogInformation("insert multiple records to devices {0}, server message: {1}", deviceId, status.Message);
                     }
 
                     return _utilFunctions.VerifySuccess(status, SuccessCode);
@@ -827,7 +836,7 @@ namespace Apache.IoTDB
 
                 if (_debugMode)
                 {
-                    _logger.Info("insert multiple records to devices {0}, server message: {1}", deviceId, status.Message);
+                    _logger.LogInformation("insert multiple records to devices {0}, server message: {1}", deviceId, status.Message);
                 }
 
                 return _utilFunctions.VerifySuccess(status, SuccessCode);
@@ -843,7 +852,7 @@ namespace Apache.IoTDB
 
                     if (_debugMode)
                     {
-                        _logger.Info("insert multiple records to devices {0}, server message: {1}", deviceId, status.Message);
+                        _logger.LogInformation("insert multiple records to devices {0}, server message: {1}", deviceId, status.Message);
                     }
 
                     return _utilFunctions.VerifySuccess(status, SuccessCode);
@@ -881,7 +890,7 @@ namespace Apache.IoTDB
 
                 if (_debugMode)
                 {
-                    _logger.Info("insert one tablet to device {0}, server message: {1}", tablet.DeviceId, status.Message);
+                    _logger.LogInformation("insert one tablet to device {0}, server message: {1}", tablet.DeviceId, status.Message);
                 }
 
                 return _utilFunctions.VerifySuccess(status, SuccessCode);
@@ -897,7 +906,7 @@ namespace Apache.IoTDB
 
                     if (_debugMode)
                     {
-                        _logger.Info("insert one tablet to device {0}, server message: {1}", tablet.DeviceId, status.Message);
+                        _logger.LogInformation("insert one tablet to device {0}, server message: {1}", tablet.DeviceId, status.Message);
                     }
 
                     return _utilFunctions.VerifySuccess(status, SuccessCode);
@@ -924,7 +933,7 @@ namespace Apache.IoTDB
 
                 if (_debugMode)
                 {
-                    _logger.Info("insert one aligned tablet to device {0}, server message: {1}", tablet.DeviceId, status.Message);
+                    _logger.LogInformation("insert one aligned tablet to device {0}, server message: {1}", tablet.DeviceId, status.Message);
                 }
 
                 return _utilFunctions.VerifySuccess(status, SuccessCode);
@@ -940,7 +949,7 @@ namespace Apache.IoTDB
 
                     if (_debugMode)
                     {
-                        _logger.Info("insert one aligned tablet to device {0}, server message: {1}", tablet.DeviceId, status.Message);
+                        _logger.LogInformation("insert one aligned tablet to device {0}, server message: {1}", tablet.DeviceId, status.Message);
                     }
 
                     return _utilFunctions.VerifySuccess(status, SuccessCode);
@@ -998,7 +1007,7 @@ namespace Apache.IoTDB
 
                 if (_debugMode)
                 {
-                    _logger.Info("insert multiple tablets, message: {0}", status.Message);
+                    _logger.LogInformation("insert multiple tablets, message: {0}", status.Message);
                 }
 
                 return _utilFunctions.VerifySuccess(status, SuccessCode);
@@ -1014,7 +1023,7 @@ namespace Apache.IoTDB
 
                     if (_debugMode)
                     {
-                        _logger.Info("insert multiple tablets, message: {0}", status.Message);
+                        _logger.LogInformation("insert multiple tablets, message: {0}", status.Message);
                     }
 
                     return _utilFunctions.VerifySuccess(status, SuccessCode);
@@ -1042,7 +1051,7 @@ namespace Apache.IoTDB
 
                 if (_debugMode)
                 {
-                    _logger.Info("insert multiple aligned tablets, message: {0}", status.Message);
+                    _logger.LogInformation("insert multiple aligned tablets, message: {0}", status.Message);
                 }
 
                 return _utilFunctions.VerifySuccess(status, SuccessCode);
@@ -1058,7 +1067,7 @@ namespace Apache.IoTDB
 
                     if (_debugMode)
                     {
-                        _logger.Info("insert multiple aligned tablets, message: {0}", status.Message);
+                        _logger.LogInformation("insert multiple aligned tablets, message: {0}", status.Message);
                     }
 
                     return _utilFunctions.VerifySuccess(status, SuccessCode);
@@ -1121,7 +1130,7 @@ namespace Apache.IoTDB
 
                 if (_debugMode)
                 {
-                    _logger.Info("insert records of one device, message: {0}", status.Message);
+                    _logger.LogInformation("insert records of one device, message: {0}", status.Message);
                 }
 
                 return _utilFunctions.VerifySuccess(status, SuccessCode);
@@ -1137,7 +1146,7 @@ namespace Apache.IoTDB
 
                     if (_debugMode)
                     {
-                        _logger.Info("insert records of one device, message: {0}", status.Message);
+                        _logger.LogInformation("insert records of one device, message: {0}", status.Message);
                     }
 
                     return _utilFunctions.VerifySuccess(status, SuccessCode);
@@ -1172,7 +1181,7 @@ namespace Apache.IoTDB
 
                 if (_debugMode)
                 {
-                    _logger.Info("insert aligned records of one device, message: {0}", status.Message);
+                    _logger.LogInformation("insert aligned records of one device, message: {0}", status.Message);
                 }
 
                 return _utilFunctions.VerifySuccess(status, SuccessCode);
@@ -1188,7 +1197,7 @@ namespace Apache.IoTDB
 
                     if (_debugMode)
                     {
-                        _logger.Info("insert aligned records of one device, message: {0}", status.Message);
+                        _logger.LogInformation("insert aligned records of one device, message: {0}", status.Message);
                     }
 
                     return _utilFunctions.VerifySuccess(status, SuccessCode);
@@ -1221,7 +1230,7 @@ namespace Apache.IoTDB
 
                 if (_debugMode)
                 {
-                    _logger.Info("insert one record to device {0}， server message: {1}", deviceId, status.Message);
+                    _logger.LogInformation("insert one record to device {0}， server message: {1}", deviceId, status.Message);
                 }
 
                 return _utilFunctions.VerifySuccess(status, SuccessCode);
@@ -1237,7 +1246,7 @@ namespace Apache.IoTDB
 
                     if (_debugMode)
                     {
-                        _logger.Info("insert one record to device {0}， server message: {1}", deviceId, status.Message);
+                        _logger.LogInformation("insert one record to device {0}， server message: {1}", deviceId, status.Message);
                     }
 
                     return _utilFunctions.VerifySuccess(status, SuccessCode);
@@ -1264,7 +1273,7 @@ namespace Apache.IoTDB
 
                 if (_debugMode)
                 {
-                    _logger.Info("insert multiple records to devices {0}, server message: {1}", deviceId, status.Message);
+                    _logger.LogInformation("insert multiple records to devices {0}, server message: {1}", deviceId, status.Message);
                 }
 
                 return _utilFunctions.VerifySuccess(status, SuccessCode);
@@ -1280,7 +1289,7 @@ namespace Apache.IoTDB
 
                     if (_debugMode)
                     {
-                        _logger.Info("insert multiple records to devices {0}, server message: {1}", deviceId, status.Message);
+                        _logger.LogInformation("insert multiple records to devices {0}, server message: {1}", deviceId, status.Message);
                     }
 
                     return _utilFunctions.VerifySuccess(status, SuccessCode);
@@ -1308,7 +1317,7 @@ namespace Apache.IoTDB
 
                 if (_debugMode)
                 {
-                    _logger.Info("insert one tablet to device {0}, server message: {1}", tablet.DeviceId,
+                    _logger.LogInformation("insert one tablet to device {0}, server message: {1}", tablet.DeviceId,
                         status.Message);
                 }
 
@@ -1325,7 +1334,7 @@ namespace Apache.IoTDB
 
                     if (_debugMode)
                     {
-                        _logger.Info("insert one tablet to device {0}, server message: {1}", tablet.DeviceId,
+                        _logger.LogInformation("insert one tablet to device {0}, server message: {1}", tablet.DeviceId,
                             status.Message);
                     }
 
@@ -1354,7 +1363,7 @@ namespace Apache.IoTDB
 
                 if (_debugMode)
                 {
-                    _logger.Info("insert multiple tablets, message: {0}", status.Message);
+                    _logger.LogInformation("insert multiple tablets, message: {0}", status.Message);
                 }
 
                 return _utilFunctions.VerifySuccess(status, SuccessCode);
@@ -1370,7 +1379,7 @@ namespace Apache.IoTDB
 
                     if (_debugMode)
                     {
-                        _logger.Info("insert multiple tablets, message: {0}", status.Message);
+                        _logger.LogInformation("insert multiple tablets, message: {0}", status.Message);
                     }
 
                     return _utilFunctions.VerifySuccess(status, SuccessCode);
@@ -1449,7 +1458,7 @@ namespace Apache.IoTDB
 
                 if (_debugMode)
                 {
-                    _logger.Info("execute non-query statement {0} message: {1}", sql, status.Message);
+                    _logger.LogInformation("execute non-query statement {0} message: {1}", sql, status.Message);
                 }
 
                 return _utilFunctions.VerifySuccess(status, SuccessCode);
@@ -1467,7 +1476,7 @@ namespace Apache.IoTDB
 
                     if (_debugMode)
                     {
-                        _logger.Info("execute non-query statement {0} message: {1}", sql, status.Message);
+                        _logger.LogInformation("execute non-query statement {0} message: {1}", sql, status.Message);
                     }
 
                     return _utilFunctions.VerifySuccess(status, SuccessCode);
@@ -1493,7 +1502,7 @@ namespace Apache.IoTDB
 
                 if (_debugMode)
                 {
-                    _logger.Info("create schema template {0} message: {1}", template.Name, status.Message);
+                    _logger.LogInformation("create schema template {0} message: {1}", template.Name, status.Message);
                 }
 
                 return _utilFunctions.VerifySuccess(status, SuccessCode);
@@ -1509,7 +1518,7 @@ namespace Apache.IoTDB
 
                     if (_debugMode)
                     {
-                        _logger.Info("create schema template {0} message: {1}", template.Name, status.Message);
+                        _logger.LogInformation("create schema template {0} message: {1}", template.Name, status.Message);
                     }
 
                     return _utilFunctions.VerifySuccess(status, SuccessCode);
@@ -1535,7 +1544,7 @@ namespace Apache.IoTDB
 
                 if (_debugMode)
                 {
-                    _logger.Info("drop schema template {0} message: {1}", templateName, status.Message);
+                    _logger.LogInformation("drop schema template {0} message: {1}", templateName, status.Message);
                 }
 
                 return _utilFunctions.VerifySuccess(status, SuccessCode);
@@ -1551,7 +1560,7 @@ namespace Apache.IoTDB
 
                     if (_debugMode)
                     {
-                        _logger.Info("drop schema template {0} message: {1}", templateName, status.Message);
+                        _logger.LogInformation("drop schema template {0} message: {1}", templateName, status.Message);
                     }
 
                     return _utilFunctions.VerifySuccess(status, SuccessCode);
@@ -1577,7 +1586,7 @@ namespace Apache.IoTDB
 
                 if (_debugMode)
                 {
-                    _logger.Info("set schema template {0} message: {1}", templateName, status.Message);
+                    _logger.LogInformation("set schema template {0} message: {1}", templateName, status.Message);
                 }
 
                 return _utilFunctions.VerifySuccess(status, SuccessCode);
@@ -1593,7 +1602,7 @@ namespace Apache.IoTDB
 
                     if (_debugMode)
                     {
-                        _logger.Info("set schema template {0} message: {1}", templateName, status.Message);
+                        _logger.LogInformation("set schema template {0} message: {1}", templateName, status.Message);
                     }
 
                     return _utilFunctions.VerifySuccess(status, SuccessCode);
@@ -1619,7 +1628,7 @@ namespace Apache.IoTDB
 
                 if (_debugMode)
                 {
-                    _logger.Info("unset schema template {0} message: {1}", templateName, status.Message);
+                    _logger.LogInformation("unset schema template {0} message: {1}", templateName, status.Message);
                 }
 
                 return _utilFunctions.VerifySuccess(status, SuccessCode);
@@ -1635,7 +1644,7 @@ namespace Apache.IoTDB
 
                     if (_debugMode)
                     {
-                        _logger.Info("unset schema template {0} message: {1}", templateName, status.Message);
+                        _logger.LogInformation("unset schema template {0} message: {1}", templateName, status.Message);
                     }
 
                     return _utilFunctions.VerifySuccess(status, SuccessCode);
@@ -1664,7 +1673,7 @@ namespace Apache.IoTDB
 
                 if (_debugMode)
                 {
-                    _logger.Info("add aligned measurements in template {0} message: {1}", templateName, status.Message);
+                    _logger.LogInformation("add aligned measurements in template {0} message: {1}", templateName, status.Message);
                 }
 
                 return _utilFunctions.VerifySuccess(status, SuccessCode);
@@ -1680,7 +1689,7 @@ namespace Apache.IoTDB
 
                     if (_debugMode)
                     {
-                        _logger.Info("add aligned measurements in template {0} message: {1}", templateName, status.Message);
+                        _logger.LogInformation("add aligned measurements in template {0} message: {1}", templateName, status.Message);
                     }
 
                     return _utilFunctions.VerifySuccess(status, SuccessCode);
@@ -1710,7 +1719,7 @@ namespace Apache.IoTDB
 
                 if (_debugMode)
                 {
-                    _logger.Info("add unaligned measurements in template {0} message: {1}", templateName, status.Message);
+                    _logger.LogInformation("add unaligned measurements in template {0} message: {1}", templateName, status.Message);
                 }
 
                 return _utilFunctions.VerifySuccess(status, SuccessCode);
@@ -1726,7 +1735,7 @@ namespace Apache.IoTDB
 
                     if (_debugMode)
                     {
-                        _logger.Info("add unaligned measurements in template {0} message: {1}", templateName, status.Message);
+                        _logger.LogInformation("add unaligned measurements in template {0} message: {1}", templateName, status.Message);
                     }
 
                     return _utilFunctions.VerifySuccess(status, SuccessCode);
@@ -1751,7 +1760,7 @@ namespace Apache.IoTDB
 
                 if (_debugMode)
                 {
-                    _logger.Info("delete node in template {0} message: {1}", templateName, status.Message);
+                    _logger.LogInformation("delete node in template {0} message: {1}", templateName, status.Message);
                 }
 
                 return _utilFunctions.VerifySuccess(status, SuccessCode);
@@ -1767,7 +1776,7 @@ namespace Apache.IoTDB
 
                     if (_debugMode)
                     {
-                        _logger.Info("delete node in template {0} message: {1}", templateName, status.Message);
+                        _logger.LogInformation("delete node in template {0} message: {1}", templateName, status.Message);
                     }
 
                     return _utilFunctions.VerifySuccess(status, SuccessCode);
@@ -1793,7 +1802,7 @@ namespace Apache.IoTDB
                 var status = resp.Status;
                 if (_debugMode)
                 {
-                    _logger.Info("count measurements in template {0} message: {1}", name, status.Message);
+                    _logger.LogInformation("count measurements in template {0} message: {1}", name, status.Message);
                 }
 
                 _utilFunctions.VerifySuccess(status, SuccessCode);
@@ -1810,7 +1819,7 @@ namespace Apache.IoTDB
                     var status = resp.Status;
                     if (_debugMode)
                     {
-                        _logger.Info("count measurements in template {0} message: {1}", name, status.Message);
+                        _logger.LogInformation("count measurements in template {0} message: {1}", name, status.Message);
                     }
 
                     _utilFunctions.VerifySuccess(status, SuccessCode);
@@ -1837,7 +1846,7 @@ namespace Apache.IoTDB
                 var status = resp.Status;
                 if (_debugMode)
                 {
-                    _logger.Info("is measurement in template {0} message: {1}", templateName, status.Message);
+                    _logger.LogInformation("is measurement in template {0} message: {1}", templateName, status.Message);
                 }
 
                 _utilFunctions.VerifySuccess(status, SuccessCode);
@@ -1854,7 +1863,7 @@ namespace Apache.IoTDB
                     var status = resp.Status;
                     if (_debugMode)
                     {
-                        _logger.Info("is measurement in template {0} message: {1}", templateName, status.Message);
+                        _logger.LogInformation("is measurement in template {0} message: {1}", templateName, status.Message);
                     }
 
                     _utilFunctions.VerifySuccess(status, SuccessCode);
@@ -1882,7 +1891,7 @@ namespace Apache.IoTDB
                 var status = resp.Status;
                 if (_debugMode)
                 {
-                    _logger.Info("is path exist in template {0} message: {1}", templateName, status.Message);
+                    _logger.LogInformation("is path exist in template {0} message: {1}", templateName, status.Message);
                 }
 
                 _utilFunctions.VerifySuccess(status, SuccessCode);
@@ -1899,7 +1908,7 @@ namespace Apache.IoTDB
                     var status = resp.Status;
                     if (_debugMode)
                     {
-                        _logger.Info("is path exist in template {0} message: {1}", templateName, status.Message);
+                        _logger.LogInformation("is path exist in template {0} message: {1}", templateName, status.Message);
                     }
 
                     _utilFunctions.VerifySuccess(status, SuccessCode);
@@ -1927,7 +1936,7 @@ namespace Apache.IoTDB
                 var status = resp.Status;
                 if (_debugMode)
                 {
-                    _logger.Info("get measurements in template {0} message: {1}", templateName, status.Message);
+                    _logger.LogInformation("get measurements in template {0} message: {1}", templateName, status.Message);
                 }
 
                 _utilFunctions.VerifySuccess(status, SuccessCode);
@@ -1944,7 +1953,7 @@ namespace Apache.IoTDB
                     var status = resp.Status;
                     if (_debugMode)
                     {
-                        _logger.Info("get measurements in template {0} message: {1}", templateName, status.Message);
+                        _logger.LogInformation("get measurements in template {0} message: {1}", templateName, status.Message);
                     }
 
                     _utilFunctions.VerifySuccess(status, SuccessCode);
@@ -1970,7 +1979,7 @@ namespace Apache.IoTDB
                 var status = resp.Status;
                 if (_debugMode)
                 {
-                    _logger.Info("get all templates message: {0}", status.Message);
+                    _logger.LogInformation("get all templates message: {0}", status.Message);
                 }
 
                 _utilFunctions.VerifySuccess(status, SuccessCode);
@@ -1987,7 +1996,7 @@ namespace Apache.IoTDB
                     var status = resp.Status;
                     if (_debugMode)
                     {
-                        _logger.Info("get all templates message: {0}", status.Message);
+                        _logger.LogInformation("get all templates message: {0}", status.Message);
                     }
 
                     _utilFunctions.VerifySuccess(status, SuccessCode);
@@ -2013,7 +2022,7 @@ namespace Apache.IoTDB
                 var status = resp.Status;
                 if (_debugMode)
                 {
-                    _logger.Info("get paths template set on {0} message: {1}", templateName, status.Message);
+                    _logger.LogInformation("get paths template set on {0} message: {1}", templateName, status.Message);
                 }
 
                 _utilFunctions.VerifySuccess(status, SuccessCode);
@@ -2030,7 +2039,7 @@ namespace Apache.IoTDB
                     var status = resp.Status;
                     if (_debugMode)
                     {
-                        _logger.Info("get paths template set on {0} message: {1}", templateName, status.Message);
+                        _logger.LogInformation("get paths template set on {0} message: {1}", templateName, status.Message);
                     }
 
                     _utilFunctions.VerifySuccess(status, SuccessCode);
@@ -2056,7 +2065,7 @@ namespace Apache.IoTDB
                 var status = resp.Status;
                 if (_debugMode)
                 {
-                    _logger.Info("get paths template using on {0} message: {1}", templateName, status.Message);
+                    _logger.LogInformation("get paths template using on {0} message: {1}", templateName, status.Message);
                 }
 
                 _utilFunctions.VerifySuccess(status, SuccessCode);
@@ -2073,7 +2082,7 @@ namespace Apache.IoTDB
                     var status = resp.Status;
                     if (_debugMode)
                     {
-                        _logger.Info("get paths template using on {0} message: {1}", templateName, status.Message);
+                        _logger.LogInformation("get paths template using on {0} message: {1}", templateName, status.Message);
                     }
 
                     _utilFunctions.VerifySuccess(status, SuccessCode);
