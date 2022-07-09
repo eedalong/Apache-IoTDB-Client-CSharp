@@ -87,13 +87,19 @@ namespace Apache.IoTDB.DataStructure
                 _valueBufferLst.Add(new ByteBuffer(_queryDataset.ValueList[index]));
                 _bitmapBufferLst.Add(new ByteBuffer(_queryDataset.BitmapList[index]));
             }
+       
         }
+        public List<string> ColumnNames => _columnNames;
+
 
         private List<string> GetColumnNames()
         {
-            var nameLst = new List<string> {"timestamp"};
-            nameLst.AddRange(_columnNames);
-            return nameLst;
+            var lst = new List<string>
+            {
+                "timestamp"
+            };
+            lst.AddRange(_columnNames);
+            return lst;
         }
 
         public void ShowTableNames()
@@ -136,6 +142,10 @@ namespace Apache.IoTDB.DataStructure
             }
 
             _hasCatchedResult = false;
+            return _cachedRowRecord;
+        }
+        public  RowRecord  GetRow()
+        {
             return _cachedRowRecord;
         }
 
@@ -211,7 +221,7 @@ namespace Apache.IoTDB.DataStructure
                     else
                     {
                         localField = null;
-                        fieldLst.Add("NULL");
+                        fieldLst.Add(DBNull.Value);
                     }
                 }
             }

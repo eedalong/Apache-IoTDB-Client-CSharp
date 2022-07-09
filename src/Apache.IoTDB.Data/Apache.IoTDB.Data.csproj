@@ -1,0 +1,26 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<AssemblyName>Apache.IoTDB.Data</AssemblyName>
+		<RootNamespace>$(AssemblyName)</RootNamespace>
+		<PackageId>Apache.IoTDB.Data</PackageId>
+		<Description>
+			IoTDB implementation of the System.Data.Common provider model.
+			Commonly Used Types:
+			Apache.IoTDB.Data.IoTDBCommand
+			Apache.IoTDB.Data.IoTDBConnection
+			Apache.IoTDB.Data.IoTDBConnectionStringBuilder
+			Apache.IoTDB.Data.IoTDBDataReader
+			Apache.IoTDB.Data.IoTDBException
+			Apache.IoTDB.Data.IoTDBFactory
+			Apache.IoTDB.Data.IoTDBParameter
+			Apache.IoTDB.Data.IoTDBTransaction
+		</Description>
+		<TargetFrameworks>net5;net6;netstandard2.1</TargetFrameworks>
+		<LangVersion>10</LangVersion>
+		<PackageReleaseNotes>Apache.IoTDB.Data  是一个TDengine 的ADO.Net 提供器。 这将允许你通过.Net  访问IoTDB数据库。		</PackageReleaseNotes>
+	</PropertyGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\Apache.IoTDB\Apache.IoTDB.csproj" />
+	</ItemGroup>
+</Project>

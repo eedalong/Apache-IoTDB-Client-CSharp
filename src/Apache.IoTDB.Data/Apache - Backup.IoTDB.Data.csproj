@@ -1,0 +1,162 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<AssemblyName>Apache.IoTDB.Data</AssemblyName>
+		<RootNamespace>$(AssemblyName)</RootNamespace>
+		<PackageId>Apache.IoTDB.Data</PackageId>
+		<Description>
+			IoTDB implementation of the System.Data.Common provider model.
+			Commonly Used Types:
+			Apache.IoTDB.Data.IoTDBCommand
+			Apache.IoTDB.Data.IoTDBConnection
+			Apache.IoTDB.Data.IoTDBConnectionStringBuilder
+			Apache.IoTDB.Data.IoTDBDataReader
+			Apache.IoTDB.Data.IoTDBException
+			Apache.IoTDB.Data.IoTDBFactory
+			Apache.IoTDB.Data.IoTDBParameter
+			Apache.IoTDB.Data.IoTDBTransaction
+		</Description>
+		<TargetFrameworks>net5;net6;netstandard2.1</TargetFrameworks>
+		<LangVersion>10</LangVersion>
+		<PackageTags>IoTDB;Data;ADO.NET;Entity Framework,;EF; Core;Data O/RM,;entity-framework-core;TDengine;IoTSharp</PackageTags>
+
+		<Authors>Apache.IoTDB</Authors>
+
+		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+
+		<PackageProjectUrl>https://github.com/IoTSharp/EntityFrameworkCore.IoTDB</PackageProjectUrl>
+
+		<PackageIconUrl></PackageIconUrl>
+
+		<RepositoryUrl>https://github.com/IoTSharp/EntityFrameworkCore.IoTDB</RepositoryUrl>
+
+		<PackageReleaseNotes>
+			Apache.IoTDB.Data  是一个TDengine 的ADO.Net 提供器。 这将允许你通过.Net Core 访问TDengine数据库。
+		</PackageReleaseNotes>
+
+		<PackageLicenseFile>LICENSE</PackageLicenseFile>
+
+		<Copyright>Copyright © 2019-2022 IoTSharp All rights reserved.</Copyright>
+
+		<Version>1.0.1</Version>
+
+		<Platforms>AnyCPU;x64;x86</Platforms>
+
+		<PackageIcon>48876650.jpg</PackageIcon>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net4.6|AnyCPU'">
+	  <LangVersion>default</LangVersion>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net4.6|x64'">
+	  <LangVersion>default</LangVersion>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|netstandard2.0|x64'">
+	  <LangVersion>default</LangVersion>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net5|x64'">
+	  <LangVersion>default</LangVersion>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net5|x86'">
+	  <LangVersion>default</LangVersion>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net5|AnyCPU'">
+	  <LangVersion>default</LangVersion>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net4.6|x86'">
+	  <LangVersion>default</LangVersion>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net4.6|AnyCPU'">
+	  <LangVersion>default</LangVersion>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net6|x86'">
+	  <LangVersion>default</LangVersion>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|netstandard2.0|x86'">
+	  <LangVersion>default</LangVersion>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net5|x64'">
+	  <LangVersion>default</LangVersion>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net6|x64'">
+	  <LangVersion>default</LangVersion>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net6|x64'">
+	  <LangVersion>default</LangVersion>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net6|x86'">
+	  <LangVersion>default</LangVersion>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net4.6|x86'">
+	  <LangVersion>default</LangVersion>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|netstandard2.0|AnyCPU'">
+	  <LangVersion>default</LangVersion>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net5|x86'">
+	  <LangVersion>default</LangVersion>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net5|AnyCPU'">
+	  <LangVersion>default</LangVersion>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net6|AnyCPU'">
+	  <LangVersion>default</LangVersion>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|netstandard2.0|AnyCPU'">
+	  <LangVersion>default</LangVersion>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net4.6|x64'">
+	  <LangVersion>default</LangVersion>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|netstandard2.0|x64'">
+	  <LangVersion>default</LangVersion>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|netstandard2.0|x86'">
+	  <LangVersion>default</LangVersion>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net6|AnyCPU'">
+	  <LangVersion>default</LangVersion>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<Compile Update="IoTDBCommandIoTDB.cs" />
+
+		<Compile Update="IoTDBConnectionIoTDB.cs" />
+	</ItemGroup>
+	<ItemGroup Condition="'$(TargetFramework)' == 'net4.6'">
+		<Reference Include="System.ComponentModel.DataAnnotations" />
+	</ItemGroup>
+	<ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0' ">
+		<PackageReference Include="System.ComponentModel.Annotations" Version="5.0.0" />
+	</ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+
+	</ItemGroup>
+	<ItemGroup>
+	  <ProjectReference Include="..\Apache.IoTDB\Apache.IoTDB.csproj" />
+	</ItemGroup>
+</Project>

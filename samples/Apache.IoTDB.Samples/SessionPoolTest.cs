@@ -2,7 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Apache.IoTDB.Data;
 using Apache.IoTDB.DataStructure;
+using ConsoleTableExt;
 
 namespace Apache.IoTDB.Samples
 {
@@ -93,9 +95,11 @@ namespace Apache.IoTDB.Samples
             await TestDeleteData();
 
             await TestNonSql();
- 
-        await TestSqlQuery();
- 
+
+
+            await TestSqlQuery();
+
+            await TestNonSqlBy_ADO();
         }
 
         public async Task TestGetTimeZone()
@@ -266,6 +270,43 @@ namespace Apache.IoTDB.Samples
             System.Diagnostics.Debug.Assert(status == 0);
             await session_pool.Close();
             Console.WriteLine("TestNonSql Passed");
+        }
+
+        public async Task TestNonSqlBy_ADO()
+        {
+            var cnts = new IoTDB.Data.IoTDBConnectionStringBuilder();
+            cnts.DataSource = host;
+            var cnt = new IoTDB.Data.IoTDBConnection(cnts.ConnectionString);
+            await cnt.OpenAsync();
+            var session_pool = cnt.SessionPool;
+            System.Diagnostics.Debug.Assert(cnt.State == System.Data.ConnectionState.Open);
+            var status = await session_pool.DeleteStorageGroupAsync(test_group_name);
+            await cnt.CreateCommand(
+                 "create timeseries " + string.Format("{0}.{1}", test_group_name, test_device) + ".status with datatype=BOOLEAN,encoding=PLAIN").ExecuteNonQueryAsync();
+            await cnt.CreateCommand(
+                "create timeseries " + string.Format("{0}.{1}", test_group_name, test_device) + ".temperature with datatype=FLOAT,encoding=PLAIN").ExecuteNonQueryAsync();
+            await cnt.CreateCommand(
+                "create timeseries " + string.Format("{0}.{1}", test_group_name, test_device) + ".hardware with datatype=TEXT,encoding=PLAIN").ExecuteNonQueryAsync();
+            status = await cnt.CreateCommand(
+                "insert into " + string.Format("{0}.{1}", test_group_name, test_device) + "(timestamp, status, temperature, hardware) VALUES (4, false, 20, 'yxl')").ExecuteNonQueryAsync();
+            System.Diagnostics.Debug.Assert(status == 0);
+            await cnt.CreateCommand(
+                "insert into " + string.Format("{0}.{1}", test_group_name, test_device) + "(timestamp, status, temperature, hardware) VALUES (5, true, 12, 'myy')").ExecuteNonQueryAsync();
+            await cnt.CreateCommand(
+                "insert into " + string.Format("{0}.{1}", test_group_name, test_device) + "(timestamp, status, temperature, hardware) VALUES (6, true, 21, 'lz')").ExecuteNonQueryAsync();
+            await cnt.CreateCommand(
+                "insert into " + string.Format("{0}.{1}", test_group_name, test_device) + "(timestamp, status, hardware) VALUES (7, true,'lz')").ExecuteNonQueryAsync();
+            await cnt.CreateCommand(
+                "insert into " + string.Format("{0}.{1}", test_group_name, test_device) + "(timestamp, status, hardware) VALUES (7, true,'lz')").ExecuteNonQueryAsync();
+            var reader = await cnt.CreateCommand(
+                "select * from " + string.Format("{0}.{1}", test_group_name, test_device) + " where time<10").ExecuteReaderAsync();
+            ConsoleTableBuilder.From(reader.ToDataTable()).WithFormat(ConsoleTableBuilderFormat.Default).ExportAndWriteLine();
+            status = await session_pool.DeleteStorageGroupAsync(test_group_name);
+            await cnt.CloseAsync();
+
+            System.Diagnostics.Debug.Assert(status == 0);
+
+            Console.WriteLine("TestNonSqlBy_ADO Passed");
         }
 
         public async Task TestSqlQuery()
