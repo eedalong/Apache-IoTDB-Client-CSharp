@@ -104,7 +104,7 @@ namespace Apache.IoTDB.Data
         /// <param name="parameterName">The name of the parameter.</param>
         /// <param name="type">The IoTDB type of the parameter.</param>
         /// <returns>The parameter that was added.</returns>
-        public virtual IoTDBParameter Add(string parameterName, IoTDBType type)
+        public virtual IoTDBParameter Add(string parameterName, TSDataType type)
             => Add(new IoTDBParameter(parameterName, type));
 
         /// <summary>
@@ -114,7 +114,7 @@ namespace Apache.IoTDB.Data
         /// <param name="type">The IoTDB type of the parameter.</param>
         /// <param name="size">The maximum size, in bytes, of the parameter.</param>
         /// <returns>The parameter that was added.</returns>
-        public virtual IoTDBParameter Add(string parameterName, IoTDBType type, int size)
+        public virtual IoTDBParameter Add(string parameterName, TSDataType type, int size)
             => Add(new IoTDBParameter(parameterName, type, size));
 
         /// <summary>
@@ -127,7 +127,7 @@ namespace Apache.IoTDB.Data
         ///     The source column used for loading the value of the parameter. Can be null.
         /// </param>
         /// <returns>The parameter that was added.</returns>
-        public virtual IoTDBParameter Add(string parameterName, IoTDBType type, int size, string sourceColumn)
+        public virtual IoTDBParameter Add(string parameterName, TSDataType type, int size, string sourceColumn)
             => Add(new IoTDBParameter(parameterName, type, size, sourceColumn));
 
         /// <summary>

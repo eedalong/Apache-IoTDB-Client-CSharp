@@ -16,7 +16,7 @@ namespace Apache.IoTDB.Data
         private string _parameterName = string.Empty;
         private object _value;
         private int? _size;
-        private IoTDBType? _IoTDBType;
+        private TSDataType? _IoTDBType;
 
         /// <summary>
         ///     Initializes a new instance of the <see cref="IoTDBParameter" /> class.
@@ -46,7 +46,7 @@ namespace Apache.IoTDB.Data
         /// </summary>
         /// <param name="name">The name of the parameter.</param>
         /// <param name="type">The type of the parameter.</param>
-        public IoTDBParameter(string name, IoTDBType type)
+        public IoTDBParameter(string name, TSDataType type)
         {
             if (string.IsNullOrEmpty(name))
             {
@@ -63,7 +63,7 @@ namespace Apache.IoTDB.Data
         /// <param name="name">The name of the parameter.</param>
         /// <param name="type">The type of the parameter.</param>
         /// <param name="size">The maximum size, in bytes, of the parameter.</param>
-        public IoTDBParameter(string name, IoTDBType type, int size)
+        public IoTDBParameter(string name, TSDataType type, int size)
             : this(name, type)
             => Size = size;
 
@@ -74,7 +74,7 @@ namespace Apache.IoTDB.Data
         /// <param name="type">The type of the parameter.</param>
         /// <param name="size">The maximum size, in bytes, of the parameter.</param>
         /// <param name="sourceColumn">The source column used for loading the value. Can be null.</param>
-        public IoTDBParameter(string name, IoTDBType type, int size, string sourceColumn)
+        public IoTDBParameter(string name, TSDataType type, int size, string sourceColumn)
             : this(name, type, size)
             => SourceColumn = sourceColumn;
 
@@ -92,7 +92,7 @@ namespace Apache.IoTDB.Data
         /// <value>The IoTDB type of the parameter.</value>
         /// <remarks>Due to IoTDB's dynamic type system, parameter values are not converted.</remarks>
 
-        public virtual IoTDBType IoTDBType
+        public virtual TSDataType IoTDBType
         {
             get => _IoTDBType.GetValueOrDefault();//?? IoTDBValueBinder.GetIoTDBType(_value);
             set => _IoTDBType = value;
@@ -200,7 +200,7 @@ namespace Apache.IoTDB.Data
         public virtual void ResetIoTDBType()
         {
             DbType = DbType.String;
-            IoTDBType = IoTDBType.Text;
+            IoTDBType = TSDataType.NONE;
         }
 
         
