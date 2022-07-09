@@ -287,6 +287,9 @@ namespace Apache.IoTDB.Samples
                 "create timeseries " + string.Format("{0}.{1}", test_group_name, test_device) + ".temperature with datatype=FLOAT,encoding=PLAIN").ExecuteNonQueryAsync();
             await cnt.CreateCommand(
                 "create timeseries " + string.Format("{0}.{1}", test_group_name, test_device) + ".hardware with datatype=TEXT,encoding=PLAIN").ExecuteNonQueryAsync();
+
+            status = await cnt.CreateCommand(
+    "insert into " + string.Format("{0}.{1}", test_group_name, test_device) + "(timestamp, status, temperature, hardware) VALUES (3, false, 20, '1yxl')").ExecuteNonQueryAsync();
             status = await cnt.CreateCommand(
                 "insert into " + string.Format("{0}.{1}", test_group_name, test_device) + "(timestamp, status, temperature, hardware) VALUES (4, false, 20, 'yxl')").ExecuteNonQueryAsync();
             System.Diagnostics.Debug.Assert(status == 0);
@@ -300,7 +303,7 @@ namespace Apache.IoTDB.Samples
                 "insert into " + string.Format("{0}.{1}", test_group_name, test_device) + "(timestamp, status, hardware) VALUES (7, true,'lz')").ExecuteNonQueryAsync();
             var reader = await cnt.CreateCommand(
                 "select * from " + string.Format("{0}.{1}", test_group_name, test_device) + " where time<10").ExecuteReaderAsync();
-            ConsoleTableBuilder.From(reader.ToDataTable()).WithFormat(ConsoleTableBuilderFormat.Default).ExportAndWriteLine();
+            ConsoleTableBuilder.From(reader.ToDataTable()).WithFormatter(0,fc=> $"{fc:yyyy-MM-dd HH:mm:ss.fff}" ).WithFormat(ConsoleTableBuilderFormat.Default).ExportAndWriteLine();
             status = await session_pool.DeleteStorageGroupAsync(test_group_name);
             await cnt.CloseAsync();
 

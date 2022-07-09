@@ -32,7 +32,8 @@ namespace Apache.IoTDB.DataStructure
         private int DefaultTimeout => 10000;
 
         public int FetchSize { get; set; }
-        
+
+        public int RowCount { get; set; }
         public SessionDataSet(string sql, TSExecuteStatementResp resp, ConcurrentClientQueue clientQueue)
         {
             _clientQueue = clientQueue;
@@ -51,6 +52,7 @@ namespace Apache.IoTDB.DataStructure
             // some internal variable
             _hasCatchedResult = false;
             _rowIndex = 0;
+            RowCount = _queryDataset.Time.Length / sizeof(long);
             if (resp.ColumnNameIndexMap != null)
             {
                 for (var index = 0; index < resp.Columns.Count; index++)

@@ -39,8 +39,8 @@ namespace Apache.IoTDB.Data
             _command = IoTDBCommand;
             _closeConnection = closeConnection;
             _fieldCount = dataSet.ColumnNames.Count;
-            _hasRows = dataSet.FetchSize > 0;
-            _recordsAffected = dataSet.FetchSize;
+            _hasRows = dataSet.RowCount > 0;
+            _recordsAffected =dataSet.RowCount;
             _closed = _closeConnection;
             _metas = dataSet.ColumnNames;
             _dataSet = dataSet;
@@ -56,7 +56,7 @@ namespace Apache.IoTDB.Data
         ///     Gets the number of columns in the current row.
         /// </summary>
         /// <value>The number of columns in the current row.</value>
-        public override int FieldCount => _fieldCount;
+        public override int FieldCount => _fieldCount+1;
 
         /// <summary>
         ///     Gets a value indicating whether the data reader contains any rows.
@@ -81,7 +81,7 @@ namespace Apache.IoTDB.Data
         {
             get
             {
-                return _recordsAffected; ;
+                return _recordsAffected; 
             }
         }
 
@@ -177,7 +177,7 @@ namespace Apache.IoTDB.Data
         /// <returns>The name of the column.</returns>
         public override string GetName(int ordinal)
         {
-            return rowdata.Measurements[ordinal];
+            return ordinal==0? "timestamp" : rowdata.Measurements[ordinal-1];
         }
 
         /// <summary>
@@ -186,7 +186,7 @@ namespace Apache.IoTDB.Data
         /// <param name="name">The name of the column.</param>
         /// <returns>The zero-based column ordinal.</returns>
         public override int GetOrdinal(string name)
-            => rowdata.Measurements.IndexOf(  name);
+            => "timestamp"==name?0: rowdata.Measurements.IndexOf(  name)+1;
 
         public override string GetDataTypeName(int ordinal)
         {
@@ -200,12 +200,8 @@ namespace Apache.IoTDB.Data
         /// <returns>The data type of the column.</returns>
         public override Type GetFieldType(int ordinal)
         {
-            if (_metas == null || ordinal >= _metas.Count)
-            {
-                throw new InvalidOperationException($"DataReaderClosed{nameof(GetFieldType)}");
-            }
-
-            return rowdata.GetCrlType(ordinal);
+        
+            return ordinal==0?typeof(DateTime): rowdata.GetCrlType(ordinal-1);
         }
 
         /// <summary>
@@ -394,13 +390,17 @@ namespace Apache.IoTDB.Data
         /// <returns>The value of the column.</returns>
         public override object GetValue(int ordinal)
         {
-            object result ;
-            var data = rowdata.Values[ordinal];
-            if (data !=null)
+            object result;
+            if (ordinal == 0)
             {
-                result = data;
+                result = rowdata.GetDateTime();
             }
             else
+            {
+                result = rowdata.Values[ordinal - 1];
+            }
+            if (result == null)
+
             {
                 result = DBNull.Value;
             }
@@ -417,12 +417,13 @@ namespace Apache.IoTDB.Data
         public override int GetValues(object[] values)
         {
             int count = 0;
+            values[0] = rowdata.GetDateTime();
             for (int i = 0; i < _fieldCount; i++)
             {
                 var obj = rowdata.Values[i];
                 if (obj != null  )
                 {
-                    values[i] = obj;
+                    values[i+1] = obj;
                     count++;
                 }
             }
@@ -490,11 +491,37 @@ namespace Apache.IoTDB.Data
                 columns.Add(IsAutoIncrement);
                 columns.Add(IsLong);
 
-                for (var i = 0; i < rowdata.Measurements.Count; i++)
+
+
+                var schemaRow1 = schemaTable.NewRow();
+
+                var columnName1 = "timestamp";
+                schemaRow1[ColumnName] = columnName1;
+                schemaRow1[ColumnOrdinal] = 0;
+
+                schemaRow1[NumericPrecision] = DBNull.Value;
+                schemaRow1[NumericScale] = DBNull.Value;
+                schemaRow1[BaseServerName] = _command.Connection.DataSource;
+
+                schemaRow1[BaseColumnName] = columnName1;
+                schemaRow1[BaseSchemaName] = DBNull.Value;
+                var tableName1 = string.Empty;
+                schemaRow1[BaseTableName] = tableName1;
+                schemaRow1[DataType] = typeof(DateTime);
+                schemaRow1[DataTypeName] = typeof(DateTime).Name;
+                schemaRow1[IsExpression] = columnName1 == null;
+                schemaRow1[IsLong] = DBNull.Value;
+                schemaRow1[IsKey] = true;
+        
+ 
+                schemaTable.Rows.Add(schemaRow1);
+
+
+                for (var i = 1; i < rowdata.Measurements.Count+1; i++)
                 {
                     var schemaRow = schemaTable.NewRow();
 
-                    var columnName = rowdata.Measurements[i] ;
+                    var columnName = rowdata.Measurements[i-1] ;
                     schemaRow[ColumnName] = columnName;
                     schemaRow[ColumnOrdinal] = i;
                
@@ -512,13 +539,6 @@ namespace Apache.IoTDB.Data
                     schemaRow[IsLong] = DBNull.Value;
                     schemaRow[IsKey]= false;
                     schemaRow[AllowDBNull] = true;
-                    
-                    //if (i == 0)
-                    //{
-                    //    schemaRow[IsKey] = true;
-                    //    schemaRow[DataType] = GetFieldType(i);
-                    //    schemaRow[DataTypeName] = GetDataTypeName(i);
-                    //}
                     schemaTable.Rows.Add(schemaRow);
                 }
 
