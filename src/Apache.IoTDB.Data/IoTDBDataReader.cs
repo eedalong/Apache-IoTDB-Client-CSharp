@@ -1,6 +1,4 @@
-﻿
-
-using Apache.IoTDB.DataStructure;
+﻿using Apache.IoTDB.DataStructure;
 using System;
 using System.Collections;
 using System.Collections.Generic;

@@ -24,7 +24,6 @@ namespace Apache.IoTDB.Data
     {
         private readonly Lazy<IoTDBParameterCollection> _parameters = new Lazy<IoTDBParameterCollection>(
             () => new IoTDBParameterCollection());
-        private readonly DateTime _dt1970;
         private IoTDBConnection _connection;
         private string _commandText;
         private SessionPool _IoTDB => _connection._IoTDB;
@@ -33,7 +32,7 @@ namespace Apache.IoTDB.Data
         /// </summary>
         public IoTDBCommand()
         {
-            _dt1970 = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+
         }
 
         /// <summary>
