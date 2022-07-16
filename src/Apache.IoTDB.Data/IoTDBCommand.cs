@@ -299,13 +299,13 @@ namespace Apache.IoTDB.Data
                 int _affectRows = 0;
                 SessionDataSet dataSet=null;
                 bool isok = false;
-                Task<SessionDataSet> taskDataSet =null;
+                Task<SessionDataSet> taskDataSet = null;
                 if (_parameters.IsValueCreated)
                 {
-            
-                        var pms = _parameters.Value;
-                         var record = BindParamters(pms);
-                       
+
+                    var pms = _parameters.Value;
+                    var record = BindParamters(pms);
+                    throw new NotSupportedException();
                 }
                 else
                 {
