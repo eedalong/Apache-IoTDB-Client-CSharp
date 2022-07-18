@@ -81,6 +81,89 @@ namespace Apache.IoTDB.DataStructure
 
             return dataTypeValues;
         }
+        public TypeCode GetTypeCode(int index)
+        {
+            TypeCode tSDataType = TypeCode.Empty;
+            var valueType = Values[index];
+            switch (valueType)
+            {
+                case bool _:
+                    tSDataType = TypeCode.Boolean;
+                    break;
+                case int _:
+                    tSDataType = TypeCode.Int32;
+                    break;
+                case long _:
+                    tSDataType = TypeCode.Int64;
+                    break;
+                case float _:
+                    tSDataType = TypeCode.Single;
+                    break;
+                case double _:
+                    tSDataType = TypeCode.Double;
+                    break;
+                case string _:
+                    tSDataType = TypeCode.String;
+                    break;
+            }
+            return tSDataType;
+        }
+        public Type GetCrlType(int index)
+        {
+            Type tSDataType =  typeof(object);
+            var valueType = Values[index];
+            switch (valueType)
+            {
+                case bool _:
+                    tSDataType = typeof( bool);
+                    break;
+                case int _:
+                    tSDataType = typeof(int);
+                    break;
+                case long _:
+                    tSDataType = typeof(long);
+                    break;
+                case float _:
+                    tSDataType = typeof(float);
+                    break;
+                case double _:
+                    tSDataType = typeof(double);
+                    break;
+                case string _:
+                    tSDataType = typeof(string);
+                    break;
+            }
+            return tSDataType;
+        }
+
+        public TSDataType GetDataType(int index)
+        {
+            TSDataType tSDataType = TSDataType.NONE;
+            var valueType = Values[index];
+            switch (valueType)
+            {
+                case bool _:
+                    tSDataType = TSDataType.BOOLEAN;
+                    break;
+                case int _:
+                    tSDataType = TSDataType.INT32;
+                    break;
+                case long _:
+                    tSDataType = TSDataType.INT64;
+                    break;
+                case float _:
+                    tSDataType = TSDataType.FLOAT;
+                    break;
+                case double _:
+                    tSDataType = TSDataType.DOUBLE;
+                    break;
+                case string _:
+                    tSDataType = TSDataType.TEXT;
+                    break;
+            }
+            return tSDataType;
+        }
+
 
         public byte[] ToBytes()
         {

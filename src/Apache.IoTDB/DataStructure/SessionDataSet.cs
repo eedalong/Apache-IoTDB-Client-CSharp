@@ -32,7 +32,8 @@ namespace Apache.IoTDB.DataStructure
         private int DefaultTimeout => 10000;
 
         public int FetchSize { get; set; }
-        
+
+        public int RowCount { get; set; }
         public SessionDataSet(string sql, TSExecuteStatementResp resp, ConcurrentClientQueue clientQueue)
         {
             _clientQueue = clientQueue;
@@ -51,6 +52,7 @@ namespace Apache.IoTDB.DataStructure
             // some internal variable
             _hasCatchedResult = false;
             _rowIndex = 0;
+            RowCount = _queryDataset.Time.Length / sizeof(long);
             if (resp.ColumnNameIndexMap != null)
             {
                 for (var index = 0; index < resp.Columns.Count; index++)
@@ -87,13 +89,19 @@ namespace Apache.IoTDB.DataStructure
                 _valueBufferLst.Add(new ByteBuffer(_queryDataset.ValueList[index]));
                 _bitmapBufferLst.Add(new ByteBuffer(_queryDataset.BitmapList[index]));
             }
+       
         }
+        public List<string> ColumnNames => _columnNames;
+
 
         private List<string> GetColumnNames()
         {
-            var nameLst = new List<string> {"timestamp"};
-            nameLst.AddRange(_columnNames);
-            return nameLst;
+            var lst = new List<string>
+            {
+                "timestamp"
+            };
+            lst.AddRange(_columnNames);
+            return lst;
         }
 
         public void ShowTableNames()
@@ -136,6 +144,10 @@ namespace Apache.IoTDB.DataStructure
             }
 
             _hasCatchedResult = false;
+            return _cachedRowRecord;
+        }
+        public  RowRecord  GetRow()
+        {
             return _cachedRowRecord;
         }
 
@@ -211,7 +223,7 @@ namespace Apache.IoTDB.DataStructure
                     else
                     {
                         localField = null;
-                        fieldLst.Add("NULL");
+                        fieldLst.Add(DBNull.Value);
                     }
                 }
             }

@@ -7,6 +7,7 @@ FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
 WORKDIR /src
 COPY ["samples/Apache.IoTDB.Samples/Apache.IoTDB.Samples.csproj", "samples/Apache.IoTDB.Samples/"]
 COPY ["src/Apache.IoTDB/Apache.IoTDB.csproj", "src/Apache.IoTDB/"]
+COPY ["src/Apache.IoTDB.Data/Apache.IoTDB.Data.csproj", "src/Apache.IoTDB.Data/"]
 RUN dotnet restore "samples/Apache.IoTDB.Samples/Apache.IoTDB.Samples.csproj"
 COPY . .
 WORKDIR "/src/samples/Apache.IoTDB.Samples"

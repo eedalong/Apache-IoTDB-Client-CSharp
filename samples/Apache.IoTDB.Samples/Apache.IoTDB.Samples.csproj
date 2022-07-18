@@ -7,12 +7,22 @@
         <DockerfileContext>..\..</DockerfileContext>
     </PropertyGroup>
 
+    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+      <LangVersion>default</LangVersion>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+      <LangVersion>default</LangVersion>
+    </PropertyGroup>
+
     <ItemGroup>
+      <PackageReference Include="ConsoleTableExt" Version="3.2.0" />
       <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.15.1" />
       <PackageReference Include="NLog.Extensions.Logging" Version="5.0.1" />
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\..\src\Apache.IoTDB.Data\Apache.IoTDB.Data.csproj" />
       <ProjectReference Include="..\..\src\Apache.IoTDB\Apache.IoTDB.csproj" />
     </ItemGroup>
 

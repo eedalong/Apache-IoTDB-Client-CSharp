@@ -46,23 +46,7 @@ namespace Apache.IoTDB
             _fetchSize = 1024;
             _poolSize = poolSize;
         }
-        public SessionPool(string connectionString)
-        {
-            Dictionary<string, string> pairs = new Dictionary<string, string>();
-            connectionString.Split(';', StringSplitOptions.RemoveEmptyEntries).ToList().ForEach(f =>
-                {
-                    var kv = f.Split('=');
-                    pairs.TryAdd(key: kv[0], value: kv[1]);
-                });
-            _host = pairs.GetValueOrDefault("Server") ?? "127.0.0.1";
-            _port = int.Parse(pairs.GetValueOrDefault("Port") ?? "6667");
-            _username = pairs.GetValueOrDefault("User") ?? "root";
-            _password = pairs.GetValueOrDefault("Password") ?? "root";
-            _fetchSize = int.Parse(pairs.GetValueOrDefault("fetchSize") ?? "1800");
-            _enableRpcCompression = bool.Parse(pairs.GetValueOrDefault("enableRpcCompression") ?? "false");
-            _poolSize = int.Parse(pairs.GetValueOrDefault("poolSize") ?? "8");
-            _zoneId = pairs.GetValueOrDefault("zoneId") ?? "UTC+08:00";
-        }
+
         public SessionPool(
             string host,
             int port,
@@ -129,14 +113,14 @@ namespace Apache.IoTDB
             _debugMode = false;
         }
 
-        public async Task Open(bool enableRpcCompression)
+        public async Task Open(bool enableRpcCompression, CancellationToken cancellationToken = default)
         {
             _clients = new ConcurrentClientQueue();
             _enableRpcCompression = enableRpcCompression;
 
             for (var index = 0; index < _poolSize; index++)
             {
-                _clients.Add(await CreateAndOpen(enableRpcCompression));
+                _clients.Add(await CreateAndOpen(enableRpcCompression, cancellationToken));
             }
         }
 
@@ -216,7 +200,7 @@ namespace Apache.IoTDB
             }
         }
 
-        private async Task<Client> CreateAndOpen(bool enableRpcCompression)
+        private async Task<Client> CreateAndOpen(bool enableRpcCompression, CancellationToken cancellationToken = default)
         {
             var tcpClient = new TcpClient(_host, _port);
 
@@ -224,7 +208,7 @@ namespace Apache.IoTDB
 
             if (!transport.IsOpen)
             {
-                await transport.OpenAsync(new CancellationToken());
+                await transport.OpenAsync(cancellationToken);
             }
 
             var client = enableRpcCompression ?
@@ -239,7 +223,7 @@ namespace Apache.IoTDB
 
             try
             {
-                var openResp = await client.openSessionAsync(openReq);
+                var openResp = await client.openSessionAsync(openReq, cancellationToken);
 
                 if (openResp.ServerProtocolVersion != ProtocolVersion)
                 {
@@ -252,7 +236,7 @@ namespace Apache.IoTDB
                 }
 
                 var sessionId = openResp.SessionId;
-                var statementId = await client.requestStatementIdAsync(sessionId);
+                var statementId = await client.requestStatementIdAsync(sessionId, cancellationToken);
 
                 _isClose = false;
 
