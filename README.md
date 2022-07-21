@@ -44,13 +44,13 @@ dotnet add package Apache.IoTDB.framework --version 0.12.1.2
 
 ### Install from NuGet Package
 
-We have prepared Nuget Package for C# users. Users can directly install the client through .NET CLI. [The link of our NuGet Package is here](https://www.nuget.org/packages/Apache.IoTDB/). Run the following command in the command line to complete installation
+We have prepared Nuget Package for C# users who are using `.net 5.0` or higher version. Users can directly install the client through .NET CLI. [The link of our NuGet Package is here](https://www.nuget.org/packages/Apache.IoTDB/). Run the following command in the command line to complete installation
 
 ```sh
 dotnet add package Apache.IoTDB
 ```
 
-Note that the `Apache.IoTDB` package only supports `.net 5.0`. If you are using `.net framework 4.x`, please refer to the section [starting from .net framework 4.x](#starting-from-net-framework-4x).
+Note that the `Apache.IoTDB` package only supports `.net 5.0` or higher version. If you are using `.net framework 4.x`, please refer to the section [starting from .net framework 4.x](#starting-from-net-framework-4x).
 
 ## Prerequisites
 
