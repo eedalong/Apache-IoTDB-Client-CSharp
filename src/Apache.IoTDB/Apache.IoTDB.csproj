@@ -1,11 +1,24 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-		<TargetFrameworks>net5.0;net6.0;netstandard2.1</TargetFrameworks>
+		<TargetFrameworks>net5.0;net6.0;netstandard2.1;netstandard2.0;net461</TargetFrameworks>
+		<LangVersion>latest</LangVersion>
+		
     </PropertyGroup>
- 
-    <ItemGroup>
+	
+	<ItemGroup>
 		<PackageReference Include="ApacheThrift" Version="0.14.1" />
-    </ItemGroup>
 
+
+
+
+	</ItemGroup>
+	<ItemGroup Condition="'$(TargetFramework)' == 'net461' or '$(TargetFramework)' == 'netstandard2.0'">
+	
+		<PackageReference Include="Grax.ArrayExtensions" Version="1.0.2" />
+		<PackageReference Include="TA.System.Runtime.CompilerServices.RuntimeHelpers.GetSubArray" Version="1.0.1" />
+	 
+		<PackageReference Include="IndexRange" Version="1.0.2" />
+	</ItemGroup>
+	
 </Project>

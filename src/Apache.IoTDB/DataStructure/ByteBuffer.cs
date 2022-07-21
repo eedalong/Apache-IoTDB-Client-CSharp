@@ -51,10 +51,13 @@ namespace Apache.IoTDB.DataStructure
         public int GetInt()
         {
             var intBuff = _buffer[_readPos..(_readPos + 4)];
-            
             if (_isLittleEndian) intBuff = intBuff.Reverse().ToArray();
-
+#if NET461_OR_GREATER || NETSTANDARD2_0
+            var intValue = BitConverter.ToInt32(intBuff,0);
+#else
             var intValue = BitConverter.ToInt32(intBuff);
+#endif
+
             _readPos += 4;
             return intValue;
         }
@@ -64,8 +67,12 @@ namespace Apache.IoTDB.DataStructure
             var longBuff = _buffer[_readPos..(_readPos + 8)];
             
             if (_isLittleEndian) longBuff = longBuff.Reverse().ToArray();
-
+#if NET461_OR_GREATER || NETSTANDARD2_0
+            var longValue = BitConverter.ToInt64(longBuff,0);
+#else
             var longValue = BitConverter.ToInt64(longBuff);
+#endif
+
             _readPos += 8;
             return longValue;
         }
@@ -75,8 +82,11 @@ namespace Apache.IoTDB.DataStructure
             var floatBuff = _buffer[_readPos..(_readPos + 4)];
             
             if (_isLittleEndian) floatBuff = floatBuff.Reverse().ToArray();
-
+#if NET461_OR_GREATER || NETSTANDARD2_0
+            var floatValue = BitConverter.ToSingle(floatBuff,0);
+#else
             var floatValue = BitConverter.ToSingle(floatBuff);
+#endif
             _readPos += 4;
             return floatValue;
         }
@@ -86,8 +96,11 @@ namespace Apache.IoTDB.DataStructure
             var doubleBuff = _buffer[_readPos..(_readPos + 8)];
             
             if (_isLittleEndian) doubleBuff = doubleBuff.Reverse().ToArray();
-
+#if NET461_OR_GREATER || NETSTANDARD2_0
+            var doubleValue = BitConverter.ToDouble(doubleBuff,0);
+#else
             var doubleValue = BitConverter.ToDouble(doubleBuff);
+#endif
             _readPos += 8;
             return doubleValue;
         }

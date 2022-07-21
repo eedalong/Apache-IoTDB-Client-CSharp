@@ -1,5 +1,7 @@
 using System;
-
+#if NET461_OR_GREATER || NETSTANDARD2_0
+using Grax.Extensions;
+#endif
 public class BitMap
 {
     private static byte[] BIT_UTIL = new byte[] { 1, 2, 4, 8, 16, 32, 64, 255 };
@@ -22,7 +24,11 @@ public class BitMap
     {
         this.size = size;
         bits = new byte[size / 8 + 1];
-        Array.Fill(bits, (byte)0);
+#if NET461_OR_GREATER || NETSTANDARD2_0
+        bits.Fill((byte)0);
+#else
+        Array.Fill<byte>(bits, (byte)0);
+#endif
     }
 
     /** Initialize a BitMap with given size and bytes. */
@@ -51,7 +57,12 @@ public class BitMap
     /** mark as 1 at all positions. */
     public void markAll()
     {
+#if NET461_OR_GREATER || NETSTANDARD2_0
+        bits.Fill((byte)0xFF);
+#else
         Array.Fill(bits, (byte)0xFF);
+#endif
+
     }
 
     /** mark as 1 at the given bit position. */
@@ -63,7 +74,11 @@ public class BitMap
     /** mark as 0 at all positions. */
     public void reset()
     {
+#if NET461_OR_GREATER || NETSTANDARD2_0
+        bits.Fill((byte)0xFF);
+#else
         Array.Fill(bits, (byte)0);
+#endif
     }
 
     public void unmark(int position)
