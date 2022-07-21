@@ -31,6 +31,15 @@ This is the C# client of Apache IoTDB.
 Apache IoTDB website: https://iotdb.apache.org
 Apache IoTDB Github: https://github.com/apache/iotdb
 
+## Starting from `.net framework 4.x`
+In order to adapt to `.net framework 4.x`, we have packaged a nuget package separately, the package name is [`Apache.IoTDB.framework`](https://www.nuget.org/packages/Apache.IoTDB.framework/). 
+
+You can install it through Package Manager (PM), .NET CLI, etc. For example (.NET CLI):
+
+```sh
+dotnet add package Apache.IoTDB.framework --version 0.12.1.2
+```
+
 ## Installation
 
 ### Install from NuGet Package
@@ -68,12 +77,3 @@ NLog >= 4.7.9
 
 ## Publish your own client on nuget.org
 You can find out how to publish from this [doc](./PUBLISH.md).
-
-## Starting from `.net framework 4.x`
-In order to adapt to `.net framework 4.x`, we have packaged a nuget package separately, the package name is [`Apache.IoTDB.framework`](https://www.nuget.org/packages/Apache.IoTDB.framework/). 
-
-You can install it through Package Manager (PM), .NET CLI, etc. For example (.NET CLI):
-
-```sh
-dotnet add package Apache.IoTDB.framework --version 0.12.1.2
-```
