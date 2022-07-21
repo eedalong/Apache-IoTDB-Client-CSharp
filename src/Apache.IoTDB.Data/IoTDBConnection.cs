@@ -188,7 +188,11 @@ namespace Apache.IoTDB.Data
         {
             CloseAsync().GetAwaiter().GetResult(); ;
         }
+#if NET461_OR_GREATER || NETSTANDARD2_0
+        public  async Task CloseAsync()
+#else
         public override async Task CloseAsync()
+#endif
         { 
             if (State != ConnectionState.Closed)
                 await  _IoTDB.Close();
