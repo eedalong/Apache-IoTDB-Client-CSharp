@@ -30,31 +30,25 @@ This is the C# client of Apache IoTDB.
 
 Apache IoTDB website: https://iotdb.apache.org
 Apache IoTDB Github: https://github.com/apache/iotdb
-
-## Starting from `.net framework 4.x`
-In order to adapt to `.net framework 4.x`, we have packaged a nuget package separately, the package name is [`Apache.IoTDB.framework`](https://www.nuget.org/packages/Apache.IoTDB.framework/). 
-
-You can install it through Package Manager (PM), .NET CLI, etc. For example (.NET CLI):
-
-```sh
-dotnet add package Apache.IoTDB.framework --version 0.12.1.2
-```
+ 
 
 ## Installation
 
 ### Install from NuGet Package
 
-We have prepared Nuget Package for C# users who are using `.net 5.0` or higher version. Users can directly install the client through .NET CLI. [The link of our NuGet Package is here](https://www.nuget.org/packages/Apache.IoTDB/). Run the following command in the command line to complete installation
+We have prepared Nuget Package for C# users who are using `.Net Framework 4.6.1` or higher version. Users can directly install the client through .NET CLI. [The link of our NuGet Package is here](https://www.nuget.org/packages/Apache.IoTDB/). Run the following command in the command line to complete installation
 
 ```sh
 dotnet add package Apache.IoTDB
 ```
 
-Note that the `Apache.IoTDB` package only supports `.net 5.0` or higher version. If you are using `.net framework 4.x`, please refer to the section [starting from .net framework 4.x](#starting-from-net-framework-4x).
-
+ 
 ## Prerequisites
 
-    .NET SDK Version == 5.0 
+    .NET SDK Version == 5.0 or higher version
+    .Net Framework 4.6.1 or   higher version 
+    .Net Standard 2.0 or 2.1 
+
 
 ## How to Use the Client (Quick Start)
 
@@ -63,9 +57,10 @@ Users can refer to the test code in [tests](https://github.com/eedalong/Apache-I
 ## Developer environment requirements for iotdb-client-csharp
 
 ```
-.NET SDK Version == 5.0
-ApacheThrift >= 0.14.1
-NLog >= 4.7.9
+    .NET SDK Version == 5.0 or higher version
+    .Net Framework 4.6.1 or   higher version 
+    .Net Standard 2.0 or 2.1 
+    ApacheThrift >= 0.14.1
 ```
 
 ### OS
