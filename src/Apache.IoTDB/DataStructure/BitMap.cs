@@ -1,6 +1,6 @@
 using System;
 #if NET461_OR_GREATER || NETSTANDARD2_0
-using Grax.Extensions;
+using Grax32.Extensions;
 #endif
 public class BitMap
 {
