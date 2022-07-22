@@ -1,6 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
+        <PackageVersion>0.13.0.7-alpha</PackageVersion>
+        <Authors>eedalong, lausannel, MysticBoy, Aiemu</Authors>
+        <Company>LiuLin Lab</Company>
 		<AssemblyName>Apache.IoTDB.Data</AssemblyName>
 		<RootNamespace>$(AssemblyName)</RootNamespace>
 		<PackageId>Apache.IoTDB.Data</PackageId>
@@ -18,7 +21,7 @@
 		</Description>
 		<TargetFrameworks>net5.0;net6.0;netstandard2.1;netstandard2.0;net461</TargetFrameworks>
 		<LangVersion>10</LangVersion>
-		<PackageReleaseNotes>Apache.IoTDB.Data  是一个TDengine 的ADO.Net 提供器。 这将允许你通过.Net  访问IoTDB数据库。		</PackageReleaseNotes>
+		<PackageReleaseNotes>Apache.IoTDB.Data  是一个TDengine 的ADO.Net 提供器。 这将允许你通过.Net访问IoTDB数据库。		</PackageReleaseNotes>
 	</PropertyGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\Apache.IoTDB\Apache.IoTDB.csproj" />
