@@ -6,7 +6,7 @@ using Thrift;
 
 namespace Apache.IoTDB.DataStructure
 {
-    public class SessionDataSet
+    public class SessionDataSet: System.IDisposable
     {
         private readonly long _queryId;
         private readonly string _sql;
@@ -306,6 +306,17 @@ namespace Apache.IoTDB.DataStructure
                     _clientQueue.Add(myClient);
                 }
             }
+        }
+        ~SessionDataSet()
+        {
+            this.Dispose();
+        }
+
+       
+        public void Dispose()
+        {
+            this.Close().Wait();
+          
         }
     }
 }
