@@ -89,7 +89,9 @@ namespace Apache.IoTDB
             string password = "root",
             int fetchSize = 1000,
             string zoneId = "UTC+08:00",
-            int poolSize = 8)
+            int poolSize = 8,
+            bool enableRpcCompression = true
+            )
         {
             _host = host;
             _port = port;
@@ -99,7 +101,9 @@ namespace Apache.IoTDB
             _fetchSize = fetchSize;
             _debugMode = false;
             _poolSize = poolSize;
+            _enableRpcCompression = enableRpcCompression;
         }
+
         ILoggerFactory factory;
         public void OpenDebugMode(Action<ILoggingBuilder> configure)
         {
@@ -115,12 +119,18 @@ namespace Apache.IoTDB
 
         public async Task Open(bool enableRpcCompression, CancellationToken cancellationToken = default)
         {
-            _clients = new ConcurrentClientQueue();
             _enableRpcCompression = enableRpcCompression;
+            await Open(cancellationToken);
+        }
+
+        public async Task Open(CancellationToken cancellationToken = default)
+        {
+            _clients = new ConcurrentClientQueue();
+
 
             for (var index = 0; index < _poolSize; index++)
             {
-                _clients.Add(await CreateAndOpen(enableRpcCompression, cancellationToken));
+                _clients.Add(await CreateAndOpen(_enableRpcCompression, cancellationToken));
             }
         }
 
