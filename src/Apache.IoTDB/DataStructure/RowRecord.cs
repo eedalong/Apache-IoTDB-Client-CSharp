@@ -11,6 +11,10 @@ namespace Apache.IoTDB.DataStructure
         public List<object> Values { get; }
         public List<string> Measurements { get; }
 
+        public RowRecord(DateTime timestamp, List<object> values, List<string> measurements)
+            :this(new DateTimeOffset(timestamp.ToUniversalTime()).ToUnixTimeMilliseconds(), values,measurements)
+        {
+        }
         public RowRecord(long timestamps, List<object> values, List<string> measurements)
         {
             Timestamps = timestamps;
