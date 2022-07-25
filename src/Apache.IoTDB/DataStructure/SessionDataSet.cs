@@ -23,8 +23,8 @@ namespace Apache.IoTDB.DataStructure
         private int _rowIndex;
         private bool _hasCatchedResult;
         private RowRecord _cachedRowRecord;
-        private readonly bool _isClosed = false;
-
+        private   bool _isClosed = false;
+        private bool disposedValue;
 
         private string TimestampStr => "Time";
         private int StartIndex => 2;
@@ -295,7 +295,7 @@ namespace Apache.IoTDB.DataStructure
 
                 try
                 {
-                    await myClient.ServiceClient.closeOperationAsync(req);
+                  var status=  await myClient.ServiceClient.closeOperationAsync(req);
                 }
                 catch (TException e)
                 {
@@ -307,16 +307,33 @@ namespace Apache.IoTDB.DataStructure
                 }
             }
         }
-        ~SessionDataSet()
+
+        protected virtual void Dispose(bool disposing)
         {
-            this.Dispose();
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+                    try
+                    {
+                        this.Close().Wait();
+                    }
+                    catch 
+                    {
+                    }
+                }
+                _queryDataset=null; 
+                _timeBuffer = null;
+                _valueBufferLst = null;
+                _bitmapBufferLst = null;
+                disposedValue = true;
+            }
         }
 
-       
         public void Dispose()
         {
-            this.Close().Wait();
-          
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
         }
     }
 }

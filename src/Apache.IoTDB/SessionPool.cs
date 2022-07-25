@@ -14,7 +14,8 @@ using Thrift.Transport.Client;
 
 namespace Apache.IoTDB
 {
-    public class SessionPool
+
+    public class SessionPool:IDisposable
     {
         private static int SuccessCode => 200;
         private static readonly TSProtocolVersion ProtocolVersion = TSProtocolVersion.IOTDB_SERVICE_PROTOCOL_V3;
@@ -105,6 +106,8 @@ namespace Apache.IoTDB
         }
 
         ILoggerFactory factory;
+        private bool disposedValue;
+
         public void OpenDebugMode(Action<ILoggingBuilder> configure)
         {
             _debugMode = true;
@@ -2093,13 +2096,26 @@ namespace Apache.IoTDB
             }
         }
 
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+#if NET461_OR_GREATER || NETSTANDARD2_0
+#else
+                    _clients.ClientQueue.Clear();
+#endif
+                }
+                _clients = null;
+                disposedValue = true;
+            }
+        }
 
-
-
-
-
-
-
-
+        public void Dispose()
+        {
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
+        }
     }
 }
