@@ -14,7 +14,8 @@ using Thrift.Transport.Client;
 
 namespace Apache.IoTDB
 {
-    public class SessionPool
+
+    public class SessionPool:IDisposable
     {
         private static int SuccessCode => 200;
         private static readonly TSProtocolVersion ProtocolVersion = TSProtocolVersion.IOTDB_SERVICE_PROTOCOL_V3;
@@ -89,7 +90,9 @@ namespace Apache.IoTDB
             string password = "root",
             int fetchSize = 1000,
             string zoneId = "UTC+08:00",
-            int poolSize = 8)
+            int poolSize = 8,
+            bool enableRpcCompression = true
+            )
         {
             _host = host;
             _port = port;
@@ -99,8 +102,12 @@ namespace Apache.IoTDB
             _fetchSize = fetchSize;
             _debugMode = false;
             _poolSize = poolSize;
+            _enableRpcCompression = enableRpcCompression;
         }
+
         ILoggerFactory factory;
+        private bool disposedValue;
+
         public void OpenDebugMode(Action<ILoggingBuilder> configure)
         {
             _debugMode = true;
@@ -115,12 +122,18 @@ namespace Apache.IoTDB
 
         public async Task Open(bool enableRpcCompression, CancellationToken cancellationToken = default)
         {
-            _clients = new ConcurrentClientQueue();
             _enableRpcCompression = enableRpcCompression;
+            await Open(cancellationToken);
+        }
+
+        public async Task Open(CancellationToken cancellationToken = default)
+        {
+            _clients = new ConcurrentClientQueue();
+
 
             for (var index = 0; index < _poolSize; index++)
             {
-                _clients.Add(await CreateAndOpen(enableRpcCompression, cancellationToken));
+                _clients.Add(await CreateAndOpen(_enableRpcCompression, cancellationToken));
             }
         }
 
@@ -2083,13 +2096,26 @@ namespace Apache.IoTDB
             }
         }
 
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+#if NET461_OR_GREATER || NETSTANDARD2_0
+#else
+                    _clients.ClientQueue.Clear();
+#endif
+                }
+                _clients = null;
+                disposedValue = true;
+            }
+        }
 
-
-
-
-
-
-
-
+        public void Dispose()
+        {
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
+        }
     }
 }
