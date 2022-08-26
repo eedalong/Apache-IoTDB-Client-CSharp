@@ -1,6 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
+        <PackageVersion>0.13.0.7</PackageVersion>
+        <Authors>eedalong, lausannel, MysticBoy, Aiemu</Authors>
+        <Company>LiuLin Lab</Company>
 		<AssemblyName>Apache.IoTDB.Data</AssemblyName>
 		<RootNamespace>$(AssemblyName)</RootNamespace>
 		<PackageId>Apache.IoTDB.Data</PackageId>
