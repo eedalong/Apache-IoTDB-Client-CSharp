@@ -65,7 +65,7 @@ namespace Apache.IoTDB.DataStructure
         public long GetLong()
         {
             var longBuff = _buffer[_readPos..(_readPos + 8)];
-            
+
             if (_isLittleEndian) longBuff = longBuff.Reverse().ToArray();
 #if NET461_OR_GREATER || NETSTANDARD2_0
             var longValue = BitConverter.ToInt64(longBuff,0);
@@ -80,7 +80,7 @@ namespace Apache.IoTDB.DataStructure
         public float GetFloat()
         {
             var floatBuff = _buffer[_readPos..(_readPos + 4)];
-            
+
             if (_isLittleEndian) floatBuff = floatBuff.Reverse().ToArray();
 #if NET461_OR_GREATER || NETSTANDARD2_0
             var floatValue = BitConverter.ToSingle(floatBuff,0);
@@ -94,7 +94,7 @@ namespace Apache.IoTDB.DataStructure
         public double GetDouble()
         {
             var doubleBuff = _buffer[_readPos..(_readPos + 8)];
-            
+
             if (_isLittleEndian) doubleBuff = doubleBuff.Reverse().ToArray();
 #if NET461_OR_GREATER || NETSTANDARD2_0
             var doubleValue = BitConverter.ToDouble(doubleBuff,0);
@@ -135,7 +135,7 @@ namespace Apache.IoTDB.DataStructure
         public void AddBool(bool value)
         {
             var boolBuffer = BitConverter.GetBytes(value);
-            
+
             if (_isLittleEndian) boolBuffer = boolBuffer.Reverse().ToArray();
 
             ExtendBuffer(boolBuffer.Length);
@@ -146,7 +146,7 @@ namespace Apache.IoTDB.DataStructure
         public void AddInt(int value)
         {
             var intBuff = BitConverter.GetBytes(value);
-            
+
             if (_isLittleEndian) intBuff = intBuff.Reverse().ToArray();
 
             ExtendBuffer(intBuff.Length);
@@ -157,7 +157,7 @@ namespace Apache.IoTDB.DataStructure
         public void AddLong(long value)
         {
             var longBuff = BitConverter.GetBytes(value);
-            
+
             if (_isLittleEndian) longBuff = longBuff.Reverse().ToArray();
 
             ExtendBuffer(longBuff.Length);
@@ -168,7 +168,7 @@ namespace Apache.IoTDB.DataStructure
         public void AddFloat(float value)
         {
             var floatBuff = BitConverter.GetBytes(value);
-            
+
             if (_isLittleEndian) floatBuff = floatBuff.Reverse().ToArray();
 
             ExtendBuffer(floatBuff.Length);
@@ -179,7 +179,7 @@ namespace Apache.IoTDB.DataStructure
         public void AddDouble(double value)
         {
             var doubleBuff = BitConverter.GetBytes(value);
-            
+
             if (_isLittleEndian) doubleBuff = doubleBuff.Reverse().ToArray();
 
             ExtendBuffer(doubleBuff.Length);
@@ -189,9 +189,9 @@ namespace Apache.IoTDB.DataStructure
 
         public void AddStr(string value)
         {
-            AddInt(value.Length);
-            
             var strBuf = Encoding.UTF8.GetBytes(value);
+
+            AddInt(strBuf.Length);
 
             ExtendBuffer(strBuf.Length);
             strBuf.CopyTo(_buffer, _writePos);
@@ -201,14 +201,15 @@ namespace Apache.IoTDB.DataStructure
         public void AddChar(char value)
         {
             var charBuf = BitConverter.GetBytes(value);
-            
+
             if (_isLittleEndian) charBuf = charBuf.Reverse().ToArray();
 
             ExtendBuffer(charBuf.Length);
             charBuf.CopyTo(_buffer, _writePos);
             _writePos += charBuf.Length;
         }
-        public void AddByte(byte value){
+        public void AddByte(byte value)
+        {
             ExtendBuffer(1);
             _buffer[_writePos] = value;
             _writePos += 1;
