@@ -14,7 +14,7 @@ namespace Apache.IoTDB.Data
     {
         public static SessionPool CreateSession(this IoTDBConnectionStringBuilder db)
         {
-            return new SessionPool(db.DataSource, db.Port, db.Username, db.Password, db.FetchSize, db.ZoneId, db.PoolSize,db.Compression);
+            return new SessionPool(db.DataSource, db.Port, db.Username, db.Password, db.FetchSize, db.ZoneId, db.PoolSize,db.Compression,db.TimeOut);
         }
 
         public static List<T> ToObject<T>(this IDataReader dataReader)

@@ -276,6 +276,7 @@ namespace Apache.IoTDB.Samples
         {
             var cnts = new IoTDB.Data.IoTDBConnectionStringBuilder();
             cnts.DataSource = host;
+            cnts.TimeOut =(int) TimeSpan.FromSeconds(20).TotalMilliseconds;
             var cnt = new IoTDB.Data.IoTDBConnection(cnts.ConnectionString);
             await cnt.OpenAsync();
             var session_pool = cnt.SessionPool;
