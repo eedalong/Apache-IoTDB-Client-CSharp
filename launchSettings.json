@@ -1,0 +1,14 @@
+{
+  "profiles": {
+    "Docker Compose": {
+      "commandName": "DockerCompose",
+      "commandVersion": "1.0",
+      "composeLaunchAction": "None",
+      "composeLaunchServiceName": "apache.iotdb.samples",
+      "serviceActions": {
+        "apache.iotdb.samples": "StartDebugging",
+        "iotdb": "StartWithoutDebugging"
+      }
+    }
+  }
+}

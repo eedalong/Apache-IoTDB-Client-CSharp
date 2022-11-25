@@ -6,6 +6,7 @@ using System.Data.Common;
 using System.Diagnostics;
 using System.Globalization;
 using System.Reflection;
+using System.Threading;
 
 namespace Apache.IoTDB.Data
 {
@@ -23,7 +24,8 @@ namespace Apache.IoTDB.Data
         private const string CompressionKeyword = "Compression";
         private const string PoolSizeKeyword = "PoolSize";
         private const string ZoneIdKeyword = "ZoneId";
- 
+        private const string TimeOutKeyword = "TimeOut";
+
         private enum Keywords
         {
             DataSource,
@@ -33,7 +35,8 @@ namespace Apache.IoTDB.Data
             FetchSize,
             Compression,
             PoolSize,
-            ZoneId
+            ZoneId,
+            TimeOut
         }
 
         private static readonly IReadOnlyList<string> _validKeywords;
@@ -47,9 +50,11 @@ namespace Apache.IoTDB.Data
         private string _zoneId = "UTC+08:00";
         private int  _port = 6667;
       private   int  _poolSize =8;
+        private int _timeOut=10000;
+
         static IoTDBConnectionStringBuilder()
         {
-            var validKeywords = new string[8];
+            var validKeywords = new string[9];
             validKeywords[(int)Keywords.DataSource] = DataSourceKeyword;
              validKeywords[(int)Keywords.Username] = UserNameKeyword;
             validKeywords[(int)Keywords.Password] = PasswordKeyword;
@@ -58,9 +63,10 @@ namespace Apache.IoTDB.Data
             validKeywords[(int)Keywords.Compression] = CompressionKeyword;
             validKeywords[(int)Keywords.PoolSize] = PoolSizeKeyword;
             validKeywords[(int)Keywords.ZoneId] = ZoneIdKeyword;
+            validKeywords[(int)Keywords.TimeOut] =TimeOutKeyword;
             _validKeywords = validKeywords;
 
-            _keywords = new Dictionary<string, Keywords>(6, StringComparer.OrdinalIgnoreCase)
+            _keywords = new Dictionary<string, Keywords>(9, StringComparer.OrdinalIgnoreCase)
             {
                 [DataSourceKeyword] = Keywords.DataSource,
                 [UserNameKeyword] = Keywords.Username,
@@ -69,7 +75,8 @@ namespace Apache.IoTDB.Data
                 [FetchSizeKeyword] = Keywords.FetchSize,
                 [CompressionKeyword] = Keywords.Compression,
                 [PoolSizeKeyword] = Keywords.PoolSize,
-                [ZoneIdKeyword] = Keywords.ZoneId
+                [ZoneIdKeyword] = Keywords.ZoneId,
+                [TimeOutKeyword] = Keywords.TimeOut
             };
         }
 
@@ -135,8 +142,12 @@ namespace Apache.IoTDB.Data
             get => _zoneId;
             set => base[ZoneIdKeyword] = _zoneId = value;
         }
- 
-        
+
+        public virtual int TimeOut
+    {
+            get => _timeOut;
+            set => base[PoolSizeKeyword] = _timeOut = value;
+        }
 
         /// <summary>
         ///     Gets a collection containing the keys used by the connection string.
@@ -162,8 +173,10 @@ namespace Apache.IoTDB.Data
                 return new ReadOnlyCollection<object>(values);
             }
         }
- 
- 
+
+
+
+
 
 
 
@@ -210,6 +223,9 @@ namespace Apache.IoTDB.Data
                         return;
                     case Keywords.ZoneId:
                         ZoneId = Convert.ToString(value, CultureInfo.InvariantCulture);
+                        return;
+                    case Keywords.TimeOut:
+                        TimeOut = Convert.ToInt32(value, CultureInfo.InvariantCulture);
                         return;
                     default:
                         Debug.WriteLine(false, "Unexpected keyword: " + keyword);
@@ -339,6 +355,8 @@ namespace Apache.IoTDB.Data
                     return PoolSize;
                 case Keywords.ZoneId:
                     return ZoneId;
+                case Keywords.TimeOut:
+                    return TimeOut;
                 default:
                     Debug.Assert(false, "Unexpected keyword: " + index);
                     return null;
@@ -377,6 +395,9 @@ namespace Apache.IoTDB.Data
                     return;
                 case Keywords.ZoneId:
                     _zoneId = "UTC+08:00";
+                    return;
+                case Keywords.TimeOut:
+                    _timeOut = 10000;//10sec.
                     return;
                 default:
                     Debug.Assert(false, "Unexpected keyword: " + index);

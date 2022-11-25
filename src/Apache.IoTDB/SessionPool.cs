@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Sockets;
+using System.Numerics;
 using System.Threading;
 using System.Threading.Tasks;
 using Apache.IoTDB.DataStructure;
@@ -27,72 +28,34 @@ namespace Apache.IoTDB
         private readonly string _host;
         private readonly int _port;
         private readonly int _fetchSize;
+        private readonly int _timeout;
         private readonly int _poolSize = 4;
         private readonly Utils _utilFunctions = new Utils();
-
-
         private bool _debugMode;
         private bool _isClose = true;
         private ConcurrentClientQueue _clients;
         private ILogger _logger;
 
         public SessionPool(string host, int port, int poolSize)
+                        : this(host, port, "root", "root", poolSize, "UTC+08:00", 8, true, 60)
         {
-            // init success code 
-            _host = host;
-            _port = port;
-            _username = "root";
-            _password = "root";
-            _zoneId = "UTC+08:00";
-            _fetchSize = 1024;
-            _poolSize = poolSize;
         }
 
-        public SessionPool(
-            string host,
-            int port,
-            string username,
-            string password,
-            int poolSize = 8)
+        public SessionPool(string host, int port, string username, string password)
+                        : this(host, port, username, password, 1024, "UTC+08:00", 8, true, 60)
         {
-            _host = host;
-            _port = port;
-            _password = password;
-            _username = username;
-            _zoneId = "UTC+08:00";
-            _fetchSize = 1024;
-            _debugMode = false;
-            _poolSize = poolSize;
         }
 
-        public SessionPool(
-            string host,
-            int port,
-            string username,
-            string password,
-            int fetchSize,
-            int poolSize = 8)
+        public SessionPool(string host, int port, string username, string password, int fetchSize)
+                        : this(host, port, username, password, fetchSize, "UTC+08:00", 8, true, 60)
         {
-            _host = host;
-            _port = port;
-            _username = username;
-            _password = password;
-            _fetchSize = fetchSize;
-            _zoneId = "UTC+08:00";
-            _debugMode = false;
-            _poolSize = poolSize;
+
         }
 
-        public SessionPool(
-            string host,
-            int port,
-            string username = "root",
-            string password = "root",
-            int fetchSize = 1000,
-            string zoneId = "UTC+08:00",
-            int poolSize = 8,
-            bool enableRpcCompression = true
-            )
+        public SessionPool(string host, int port) : this(host, port, "root", "root", 1024, "UTC+08:00", 8, true, 60)
+        {
+        }
+        public SessionPool(string host, int port, string username, string password, int fetchSize, string zoneId, int poolSize, bool enableRpcCompression, int timeout)
         {
             _host = host;
             _port = port;
@@ -103,7 +66,14 @@ namespace Apache.IoTDB
             _debugMode = false;
             _poolSize = poolSize;
             _enableRpcCompression = enableRpcCompression;
+            _timeout = timeout;
         }
+
+        /// <summary>
+        ///   Gets or sets the amount of time a Session will wait for  a send operation to complete successfully.
+        /// </summary>
+        /// <remarks> The send time-out value, in milliseconds. The default is 10000.</remarks>
+        public int TimeOut { get; set; } = 10000;
 
         ILoggerFactory factory;
         private bool disposedValue;
@@ -129,11 +99,10 @@ namespace Apache.IoTDB
         public async Task Open(CancellationToken cancellationToken = default)
         {
             _clients = new ConcurrentClientQueue();
-
-
+            _clients.Timeout = _timeout*5;
             for (var index = 0; index < _poolSize; index++)
             {
-                _clients.Add(await CreateAndOpen(_enableRpcCompression, cancellationToken));
+                _clients.Add(await CreateAndOpen(_enableRpcCompression,_timeout, cancellationToken));
             }
         }
 
@@ -213,10 +182,11 @@ namespace Apache.IoTDB
             }
         }
 
-        private async Task<Client> CreateAndOpen(bool enableRpcCompression, CancellationToken cancellationToken = default)
+        private async Task<Client> CreateAndOpen(bool enableRpcCompression,int timeout, CancellationToken cancellationToken = default)
         {
             var tcpClient = new TcpClient(_host, _port);
-
+            tcpClient.SendTimeout = timeout;
+            tcpClient.ReceiveTimeout = timeout;
             var transport = new TFramedTransport(new TSocketTransport(tcpClient, null));
 
             if (!transport.IsOpen)
