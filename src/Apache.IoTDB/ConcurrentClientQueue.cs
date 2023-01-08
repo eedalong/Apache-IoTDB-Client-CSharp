@@ -25,7 +25,7 @@ namespace Apache.IoTDB
             Monitor.Enter(ClientQueue);
             ClientQueue.Enqueue(client);
 #if DEBUG
-            Console.WriteLine($"线程{Thread.CurrentThread.ManagedThreadId} 归还 {client}");
+            Console.WriteLine($"Thread{Thread.CurrentThread.ManagedThreadId} put back {client}");
 #endif
             Monitor.Pulse(ClientQueue);
             Monitor.Exit(ClientQueue);
@@ -58,21 +58,21 @@ namespace Apache.IoTDB
             if (ClientQueue.IsEmpty)
             {
 #if DEBUG
-                Console.WriteLine($"线程{Thread.CurrentThread.ManagedThreadId} 连接池已空,请等待 超时时长:{Timeout}");
+                Console.WriteLine($"Thread{Thread.CurrentThread.ManagedThreadId} the connection pool is empty, wait timeout:{Timeout}");
 #endif
                 Monitor.Wait(ClientQueue, TimeSpan.FromSeconds(Timeout));
             }
             if (!ClientQueue.TryDequeue(out client))
             {
 #if DEBUG
-                Console.WriteLine($"线程{Thread.CurrentThread.ManagedThreadId} 从连接池获取连接失败，等待并重试");
+                Console.WriteLine($"Thread{Thread.CurrentThread.ManagedThreadId} obtaining a client from the client pool failed, wait and try again");
 #endif
             }
             else
             {
 
 #if DEBUG
-                Console.WriteLine($"线程{Thread.CurrentThread.ManagedThreadId} 拿走 {client}");
+                Console.WriteLine($"Thread{Thread.CurrentThread.ManagedThreadId} take away {client}");
 #endif
             }
             Monitor.Exit(ClientQueue);
