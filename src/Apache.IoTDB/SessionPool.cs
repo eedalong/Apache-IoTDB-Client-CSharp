@@ -196,13 +196,12 @@ namespace Apache.IoTDB
             }
 
             var client = enableRpcCompression ?
-                new TSIService.Client(new TCompactProtocol(transport)) :
-                new TSIService.Client(new TBinaryProtocol(transport));
+                new IClientRPCService.Client(new TCompactProtocol(transport)) :
+                new IClientRPCService.Client(new TBinaryProtocol(transport));
 
-            var openReq = new TSOpenSessionReq(ProtocolVersion, _zoneId)
+            var openReq = new TSOpenSessionReq(ProtocolVersion, _zoneId, _username)
             {
-                Username = _username,
-                Password = _password
+                Password = _password,
             };
 
             try
