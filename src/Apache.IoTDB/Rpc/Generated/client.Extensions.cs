@@ -199,16 +199,16 @@ public static class clientExtensions
   }
 
 
-  public static List<TSStatus> DeepCopy(this List<TSStatus> source)
-  {
-    if (source == null)
-      return null;
+  // public static List<TSStatus> DeepCopy(this List<TSStatus> source)
+  // {
+  //   if (source == null)
+  //     return null;
 
-    var tmp673 = new List<TSStatus>(source.Count);
-    foreach (var elem in source)
-      tmp673.Add((elem != null) ? elem.DeepCopy() : null);
-    return tmp673;
-  }
+  //   var tmp673 = new List<TSStatus>(source.Count);
+  //   foreach (var elem in source)
+  //     tmp673.Add((elem != null) ? elem.DeepCopy() : null);
+  //   return tmp673;
+  // }
 
 
   public static bool Equals(this List<byte[]> instance, object that)
