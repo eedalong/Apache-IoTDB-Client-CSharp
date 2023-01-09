@@ -334,16 +334,16 @@ public static class clientExtensions
   }
 
 
-  public static List<string> DeepCopy(this List<string> source)
-  {
-    if (source == null)
-      return null;
+  // public static List<string> DeepCopy(this List<string> source)
+  // {
+  //   if (source == null)
+  //     return null;
 
-    var tmp678 = new List<string>(source.Count);
-    foreach (var elem in source)
-      tmp678.Add((elem != null) ? elem : null);
-    return tmp678;
-  }
+  //   var tmp678 = new List<string>(source.Count);
+  //   foreach (var elem in source)
+  //     tmp678.Add((elem != null) ? elem : null);
+  //   return tmp678;
+  // }
 
 
 }
