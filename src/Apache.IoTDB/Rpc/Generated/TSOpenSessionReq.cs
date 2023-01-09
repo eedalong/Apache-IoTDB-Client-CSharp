@@ -31,7 +31,6 @@ using Thrift.Processor;
 
 public partial class TSOpenSessionReq : TBase
 {
-  private string _username;
   private string _password;
   private Dictionary<string, string> _configuration;
 
@@ -43,18 +42,7 @@ public partial class TSOpenSessionReq : TBase
 
   public string ZoneId { get; set; }
 
-  public string Username
-  {
-    get
-    {
-      return _username;
-    }
-    set
-    {
-      __isset.username = true;
-      this._username = value;
-    }
-  }
+  public string Username { get; set; }
 
   public string Password
   {
@@ -86,7 +74,6 @@ public partial class TSOpenSessionReq : TBase
   public Isset __isset;
   public struct Isset
   {
-    public bool username;
     public bool password;
     public bool configuration;
   }
@@ -96,36 +83,36 @@ public partial class TSOpenSessionReq : TBase
     this.Client_protocol = TSProtocolVersion.IOTDB_SERVICE_PROTOCOL_V3;
   }
 
-  public TSOpenSessionReq(TSProtocolVersion client_protocol, string zoneId) : this()
+  public TSOpenSessionReq(TSProtocolVersion client_protocol, string zoneId, string username) : this()
   {
     this.Client_protocol = client_protocol;
     this.ZoneId = zoneId;
+    this.Username = username;
   }
 
   public TSOpenSessionReq DeepCopy()
   {
-    var tmp68 = new TSOpenSessionReq();
-    tmp68.Client_protocol = this.Client_protocol;
+    var tmp64 = new TSOpenSessionReq();
+    tmp64.Client_protocol = this.Client_protocol;
     if((ZoneId != null))
     {
-      tmp68.ZoneId = this.ZoneId;
+      tmp64.ZoneId = this.ZoneId;
     }
-    if((Username != null) && __isset.username)
+    if((Username != null))
     {
-      tmp68.Username = this.Username;
+      tmp64.Username = this.Username;
     }
-    tmp68.__isset.username = this.__isset.username;
     if((Password != null) && __isset.password)
     {
-      tmp68.Password = this.Password;
+      tmp64.Password = this.Password;
     }
-    tmp68.__isset.password = this.__isset.password;
+    tmp64.__isset.password = this.__isset.password;
     if((Configuration != null) && __isset.configuration)
     {
-      tmp68.Configuration = this.Configuration.DeepCopy();
+      tmp64.Configuration = this.Configuration.DeepCopy();
     }
-    tmp68.__isset.configuration = this.__isset.configuration;
-    return tmp68;
+    tmp64.__isset.configuration = this.__isset.configuration;
+    return tmp64;
   }
 
   public async global::System.Threading.Tasks.Task ReadAsync(TProtocol iprot, CancellationToken cancellationToken)
@@ -135,6 +122,7 @@ public partial class TSOpenSessionReq : TBase
     {
       bool isset_client_protocol = false;
       bool isset_zoneId = false;
+      bool isset_username = false;
       TField field;
       await iprot.ReadStructBeginAsync(cancellationToken);
       while (true)
@@ -173,6 +161,7 @@ public partial class TSOpenSessionReq : TBase
             if (field.Type == TType.String)
             {
               Username = await iprot.ReadStringAsync(cancellationToken);
+              isset_username = true;
             }
             else
             {
@@ -193,15 +182,15 @@ public partial class TSOpenSessionReq : TBase
             if (field.Type == TType.Map)
             {
               {
-                TMap _map69 = await iprot.ReadMapBeginAsync(cancellationToken);
-                Configuration = new Dictionary<string, string>(_map69.Count);
-                for(int _i70 = 0; _i70 < _map69.Count; ++_i70)
+                TMap _map65 = await iprot.ReadMapBeginAsync(cancellationToken);
+                Configuration = new Dictionary<string, string>(_map65.Count);
+                for(int _i66 = 0; _i66 < _map65.Count; ++_i66)
                 {
-                  string _key71;
-                  string _val72;
-                  _key71 = await iprot.ReadStringAsync(cancellationToken);
-                  _val72 = await iprot.ReadStringAsync(cancellationToken);
-                  Configuration[_key71] = _val72;
+                  string _key67;
+                  string _val68;
+                  _key67 = await iprot.ReadStringAsync(cancellationToken);
+                  _val68 = await iprot.ReadStringAsync(cancellationToken);
+                  Configuration[_key67] = _val68;
                 }
                 await iprot.ReadMapEndAsync(cancellationToken);
               }
@@ -225,6 +214,10 @@ public partial class TSOpenSessionReq : TBase
         throw new TProtocolException(TProtocolException.INVALID_DATA);
       }
       if (!isset_zoneId)
+      {
+        throw new TProtocolException(TProtocolException.INVALID_DATA);
+      }
+      if (!isset_username)
       {
         throw new TProtocolException(TProtocolException.INVALID_DATA);
       }
@@ -258,7 +251,7 @@ public partial class TSOpenSessionReq : TBase
         await oprot.WriteStringAsync(ZoneId, cancellationToken);
         await oprot.WriteFieldEndAsync(cancellationToken);
       }
-      if((Username != null) && __isset.username)
+      if((Username != null))
       {
         field.Name = "username";
         field.Type = TType.String;
@@ -284,10 +277,10 @@ public partial class TSOpenSessionReq : TBase
         await oprot.WriteFieldBeginAsync(field, cancellationToken);
         {
           await oprot.WriteMapBeginAsync(new TMap(TType.String, TType.String, Configuration.Count), cancellationToken);
-          foreach (string _iter73 in Configuration.Keys)
+          foreach (string _iter69 in Configuration.Keys)
           {
-            await oprot.WriteStringAsync(_iter73, cancellationToken);
-            await oprot.WriteStringAsync(Configuration[_iter73], cancellationToken);
+            await oprot.WriteStringAsync(_iter69, cancellationToken);
+            await oprot.WriteStringAsync(Configuration[_iter69], cancellationToken);
           }
           await oprot.WriteMapEndAsync(cancellationToken);
         }
@@ -308,7 +301,7 @@ public partial class TSOpenSessionReq : TBase
     if (ReferenceEquals(this, other)) return true;
     return System.Object.Equals(Client_protocol, other.Client_protocol)
       && System.Object.Equals(ZoneId, other.ZoneId)
-      && ((__isset.username == other.__isset.username) && ((!__isset.username) || (System.Object.Equals(Username, other.Username))))
+      && System.Object.Equals(Username, other.Username)
       && ((__isset.password == other.__isset.password) && ((!__isset.password) || (System.Object.Equals(Password, other.Password))))
       && ((__isset.configuration == other.__isset.configuration) && ((!__isset.configuration) || (TCollections.Equals(Configuration, other.Configuration))));
   }
@@ -321,7 +314,7 @@ public partial class TSOpenSessionReq : TBase
       {
         hashcode = (hashcode * 397) + ZoneId.GetHashCode();
       }
-      if((Username != null) && __isset.username)
+      if((Username != null))
       {
         hashcode = (hashcode * 397) + Username.GetHashCode();
       }
@@ -347,7 +340,7 @@ public partial class TSOpenSessionReq : TBase
       sb.Append(", ZoneId: ");
       ZoneId.ToString(sb);
     }
-    if((Username != null) && __isset.username)
+    if((Username != null))
     {
       sb.Append(", Username: ");
       Username.ToString(sb);

@@ -42,6 +42,8 @@ public partial class TSExecuteStatementResp : TBase
   private List<string> _sgColumns;
   private List<sbyte> _aliasColumns;
   private TSTracingInfo _tracingInfo;
+  private List<byte[]> _queryResult;
+  private bool _moreData;
 
   public TSStatus Status { get; set; }
 
@@ -188,6 +190,32 @@ public partial class TSExecuteStatementResp : TBase
     }
   }
 
+  public List<byte[]> QueryResult
+  {
+    get
+    {
+      return _queryResult;
+    }
+    set
+    {
+      __isset.queryResult = true;
+      this._queryResult = value;
+    }
+  }
+
+  public bool MoreData
+  {
+    get
+    {
+      return _moreData;
+    }
+    set
+    {
+      __isset.moreData = true;
+      this._moreData = value;
+    }
+  }
+
 
   public Isset __isset;
   public struct Isset
@@ -203,6 +231,8 @@ public partial class TSExecuteStatementResp : TBase
     public bool sgColumns;
     public bool aliasColumns;
     public bool tracingInfo;
+    public bool queryResult;
+    public bool moreData;
   }
 
   public TSExecuteStatementResp()
@@ -216,67 +246,77 @@ public partial class TSExecuteStatementResp : TBase
 
   public TSExecuteStatementResp DeepCopy()
   {
-    var tmp38 = new TSExecuteStatementResp();
+    var tmp30 = new TSExecuteStatementResp();
     if((Status != null))
     {
-      tmp38.Status = (TSStatus)this.Status.DeepCopy();
+      tmp30.Status = (TSStatus)this.Status.DeepCopy();
     }
     if(__isset.queryId)
     {
-      tmp38.QueryId = this.QueryId;
+      tmp30.QueryId = this.QueryId;
     }
-    tmp38.__isset.queryId = this.__isset.queryId;
+    tmp30.__isset.queryId = this.__isset.queryId;
     if((Columns != null) && __isset.columns)
     {
-      tmp38.Columns = this.Columns.DeepCopy();
+      tmp30.Columns = this.Columns.DeepCopy();
     }
-    tmp38.__isset.columns = this.__isset.columns;
+    tmp30.__isset.columns = this.__isset.columns;
     if((OperationType != null) && __isset.operationType)
     {
-      tmp38.OperationType = this.OperationType;
+      tmp30.OperationType = this.OperationType;
     }
-    tmp38.__isset.operationType = this.__isset.operationType;
+    tmp30.__isset.operationType = this.__isset.operationType;
     if(__isset.ignoreTimeStamp)
     {
-      tmp38.IgnoreTimeStamp = this.IgnoreTimeStamp;
+      tmp30.IgnoreTimeStamp = this.IgnoreTimeStamp;
     }
-    tmp38.__isset.ignoreTimeStamp = this.__isset.ignoreTimeStamp;
+    tmp30.__isset.ignoreTimeStamp = this.__isset.ignoreTimeStamp;
     if((DataTypeList != null) && __isset.dataTypeList)
     {
-      tmp38.DataTypeList = this.DataTypeList.DeepCopy();
+      tmp30.DataTypeList = this.DataTypeList.DeepCopy();
     }
-    tmp38.__isset.dataTypeList = this.__isset.dataTypeList;
+    tmp30.__isset.dataTypeList = this.__isset.dataTypeList;
     if((QueryDataSet != null) && __isset.queryDataSet)
     {
-      tmp38.QueryDataSet = (TSQueryDataSet)this.QueryDataSet.DeepCopy();
+      tmp30.QueryDataSet = (TSQueryDataSet)this.QueryDataSet.DeepCopy();
     }
-    tmp38.__isset.queryDataSet = this.__isset.queryDataSet;
+    tmp30.__isset.queryDataSet = this.__isset.queryDataSet;
     if((NonAlignQueryDataSet != null) && __isset.nonAlignQueryDataSet)
     {
-      tmp38.NonAlignQueryDataSet = (TSQueryNonAlignDataSet)this.NonAlignQueryDataSet.DeepCopy();
+      tmp30.NonAlignQueryDataSet = (TSQueryNonAlignDataSet)this.NonAlignQueryDataSet.DeepCopy();
     }
-    tmp38.__isset.nonAlignQueryDataSet = this.__isset.nonAlignQueryDataSet;
+    tmp30.__isset.nonAlignQueryDataSet = this.__isset.nonAlignQueryDataSet;
     if((ColumnNameIndexMap != null) && __isset.columnNameIndexMap)
     {
-      tmp38.ColumnNameIndexMap = this.ColumnNameIndexMap.DeepCopy();
+      tmp30.ColumnNameIndexMap = this.ColumnNameIndexMap.DeepCopy();
     }
-    tmp38.__isset.columnNameIndexMap = this.__isset.columnNameIndexMap;
+    tmp30.__isset.columnNameIndexMap = this.__isset.columnNameIndexMap;
     if((SgColumns != null) && __isset.sgColumns)
     {
-      tmp38.SgColumns = this.SgColumns.DeepCopy();
+      tmp30.SgColumns = this.SgColumns.DeepCopy();
     }
-    tmp38.__isset.sgColumns = this.__isset.sgColumns;
+    tmp30.__isset.sgColumns = this.__isset.sgColumns;
     if((AliasColumns != null) && __isset.aliasColumns)
     {
-      tmp38.AliasColumns = this.AliasColumns.DeepCopy();
+      tmp30.AliasColumns = this.AliasColumns.DeepCopy();
     }
-    tmp38.__isset.aliasColumns = this.__isset.aliasColumns;
+    tmp30.__isset.aliasColumns = this.__isset.aliasColumns;
     if((TracingInfo != null) && __isset.tracingInfo)
     {
-      tmp38.TracingInfo = (TSTracingInfo)this.TracingInfo.DeepCopy();
+      tmp30.TracingInfo = (TSTracingInfo)this.TracingInfo.DeepCopy();
     }
-    tmp38.__isset.tracingInfo = this.__isset.tracingInfo;
-    return tmp38;
+    tmp30.__isset.tracingInfo = this.__isset.tracingInfo;
+    if((QueryResult != null) && __isset.queryResult)
+    {
+      tmp30.QueryResult = this.QueryResult.DeepCopy();
+    }
+    tmp30.__isset.queryResult = this.__isset.queryResult;
+    if(__isset.moreData)
+    {
+      tmp30.MoreData = this.MoreData;
+    }
+    tmp30.__isset.moreData = this.__isset.moreData;
+    return tmp30;
   }
 
   public async global::System.Threading.Tasks.Task ReadAsync(TProtocol iprot, CancellationToken cancellationToken)
@@ -323,13 +363,13 @@ public partial class TSExecuteStatementResp : TBase
             if (field.Type == TType.List)
             {
               {
-                TList _list39 = await iprot.ReadListBeginAsync(cancellationToken);
-                Columns = new List<string>(_list39.Count);
-                for(int _i40 = 0; _i40 < _list39.Count; ++_i40)
+                TList _list31 = await iprot.ReadListBeginAsync(cancellationToken);
+                Columns = new List<string>(_list31.Count);
+                for(int _i32 = 0; _i32 < _list31.Count; ++_i32)
                 {
-                  string _elem41;
-                  _elem41 = await iprot.ReadStringAsync(cancellationToken);
-                  Columns.Add(_elem41);
+                  string _elem33;
+                  _elem33 = await iprot.ReadStringAsync(cancellationToken);
+                  Columns.Add(_elem33);
                 }
                 await iprot.ReadListEndAsync(cancellationToken);
               }
@@ -363,13 +403,13 @@ public partial class TSExecuteStatementResp : TBase
             if (field.Type == TType.List)
             {
               {
-                TList _list42 = await iprot.ReadListBeginAsync(cancellationToken);
-                DataTypeList = new List<string>(_list42.Count);
-                for(int _i43 = 0; _i43 < _list42.Count; ++_i43)
+                TList _list34 = await iprot.ReadListBeginAsync(cancellationToken);
+                DataTypeList = new List<string>(_list34.Count);
+                for(int _i35 = 0; _i35 < _list34.Count; ++_i35)
                 {
-                  string _elem44;
-                  _elem44 = await iprot.ReadStringAsync(cancellationToken);
-                  DataTypeList.Add(_elem44);
+                  string _elem36;
+                  _elem36 = await iprot.ReadStringAsync(cancellationToken);
+                  DataTypeList.Add(_elem36);
                 }
                 await iprot.ReadListEndAsync(cancellationToken);
               }
@@ -405,15 +445,15 @@ public partial class TSExecuteStatementResp : TBase
             if (field.Type == TType.Map)
             {
               {
-                TMap _map45 = await iprot.ReadMapBeginAsync(cancellationToken);
-                ColumnNameIndexMap = new Dictionary<string, int>(_map45.Count);
-                for(int _i46 = 0; _i46 < _map45.Count; ++_i46)
+                TMap _map37 = await iprot.ReadMapBeginAsync(cancellationToken);
+                ColumnNameIndexMap = new Dictionary<string, int>(_map37.Count);
+                for(int _i38 = 0; _i38 < _map37.Count; ++_i38)
                 {
-                  string _key47;
-                  int _val48;
-                  _key47 = await iprot.ReadStringAsync(cancellationToken);
-                  _val48 = await iprot.ReadI32Async(cancellationToken);
-                  ColumnNameIndexMap[_key47] = _val48;
+                  string _key39;
+                  int _val40;
+                  _key39 = await iprot.ReadStringAsync(cancellationToken);
+                  _val40 = await iprot.ReadI32Async(cancellationToken);
+                  ColumnNameIndexMap[_key39] = _val40;
                 }
                 await iprot.ReadMapEndAsync(cancellationToken);
               }
@@ -427,13 +467,13 @@ public partial class TSExecuteStatementResp : TBase
             if (field.Type == TType.List)
             {
               {
-                TList _list49 = await iprot.ReadListBeginAsync(cancellationToken);
-                SgColumns = new List<string>(_list49.Count);
-                for(int _i50 = 0; _i50 < _list49.Count; ++_i50)
+                TList _list41 = await iprot.ReadListBeginAsync(cancellationToken);
+                SgColumns = new List<string>(_list41.Count);
+                for(int _i42 = 0; _i42 < _list41.Count; ++_i42)
                 {
-                  string _elem51;
-                  _elem51 = await iprot.ReadStringAsync(cancellationToken);
-                  SgColumns.Add(_elem51);
+                  string _elem43;
+                  _elem43 = await iprot.ReadStringAsync(cancellationToken);
+                  SgColumns.Add(_elem43);
                 }
                 await iprot.ReadListEndAsync(cancellationToken);
               }
@@ -447,13 +487,13 @@ public partial class TSExecuteStatementResp : TBase
             if (field.Type == TType.List)
             {
               {
-                TList _list52 = await iprot.ReadListBeginAsync(cancellationToken);
-                AliasColumns = new List<sbyte>(_list52.Count);
-                for(int _i53 = 0; _i53 < _list52.Count; ++_i53)
+                TList _list44 = await iprot.ReadListBeginAsync(cancellationToken);
+                AliasColumns = new List<sbyte>(_list44.Count);
+                for(int _i45 = 0; _i45 < _list44.Count; ++_i45)
                 {
-                  sbyte _elem54;
-                  _elem54 = await iprot.ReadByteAsync(cancellationToken);
-                  AliasColumns.Add(_elem54);
+                  sbyte _elem46;
+                  _elem46 = await iprot.ReadByteAsync(cancellationToken);
+                  AliasColumns.Add(_elem46);
                 }
                 await iprot.ReadListEndAsync(cancellationToken);
               }
@@ -468,6 +508,36 @@ public partial class TSExecuteStatementResp : TBase
             {
               TracingInfo = new TSTracingInfo();
               await TracingInfo.ReadAsync(iprot, cancellationToken);
+            }
+            else
+            {
+              await TProtocolUtil.SkipAsync(iprot, field.Type, cancellationToken);
+            }
+            break;
+          case 13:
+            if (field.Type == TType.List)
+            {
+              {
+                TList _list47 = await iprot.ReadListBeginAsync(cancellationToken);
+                QueryResult = new List<byte[]>(_list47.Count);
+                for(int _i48 = 0; _i48 < _list47.Count; ++_i48)
+                {
+                  byte[] _elem49;
+                  _elem49 = await iprot.ReadBinaryAsync(cancellationToken);
+                  QueryResult.Add(_elem49);
+                }
+                await iprot.ReadListEndAsync(cancellationToken);
+              }
+            }
+            else
+            {
+              await TProtocolUtil.SkipAsync(iprot, field.Type, cancellationToken);
+            }
+            break;
+          case 14:
+            if (field.Type == TType.Bool)
+            {
+              MoreData = await iprot.ReadBoolAsync(cancellationToken);
             }
             else
             {
@@ -528,9 +598,9 @@ public partial class TSExecuteStatementResp : TBase
         await oprot.WriteFieldBeginAsync(field, cancellationToken);
         {
           await oprot.WriteListBeginAsync(new TList(TType.String, Columns.Count), cancellationToken);
-          foreach (string _iter55 in Columns)
+          foreach (string _iter50 in Columns)
           {
-            await oprot.WriteStringAsync(_iter55, cancellationToken);
+            await oprot.WriteStringAsync(_iter50, cancellationToken);
           }
           await oprot.WriteListEndAsync(cancellationToken);
         }
@@ -562,9 +632,9 @@ public partial class TSExecuteStatementResp : TBase
         await oprot.WriteFieldBeginAsync(field, cancellationToken);
         {
           await oprot.WriteListBeginAsync(new TList(TType.String, DataTypeList.Count), cancellationToken);
-          foreach (string _iter56 in DataTypeList)
+          foreach (string _iter51 in DataTypeList)
           {
-            await oprot.WriteStringAsync(_iter56, cancellationToken);
+            await oprot.WriteStringAsync(_iter51, cancellationToken);
           }
           await oprot.WriteListEndAsync(cancellationToken);
         }
@@ -596,10 +666,10 @@ public partial class TSExecuteStatementResp : TBase
         await oprot.WriteFieldBeginAsync(field, cancellationToken);
         {
           await oprot.WriteMapBeginAsync(new TMap(TType.String, TType.I32, ColumnNameIndexMap.Count), cancellationToken);
-          foreach (string _iter57 in ColumnNameIndexMap.Keys)
+          foreach (string _iter52 in ColumnNameIndexMap.Keys)
           {
-            await oprot.WriteStringAsync(_iter57, cancellationToken);
-            await oprot.WriteI32Async(ColumnNameIndexMap[_iter57], cancellationToken);
+            await oprot.WriteStringAsync(_iter52, cancellationToken);
+            await oprot.WriteI32Async(ColumnNameIndexMap[_iter52], cancellationToken);
           }
           await oprot.WriteMapEndAsync(cancellationToken);
         }
@@ -613,9 +683,9 @@ public partial class TSExecuteStatementResp : TBase
         await oprot.WriteFieldBeginAsync(field, cancellationToken);
         {
           await oprot.WriteListBeginAsync(new TList(TType.String, SgColumns.Count), cancellationToken);
-          foreach (string _iter58 in SgColumns)
+          foreach (string _iter53 in SgColumns)
           {
-            await oprot.WriteStringAsync(_iter58, cancellationToken);
+            await oprot.WriteStringAsync(_iter53, cancellationToken);
           }
           await oprot.WriteListEndAsync(cancellationToken);
         }
@@ -629,9 +699,9 @@ public partial class TSExecuteStatementResp : TBase
         await oprot.WriteFieldBeginAsync(field, cancellationToken);
         {
           await oprot.WriteListBeginAsync(new TList(TType.Byte, AliasColumns.Count), cancellationToken);
-          foreach (sbyte _iter59 in AliasColumns)
+          foreach (sbyte _iter54 in AliasColumns)
           {
-            await oprot.WriteByteAsync(_iter59, cancellationToken);
+            await oprot.WriteByteAsync(_iter54, cancellationToken);
           }
           await oprot.WriteListEndAsync(cancellationToken);
         }
@@ -644,6 +714,31 @@ public partial class TSExecuteStatementResp : TBase
         field.ID = 12;
         await oprot.WriteFieldBeginAsync(field, cancellationToken);
         await TracingInfo.WriteAsync(oprot, cancellationToken);
+        await oprot.WriteFieldEndAsync(cancellationToken);
+      }
+      if((QueryResult != null) && __isset.queryResult)
+      {
+        field.Name = "queryResult";
+        field.Type = TType.List;
+        field.ID = 13;
+        await oprot.WriteFieldBeginAsync(field, cancellationToken);
+        {
+          await oprot.WriteListBeginAsync(new TList(TType.String, QueryResult.Count), cancellationToken);
+          foreach (byte[] _iter55 in QueryResult)
+          {
+            await oprot.WriteBinaryAsync(_iter55, cancellationToken);
+          }
+          await oprot.WriteListEndAsync(cancellationToken);
+        }
+        await oprot.WriteFieldEndAsync(cancellationToken);
+      }
+      if(__isset.moreData)
+      {
+        field.Name = "moreData";
+        field.Type = TType.Bool;
+        field.ID = 14;
+        await oprot.WriteFieldBeginAsync(field, cancellationToken);
+        await oprot.WriteBoolAsync(MoreData, cancellationToken);
         await oprot.WriteFieldEndAsync(cancellationToken);
       }
       await oprot.WriteFieldStopAsync(cancellationToken);
@@ -670,7 +765,9 @@ public partial class TSExecuteStatementResp : TBase
       && ((__isset.columnNameIndexMap == other.__isset.columnNameIndexMap) && ((!__isset.columnNameIndexMap) || (TCollections.Equals(ColumnNameIndexMap, other.ColumnNameIndexMap))))
       && ((__isset.sgColumns == other.__isset.sgColumns) && ((!__isset.sgColumns) || (TCollections.Equals(SgColumns, other.SgColumns))))
       && ((__isset.aliasColumns == other.__isset.aliasColumns) && ((!__isset.aliasColumns) || (TCollections.Equals(AliasColumns, other.AliasColumns))))
-      && ((__isset.tracingInfo == other.__isset.tracingInfo) && ((!__isset.tracingInfo) || (System.Object.Equals(TracingInfo, other.TracingInfo))));
+      && ((__isset.tracingInfo == other.__isset.tracingInfo) && ((!__isset.tracingInfo) || (System.Object.Equals(TracingInfo, other.TracingInfo))))
+      && ((__isset.queryResult == other.__isset.queryResult) && ((!__isset.queryResult) || (TCollections.Equals(QueryResult, other.QueryResult))))
+      && ((__isset.moreData == other.__isset.moreData) && ((!__isset.moreData) || (System.Object.Equals(MoreData, other.MoreData))));
   }
 
   public override int GetHashCode() {
@@ -723,6 +820,14 @@ public partial class TSExecuteStatementResp : TBase
       if((TracingInfo != null) && __isset.tracingInfo)
       {
         hashcode = (hashcode * 397) + TracingInfo.GetHashCode();
+      }
+      if((QueryResult != null) && __isset.queryResult)
+      {
+        hashcode = (hashcode * 397) + TCollections.GetHashCode(QueryResult);
+      }
+      if(__isset.moreData)
+      {
+        hashcode = (hashcode * 397) + MoreData.GetHashCode();
       }
     }
     return hashcode;
@@ -790,6 +895,16 @@ public partial class TSExecuteStatementResp : TBase
     {
       sb.Append(", TracingInfo: ");
       TracingInfo.ToString(sb);
+    }
+    if((QueryResult != null) && __isset.queryResult)
+    {
+      sb.Append(", QueryResult: ");
+      QueryResult.ToString(sb);
+    }
+    if(__isset.moreData)
+    {
+      sb.Append(", MoreData: ");
+      MoreData.ToString(sb);
     }
     sb.Append(')');
     return sb.ToString();

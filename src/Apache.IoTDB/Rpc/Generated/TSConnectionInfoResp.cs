@@ -29,25 +29,28 @@ using Thrift.Processor;
 #pragma warning disable IDE1006  // parts of the code use IDL spelling
 
 
-public partial class TSCloseSessionReq : TBase
+public partial class TSConnectionInfoResp : TBase
 {
 
-  public long SessionId { get; set; }
+  public List<TSConnectionInfo> ConnectionInfoList { get; set; }
 
-  public TSCloseSessionReq()
+  public TSConnectionInfoResp()
   {
   }
 
-  public TSCloseSessionReq(long sessionId) : this()
+  public TSConnectionInfoResp(List<TSConnectionInfo> connectionInfoList) : this()
   {
-    this.SessionId = sessionId;
+    this.ConnectionInfoList = connectionInfoList;
   }
 
-  public TSCloseSessionReq DeepCopy()
+  public TSConnectionInfoResp DeepCopy()
   {
-    var tmp71 = new TSCloseSessionReq();
-    tmp71.SessionId = this.SessionId;
-    return tmp71;
+    var tmp429 = new TSConnectionInfoResp();
+    if((ConnectionInfoList != null))
+    {
+      tmp429.ConnectionInfoList = this.ConnectionInfoList.DeepCopy();
+    }
+    return tmp429;
   }
 
   public async global::System.Threading.Tasks.Task ReadAsync(TProtocol iprot, CancellationToken cancellationToken)
@@ -55,7 +58,7 @@ public partial class TSCloseSessionReq : TBase
     iprot.IncrementRecursionDepth();
     try
     {
-      bool isset_sessionId = false;
+      bool isset_connectionInfoList = false;
       TField field;
       await iprot.ReadStructBeginAsync(cancellationToken);
       while (true)
@@ -69,10 +72,21 @@ public partial class TSCloseSessionReq : TBase
         switch (field.ID)
         {
           case 1:
-            if (field.Type == TType.I64)
+            if (field.Type == TType.List)
             {
-              SessionId = await iprot.ReadI64Async(cancellationToken);
-              isset_sessionId = true;
+              {
+                TList _list430 = await iprot.ReadListBeginAsync(cancellationToken);
+                ConnectionInfoList = new List<TSConnectionInfo>(_list430.Count);
+                for(int _i431 = 0; _i431 < _list430.Count; ++_i431)
+                {
+                  TSConnectionInfo _elem432;
+                  _elem432 = new TSConnectionInfo();
+                  await _elem432.ReadAsync(iprot, cancellationToken);
+                  ConnectionInfoList.Add(_elem432);
+                }
+                await iprot.ReadListEndAsync(cancellationToken);
+              }
+              isset_connectionInfoList = true;
             }
             else
             {
@@ -88,7 +102,7 @@ public partial class TSCloseSessionReq : TBase
       }
 
       await iprot.ReadStructEndAsync(cancellationToken);
-      if (!isset_sessionId)
+      if (!isset_connectionInfoList)
       {
         throw new TProtocolException(TProtocolException.INVALID_DATA);
       }
@@ -104,15 +118,25 @@ public partial class TSCloseSessionReq : TBase
     oprot.IncrementRecursionDepth();
     try
     {
-      var struc = new TStruct("TSCloseSessionReq");
+      var struc = new TStruct("TSConnectionInfoResp");
       await oprot.WriteStructBeginAsync(struc, cancellationToken);
       var field = new TField();
-      field.Name = "sessionId";
-      field.Type = TType.I64;
-      field.ID = 1;
-      await oprot.WriteFieldBeginAsync(field, cancellationToken);
-      await oprot.WriteI64Async(SessionId, cancellationToken);
-      await oprot.WriteFieldEndAsync(cancellationToken);
+      if((ConnectionInfoList != null))
+      {
+        field.Name = "connectionInfoList";
+        field.Type = TType.List;
+        field.ID = 1;
+        await oprot.WriteFieldBeginAsync(field, cancellationToken);
+        {
+          await oprot.WriteListBeginAsync(new TList(TType.Struct, ConnectionInfoList.Count), cancellationToken);
+          foreach (TSConnectionInfo _iter433 in ConnectionInfoList)
+          {
+            await _iter433.WriteAsync(oprot, cancellationToken);
+          }
+          await oprot.WriteListEndAsync(cancellationToken);
+        }
+        await oprot.WriteFieldEndAsync(cancellationToken);
+      }
       await oprot.WriteFieldStopAsync(cancellationToken);
       await oprot.WriteStructEndAsync(cancellationToken);
     }
@@ -124,24 +148,30 @@ public partial class TSCloseSessionReq : TBase
 
   public override bool Equals(object that)
   {
-    if (!(that is TSCloseSessionReq other)) return false;
+    if (!(that is TSConnectionInfoResp other)) return false;
     if (ReferenceEquals(this, other)) return true;
-    return System.Object.Equals(SessionId, other.SessionId);
+    return TCollections.Equals(ConnectionInfoList, other.ConnectionInfoList);
   }
 
   public override int GetHashCode() {
     int hashcode = 157;
     unchecked {
-      hashcode = (hashcode * 397) + SessionId.GetHashCode();
+      if((ConnectionInfoList != null))
+      {
+        hashcode = (hashcode * 397) + TCollections.GetHashCode(ConnectionInfoList);
+      }
     }
     return hashcode;
   }
 
   public override string ToString()
   {
-    var sb = new StringBuilder("TSCloseSessionReq(");
-    sb.Append(", SessionId: ");
-    SessionId.ToString(sb);
+    var sb = new StringBuilder("TSConnectionInfoResp(");
+    if((ConnectionInfoList != null))
+    {
+      sb.Append(", ConnectionInfoList: ");
+      ConnectionInfoList.ToString(sb);
+    }
     sb.Append(')');
     return sb.ToString();
   }

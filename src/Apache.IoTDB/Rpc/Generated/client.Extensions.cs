@@ -20,7 +20,7 @@ using Thrift.Collections;
 #pragma warning disable IDE0079  // remove unnecessary pragmas
 #pragma warning disable IDE1006  // parts of the code use IDL spelling
 
-public static class rpcExtensions
+public static class clientExtensions
 {
   public static bool Equals(this Dictionary<string, int> instance, object that)
   {
@@ -42,10 +42,10 @@ public static class rpcExtensions
     if (source == null)
       return null;
 
-    var tmp609 = new Dictionary<string, int>(source.Count);
+    var tmp667 = new Dictionary<string, int>(source.Count);
     foreach (var pair in source)
-      tmp609.Add((pair.Key != null) ? pair.Key : null, pair.Value);
-    return tmp609;
+      tmp667.Add((pair.Key != null) ? pair.Key : null, pair.Value);
+    return tmp667;
   }
 
 
@@ -69,10 +69,10 @@ public static class rpcExtensions
     if (source == null)
       return null;
 
-    var tmp610 = new Dictionary<string, string>(source.Count);
+    var tmp668 = new Dictionary<string, string>(source.Count);
     foreach (var pair in source)
-      tmp610.Add((pair.Key != null) ? pair.Key : null, (pair.Value != null) ? pair.Value : null);
-    return tmp610;
+      tmp668.Add((pair.Key != null) ? pair.Key : null, (pair.Value != null) ? pair.Value : null);
+    return tmp668;
   }
 
 
@@ -96,10 +96,10 @@ public static class rpcExtensions
     if (source == null)
       return null;
 
-    var tmp611 = new List<Dictionary<string, string>>(source.Count);
+    var tmp669 = new List<Dictionary<string, string>>(source.Count);
     foreach (var elem in source)
-      tmp611.Add((elem != null) ? elem.DeepCopy() : null);
-    return tmp611;
+      tmp669.Add((elem != null) ? elem.DeepCopy() : null);
+    return tmp669;
   }
 
 
@@ -123,10 +123,10 @@ public static class rpcExtensions
     if (source == null)
       return null;
 
-    var tmp612 = new List<List<int>>(source.Count);
+    var tmp670 = new List<List<int>>(source.Count);
     foreach (var elem in source)
-      tmp612.Add((elem != null) ? elem.DeepCopy() : null);
-    return tmp612;
+      tmp670.Add((elem != null) ? elem.DeepCopy() : null);
+    return tmp670;
   }
 
 
@@ -150,10 +150,37 @@ public static class rpcExtensions
     if (source == null)
       return null;
 
-    var tmp613 = new List<List<string>>(source.Count);
+    var tmp671 = new List<List<string>>(source.Count);
     foreach (var elem in source)
-      tmp613.Add((elem != null) ? elem.DeepCopy() : null);
-    return tmp613;
+      tmp671.Add((elem != null) ? elem.DeepCopy() : null);
+    return tmp671;
+  }
+
+
+  public static bool Equals(this List<TSConnectionInfo> instance, object that)
+  {
+    if (!(that is List<TSConnectionInfo> other)) return false;
+    if (ReferenceEquals(instance, other)) return true;
+
+    return TCollections.Equals(instance, other);
+  }
+
+
+  public static int GetHashCode(this List<TSConnectionInfo> instance)
+  {
+    return TCollections.GetHashCode(instance);
+  }
+
+
+  public static List<TSConnectionInfo> DeepCopy(this List<TSConnectionInfo> source)
+  {
+    if (source == null)
+      return null;
+
+    var tmp672 = new List<TSConnectionInfo>(source.Count);
+    foreach (var elem in source)
+      tmp672.Add((elem != null) ? elem.DeepCopy() : null);
+    return tmp672;
   }
 
 
@@ -177,10 +204,10 @@ public static class rpcExtensions
     if (source == null)
       return null;
 
-    var tmp614 = new List<TSStatus>(source.Count);
+    var tmp673 = new List<TSStatus>(source.Count);
     foreach (var elem in source)
-      tmp614.Add((elem != null) ? elem.DeepCopy() : null);
-    return tmp614;
+      tmp673.Add((elem != null) ? elem.DeepCopy() : null);
+    return tmp673;
   }
 
 
@@ -204,10 +231,10 @@ public static class rpcExtensions
     if (source == null)
       return null;
 
-    var tmp615 = new List<byte[]>(source.Count);
+    var tmp674 = new List<byte[]>(source.Count);
     foreach (var elem in source)
-      tmp615.Add((elem != null) ? elem.ToArray() : null);
-    return tmp615;
+      tmp674.Add((elem != null) ? elem.ToArray() : null);
+    return tmp674;
   }
 
 
@@ -231,10 +258,10 @@ public static class rpcExtensions
     if (source == null)
       return null;
 
-    var tmp616 = new List<int>(source.Count);
+    var tmp675 = new List<int>(source.Count);
     foreach (var elem in source)
-      tmp616.Add(elem);
-    return tmp616;
+      tmp675.Add(elem);
+    return tmp675;
   }
 
 
@@ -258,10 +285,10 @@ public static class rpcExtensions
     if (source == null)
       return null;
 
-    var tmp617 = new List<long>(source.Count);
+    var tmp676 = new List<long>(source.Count);
     foreach (var elem in source)
-      tmp617.Add(elem);
-    return tmp617;
+      tmp676.Add(elem);
+    return tmp676;
   }
 
 
@@ -285,10 +312,10 @@ public static class rpcExtensions
     if (source == null)
       return null;
 
-    var tmp618 = new List<sbyte>(source.Count);
+    var tmp677 = new List<sbyte>(source.Count);
     foreach (var elem in source)
-      tmp618.Add(elem);
-    return tmp618;
+      tmp677.Add(elem);
+    return tmp677;
   }
 
 
@@ -312,10 +339,10 @@ public static class rpcExtensions
     if (source == null)
       return null;
 
-    var tmp619 = new List<string>(source.Count);
+    var tmp678 = new List<string>(source.Count);
     foreach (var elem in source)
-      tmp619.Add((elem != null) ? elem : null);
-    return tmp619;
+      tmp678.Add((elem != null) ? elem : null);
+    return tmp678;
   }
 
 

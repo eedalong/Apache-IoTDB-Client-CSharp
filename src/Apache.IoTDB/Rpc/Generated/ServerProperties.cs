@@ -38,6 +38,7 @@ public partial class ServerProperties : TBase
   private int _watermarkParamMaxRightBit;
   private int _thriftMaxFrameSize;
   private bool _isReadOnly;
+  private string _buildInfo;
 
   public string Version { get; set; }
 
@@ -136,6 +137,19 @@ public partial class ServerProperties : TBase
     }
   }
 
+  public string BuildInfo
+  {
+    get
+    {
+      return _buildInfo;
+    }
+    set
+    {
+      __isset.buildInfo = true;
+      this._buildInfo = value;
+    }
+  }
+
 
   public Isset __isset;
   public struct Isset
@@ -147,6 +161,7 @@ public partial class ServerProperties : TBase
     public bool watermarkParamMaxRightBit;
     public bool thriftMaxFrameSize;
     public bool isReadOnly;
+    public bool buildInfo;
   }
 
   public ServerProperties()
@@ -210,6 +225,11 @@ public partial class ServerProperties : TBase
       tmp379.IsReadOnly = this.IsReadOnly;
     }
     tmp379.__isset.isReadOnly = this.__isset.isReadOnly;
+    if((BuildInfo != null) && __isset.buildInfo)
+    {
+      tmp379.BuildInfo = this.BuildInfo;
+    }
+    tmp379.__isset.buildInfo = this.__isset.buildInfo;
     return tmp379;
   }
 
@@ -340,6 +360,16 @@ public partial class ServerProperties : TBase
             if (field.Type == TType.Bool)
             {
               IsReadOnly = await iprot.ReadBoolAsync(cancellationToken);
+            }
+            else
+            {
+              await TProtocolUtil.SkipAsync(iprot, field.Type, cancellationToken);
+            }
+            break;
+          case 11:
+            if (field.Type == TType.String)
+            {
+              BuildInfo = await iprot.ReadStringAsync(cancellationToken);
             }
             else
             {
@@ -479,6 +509,15 @@ public partial class ServerProperties : TBase
         await oprot.WriteBoolAsync(IsReadOnly, cancellationToken);
         await oprot.WriteFieldEndAsync(cancellationToken);
       }
+      if((BuildInfo != null) && __isset.buildInfo)
+      {
+        field.Name = "buildInfo";
+        field.Type = TType.String;
+        field.ID = 11;
+        await oprot.WriteFieldBeginAsync(field, cancellationToken);
+        await oprot.WriteStringAsync(BuildInfo, cancellationToken);
+        await oprot.WriteFieldEndAsync(cancellationToken);
+      }
       await oprot.WriteFieldStopAsync(cancellationToken);
       await oprot.WriteStructEndAsync(cancellationToken);
     }
@@ -501,7 +540,8 @@ public partial class ServerProperties : TBase
       && ((__isset.watermarkParamMarkRate == other.__isset.watermarkParamMarkRate) && ((!__isset.watermarkParamMarkRate) || (System.Object.Equals(WatermarkParamMarkRate, other.WatermarkParamMarkRate))))
       && ((__isset.watermarkParamMaxRightBit == other.__isset.watermarkParamMaxRightBit) && ((!__isset.watermarkParamMaxRightBit) || (System.Object.Equals(WatermarkParamMaxRightBit, other.WatermarkParamMaxRightBit))))
       && ((__isset.thriftMaxFrameSize == other.__isset.thriftMaxFrameSize) && ((!__isset.thriftMaxFrameSize) || (System.Object.Equals(ThriftMaxFrameSize, other.ThriftMaxFrameSize))))
-      && ((__isset.isReadOnly == other.__isset.isReadOnly) && ((!__isset.isReadOnly) || (System.Object.Equals(IsReadOnly, other.IsReadOnly))));
+      && ((__isset.isReadOnly == other.__isset.isReadOnly) && ((!__isset.isReadOnly) || (System.Object.Equals(IsReadOnly, other.IsReadOnly))))
+      && ((__isset.buildInfo == other.__isset.buildInfo) && ((!__isset.buildInfo) || (System.Object.Equals(BuildInfo, other.BuildInfo))));
   }
 
   public override int GetHashCode() {
@@ -546,6 +586,10 @@ public partial class ServerProperties : TBase
       if(__isset.isReadOnly)
       {
         hashcode = (hashcode * 397) + IsReadOnly.GetHashCode();
+      }
+      if((BuildInfo != null) && __isset.buildInfo)
+      {
+        hashcode = (hashcode * 397) + BuildInfo.GetHashCode();
       }
     }
     return hashcode;
@@ -603,6 +647,11 @@ public partial class ServerProperties : TBase
     {
       sb.Append(", IsReadOnly: ");
       IsReadOnly.ToString(sb);
+    }
+    if((BuildInfo != null) && __isset.buildInfo)
+    {
+      sb.Append(", BuildInfo: ");
+      BuildInfo.ToString(sb);
     }
     sb.Append(')');
     return sb.ToString();

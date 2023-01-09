@@ -32,6 +32,7 @@ using Thrift.Processor;
 public partial class TSInsertStringRecordReq : TBase
 {
   private bool _isAligned;
+  private long _timeout;
 
   public long SessionId { get; set; }
 
@@ -56,11 +57,25 @@ public partial class TSInsertStringRecordReq : TBase
     }
   }
 
+  public long Timeout
+  {
+    get
+    {
+      return _timeout;
+    }
+    set
+    {
+      __isset.timeout = true;
+      this._timeout = value;
+    }
+  }
+
 
   public Isset __isset;
   public struct Isset
   {
     public bool isAligned;
+    public bool timeout;
   }
 
   public TSInsertStringRecordReq()
@@ -98,6 +113,11 @@ public partial class TSInsertStringRecordReq : TBase
       tmp113.IsAligned = this.IsAligned;
     }
     tmp113.__isset.isAligned = this.__isset.isAligned;
+    if(__isset.timeout)
+    {
+      tmp113.Timeout = this.Timeout;
+    }
+    tmp113.__isset.timeout = this.__isset.timeout;
     return tmp113;
   }
 
@@ -202,6 +222,16 @@ public partial class TSInsertStringRecordReq : TBase
             if (field.Type == TType.Bool)
             {
               IsAligned = await iprot.ReadBoolAsync(cancellationToken);
+            }
+            else
+            {
+              await TProtocolUtil.SkipAsync(iprot, field.Type, cancellationToken);
+            }
+            break;
+          case 7:
+            if (field.Type == TType.I64)
+            {
+              Timeout = await iprot.ReadI64Async(cancellationToken);
             }
             else
             {
@@ -314,6 +344,15 @@ public partial class TSInsertStringRecordReq : TBase
         await oprot.WriteBoolAsync(IsAligned, cancellationToken);
         await oprot.WriteFieldEndAsync(cancellationToken);
       }
+      if(__isset.timeout)
+      {
+        field.Name = "timeout";
+        field.Type = TType.I64;
+        field.ID = 7;
+        await oprot.WriteFieldBeginAsync(field, cancellationToken);
+        await oprot.WriteI64Async(Timeout, cancellationToken);
+        await oprot.WriteFieldEndAsync(cancellationToken);
+      }
       await oprot.WriteFieldStopAsync(cancellationToken);
       await oprot.WriteStructEndAsync(cancellationToken);
     }
@@ -332,7 +371,8 @@ public partial class TSInsertStringRecordReq : TBase
       && TCollections.Equals(Measurements, other.Measurements)
       && TCollections.Equals(Values, other.Values)
       && System.Object.Equals(Timestamp, other.Timestamp)
-      && ((__isset.isAligned == other.__isset.isAligned) && ((!__isset.isAligned) || (System.Object.Equals(IsAligned, other.IsAligned))));
+      && ((__isset.isAligned == other.__isset.isAligned) && ((!__isset.isAligned) || (System.Object.Equals(IsAligned, other.IsAligned))))
+      && ((__isset.timeout == other.__isset.timeout) && ((!__isset.timeout) || (System.Object.Equals(Timeout, other.Timeout))));
   }
 
   public override int GetHashCode() {
@@ -355,6 +395,10 @@ public partial class TSInsertStringRecordReq : TBase
       if(__isset.isAligned)
       {
         hashcode = (hashcode * 397) + IsAligned.GetHashCode();
+      }
+      if(__isset.timeout)
+      {
+        hashcode = (hashcode * 397) + Timeout.GetHashCode();
       }
     }
     return hashcode;
@@ -386,6 +430,11 @@ public partial class TSInsertStringRecordReq : TBase
     {
       sb.Append(", IsAligned: ");
       IsAligned.ToString(sb);
+    }
+    if(__isset.timeout)
+    {
+      sb.Append(", Timeout: ");
+      Timeout.ToString(sb);
     }
     sb.Append(')');
     return sb.ToString();

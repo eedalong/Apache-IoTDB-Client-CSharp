@@ -48,16 +48,16 @@ public partial class TSQueryNonAlignDataSet : TBase
 
   public TSQueryNonAlignDataSet DeepCopy()
   {
-    var tmp18 = new TSQueryNonAlignDataSet();
+    var tmp10 = new TSQueryNonAlignDataSet();
     if((TimeList != null))
     {
-      tmp18.TimeList = this.TimeList.DeepCopy();
+      tmp10.TimeList = this.TimeList.DeepCopy();
     }
     if((ValueList != null))
     {
-      tmp18.ValueList = this.ValueList.DeepCopy();
+      tmp10.ValueList = this.ValueList.DeepCopy();
     }
-    return tmp18;
+    return tmp10;
   }
 
   public async global::System.Threading.Tasks.Task ReadAsync(TProtocol iprot, CancellationToken cancellationToken)
@@ -83,13 +83,13 @@ public partial class TSQueryNonAlignDataSet : TBase
             if (field.Type == TType.List)
             {
               {
-                TList _list19 = await iprot.ReadListBeginAsync(cancellationToken);
-                TimeList = new List<byte[]>(_list19.Count);
-                for(int _i20 = 0; _i20 < _list19.Count; ++_i20)
+                TList _list11 = await iprot.ReadListBeginAsync(cancellationToken);
+                TimeList = new List<byte[]>(_list11.Count);
+                for(int _i12 = 0; _i12 < _list11.Count; ++_i12)
                 {
-                  byte[] _elem21;
-                  _elem21 = await iprot.ReadBinaryAsync(cancellationToken);
-                  TimeList.Add(_elem21);
+                  byte[] _elem13;
+                  _elem13 = await iprot.ReadBinaryAsync(cancellationToken);
+                  TimeList.Add(_elem13);
                 }
                 await iprot.ReadListEndAsync(cancellationToken);
               }
@@ -104,13 +104,13 @@ public partial class TSQueryNonAlignDataSet : TBase
             if (field.Type == TType.List)
             {
               {
-                TList _list22 = await iprot.ReadListBeginAsync(cancellationToken);
-                ValueList = new List<byte[]>(_list22.Count);
-                for(int _i23 = 0; _i23 < _list22.Count; ++_i23)
+                TList _list14 = await iprot.ReadListBeginAsync(cancellationToken);
+                ValueList = new List<byte[]>(_list14.Count);
+                for(int _i15 = 0; _i15 < _list14.Count; ++_i15)
                 {
-                  byte[] _elem24;
-                  _elem24 = await iprot.ReadBinaryAsync(cancellationToken);
-                  ValueList.Add(_elem24);
+                  byte[] _elem16;
+                  _elem16 = await iprot.ReadBinaryAsync(cancellationToken);
+                  ValueList.Add(_elem16);
                 }
                 await iprot.ReadListEndAsync(cancellationToken);
               }
@@ -161,9 +161,9 @@ public partial class TSQueryNonAlignDataSet : TBase
         await oprot.WriteFieldBeginAsync(field, cancellationToken);
         {
           await oprot.WriteListBeginAsync(new TList(TType.String, TimeList.Count), cancellationToken);
-          foreach (byte[] _iter25 in TimeList)
+          foreach (byte[] _iter17 in TimeList)
           {
-            await oprot.WriteBinaryAsync(_iter25, cancellationToken);
+            await oprot.WriteBinaryAsync(_iter17, cancellationToken);
           }
           await oprot.WriteListEndAsync(cancellationToken);
         }
@@ -177,9 +177,9 @@ public partial class TSQueryNonAlignDataSet : TBase
         await oprot.WriteFieldBeginAsync(field, cancellationToken);
         {
           await oprot.WriteListBeginAsync(new TList(TType.String, ValueList.Count), cancellationToken);
-          foreach (byte[] _iter26 in ValueList)
+          foreach (byte[] _iter18 in ValueList)
           {
-            await oprot.WriteBinaryAsync(_iter26, cancellationToken);
+            await oprot.WriteBinaryAsync(_iter18, cancellationToken);
           }
           await oprot.WriteListEndAsync(cancellationToken);
         }

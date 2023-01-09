@@ -48,13 +48,13 @@ public partial class TSExecuteBatchStatementReq : TBase
 
   public TSExecuteBatchStatementReq DeepCopy()
   {
-    var tmp79 = new TSExecuteBatchStatementReq();
-    tmp79.SessionId = this.SessionId;
+    var tmp75 = new TSExecuteBatchStatementReq();
+    tmp75.SessionId = this.SessionId;
     if((Statements != null))
     {
-      tmp79.Statements = this.Statements.DeepCopy();
+      tmp75.Statements = this.Statements.DeepCopy();
     }
-    return tmp79;
+    return tmp75;
   }
 
   public async global::System.Threading.Tasks.Task ReadAsync(TProtocol iprot, CancellationToken cancellationToken)
@@ -91,13 +91,13 @@ public partial class TSExecuteBatchStatementReq : TBase
             if (field.Type == TType.List)
             {
               {
-                TList _list80 = await iprot.ReadListBeginAsync(cancellationToken);
-                Statements = new List<string>(_list80.Count);
-                for(int _i81 = 0; _i81 < _list80.Count; ++_i81)
+                TList _list76 = await iprot.ReadListBeginAsync(cancellationToken);
+                Statements = new List<string>(_list76.Count);
+                for(int _i77 = 0; _i77 < _list76.Count; ++_i77)
                 {
-                  string _elem82;
-                  _elem82 = await iprot.ReadStringAsync(cancellationToken);
-                  Statements.Add(_elem82);
+                  string _elem78;
+                  _elem78 = await iprot.ReadStringAsync(cancellationToken);
+                  Statements.Add(_elem78);
                 }
                 await iprot.ReadListEndAsync(cancellationToken);
               }
@@ -154,9 +154,9 @@ public partial class TSExecuteBatchStatementReq : TBase
         await oprot.WriteFieldBeginAsync(field, cancellationToken);
         {
           await oprot.WriteListBeginAsync(new TList(TType.String, Statements.Count), cancellationToken);
-          foreach (string _iter83 in Statements)
+          foreach (string _iter79 in Statements)
           {
-            await oprot.WriteStringAsync(_iter83, cancellationToken);
+            await oprot.WriteStringAsync(_iter79, cancellationToken);
           }
           await oprot.WriteListEndAsync(cancellationToken);
         }

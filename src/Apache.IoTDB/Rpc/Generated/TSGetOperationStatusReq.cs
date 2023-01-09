@@ -48,10 +48,10 @@ public partial class TSGetOperationStatusReq : TBase
 
   public TSGetOperationStatusReq DeepCopy()
   {
-    var tmp85 = new TSGetOperationStatusReq();
-    tmp85.SessionId = this.SessionId;
-    tmp85.QueryId = this.QueryId;
-    return tmp85;
+    var tmp81 = new TSGetOperationStatusReq();
+    tmp81.SessionId = this.SessionId;
+    tmp81.QueryId = this.QueryId;
+    return tmp81;
   }
 
   public async global::System.Threading.Tasks.Task ReadAsync(TProtocol iprot, CancellationToken cancellationToken)
