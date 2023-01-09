@@ -19,6 +19,7 @@ namespace Apache.IoTDB
     public class SessionPool:IDisposable
     {
         private static int SuccessCode => 200;
+        private static int RedirectRecommendCode => 400;
         private static readonly TSProtocolVersion ProtocolVersion = TSProtocolVersion.IOTDB_SERVICE_PROTOCOL_V3;
 
         private readonly string _username;
