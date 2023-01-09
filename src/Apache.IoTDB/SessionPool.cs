@@ -16,7 +16,7 @@ using Thrift.Transport.Client;
 namespace Apache.IoTDB
 {
 
-    public class SessionPool:IDisposable
+    public class SessionPool : IDisposable
     {
         private static int SuccessCode => 200;
         private static int RedirectRecommendCode => 400;
@@ -82,7 +82,7 @@ namespace Apache.IoTDB
         public void OpenDebugMode(Action<ILoggingBuilder> configure)
         {
             _debugMode = true;
-            factory= LoggerFactory.Create(configure);
+            factory = LoggerFactory.Create(configure);
             _logger = factory.CreateLogger(nameof(Apache.IoTDB));
         }
 
@@ -100,10 +100,10 @@ namespace Apache.IoTDB
         public async Task Open(CancellationToken cancellationToken = default)
         {
             _clients = new ConcurrentClientQueue();
-            _clients.Timeout = _timeout*5;
+            _clients.Timeout = _timeout * 5;
             for (var index = 0; index < _poolSize; index++)
             {
-                _clients.Add(await CreateAndOpen(_enableRpcCompression,_timeout, cancellationToken));
+                _clients.Add(await CreateAndOpen(_enableRpcCompression, _timeout, cancellationToken));
             }
         }
 
@@ -183,7 +183,7 @@ namespace Apache.IoTDB
             }
         }
 
-        private async Task<Client> CreateAndOpen(bool enableRpcCompression,int timeout, CancellationToken cancellationToken = default)
+        private async Task<Client> CreateAndOpen(bool enableRpcCompression, int timeout, CancellationToken cancellationToken = default)
         {
             var tcpClient = new TcpClient(_host, _port);
             tcpClient.SendTimeout = timeout;
@@ -724,25 +724,212 @@ namespace Apache.IoTDB
         }
 
         public TSInsertStringRecordReq GenInsertStrRecordReq(string deviceId, List<string> measurements,
-            List<string> values, long timestamp, long sessionId)
+            List<string> values, long timestamp, long sessionId, bool isAligned = false)
         {
             if (values.Count() != measurements.Count())
             {
                 throw new TException("length of data types does not equal to length of values!", null);
             }
 
-            return new TSInsertStringRecordReq(sessionId, deviceId, measurements, values, timestamp);
+            return new TSInsertStringRecordReq(sessionId, deviceId, measurements, values, timestamp)
+            {
+                IsAligned = isAligned
+            };
+        }
+        public TSInsertStringRecordsReq GenInsertStringRecordsReq(List<string> deviceIds, List<List<string>> measurementsList,
+            List<List<string>> valuesList, List<long> timestamps, long sessionId, bool isAligned = false)
+        {
+            if (valuesList.Count() != measurementsList.Count())
+            {
+                throw new TException("length of data types does not equal to length of values!", null);
+            }
+
+            return new TSInsertStringRecordsReq(sessionId, deviceIds, measurementsList, valuesList, timestamps)
+            {
+                IsAligned = isAligned
+            };
         }
 
         public TSInsertRecordsReq GenInsertRecordsReq(List<string> deviceId, List<RowRecord> rowRecords,
             long sessionId)
         {
-            //TODO
             var measurementLst = rowRecords.Select(x => x.Measurements).ToList();
             var timestampLst = rowRecords.Select(x => x.Timestamps).ToList();
             var valuesLstInBytes = rowRecords.Select(row => row.ToBytes()).ToList();
 
             return new TSInsertRecordsReq(sessionId, deviceId, measurementLst, valuesLstInBytes, timestampLst);
+        }
+        public async Task<int> InsertStringRecordAsync(string deviceId, List<string> measurements, List<string> values,
+            long timestamp)
+        {
+            var client = _clients.Take();
+            var req = GenInsertStrRecordReq(deviceId, measurements, values, timestamp, client.SessionId);
+            try
+            {
+                var status = await client.ServiceClient.insertStringRecordAsync(req);
+
+                if (_debugMode)
+                {
+                    _logger.LogInformation("insert one string record to device {0}， server message: {1}", deviceId, status.Message);
+                }
+
+                return _utilFunctions.VerifySuccess(status, SuccessCode);
+            }
+            catch (TException e)
+            {
+                await Open(_enableRpcCompression);
+                client = _clients.Take();
+                req.SessionId = client.SessionId;
+                try
+                {
+                    var status = await client.ServiceClient.insertStringRecordAsync(req);
+
+                    if (_debugMode)
+                    {
+                        _logger.LogInformation("insert one record to device {0}， server message: {1}", deviceId, status.Message);
+                    }
+
+                    return _utilFunctions.VerifySuccess(status, SuccessCode);
+                }
+                catch (TException ex)
+                {
+                    throw new TException("Error occurs when inserting a string record", ex);
+                }
+            }
+            finally
+            {
+                _clients.Add(client);
+            }
+        }
+        public async Task<int> InsertAlignedStringRecordAsync(string deviceId, List<string> measurements, List<string> values,
+            long timestamp)
+        {
+            var client = _clients.Take();
+            var req = GenInsertStrRecordReq(deviceId, measurements, values, timestamp, client.SessionId, true);
+            try
+            {
+                var status = await client.ServiceClient.insertStringRecordAsync(req);
+
+                if (_debugMode)
+                {
+                    _logger.LogInformation("insert one record to device {0}， server message: {1}", deviceId, status.Message);
+                }
+
+                return _utilFunctions.VerifySuccess(status, SuccessCode);
+            }
+            catch (TException e)
+            {
+                await Open(_enableRpcCompression);
+                client = _clients.Take();
+                req.SessionId = client.SessionId;
+                try
+                {
+                    var status = await client.ServiceClient.insertStringRecordAsync(req);
+
+                    if (_debugMode)
+                    {
+                        _logger.LogInformation("insert one record to device {0}， server message: {1}", deviceId, status.Message);
+                    }
+
+                    return _utilFunctions.VerifySuccess(status, SuccessCode);
+                }
+                catch (TException ex)
+                {
+                    throw new TException("Error occurs when inserting record", ex);
+                }
+            }
+            finally
+            {
+                _clients.Add(client);
+            }
+        }
+        public async Task<int> InsertStringRecordsAsync(List<string> deviceIds, List<List<string>> measurements, List<List<string>> values,
+            List<long> timestamps)
+        {
+            var client = _clients.Take();
+            var req = GenInsertStringRecordsReq(deviceIds, measurements, values, timestamps, client.SessionId);
+            try
+            {
+                var status = await client.ServiceClient.insertStringRecordsAsync(req);
+
+                if (_debugMode)
+                {
+                    _logger.LogInformation("insert string records to devices {0}， server message: {1}", deviceIds, status.Message);
+                }
+
+                return _utilFunctions.VerifySuccess(status, SuccessCode);
+
+            }
+            catch (TException e)
+            {
+                await Open(_enableRpcCompression);
+                client = _clients.Take();
+                req.SessionId = client.SessionId;
+                try
+                {
+                    var status = await client.ServiceClient.insertStringRecordsAsync(req);
+
+                    if (_debugMode)
+                    {
+                        _logger.LogInformation("insert string records to devices {0}， server message: {1}", deviceIds, status.Message);
+                    }
+
+                    return _utilFunctions.VerifySuccess(status, SuccessCode);
+
+                }
+                catch (TException ex)
+                {
+                    throw new TException("Error occurs when inserting string records", ex);
+                }
+            }
+            finally
+            {
+                _clients.Add(client);
+            }
+        }
+        public async Task<int> InsertAlignedStringRecordsAsync(List<string> deviceIds, List<List<string>> measurements, List<List<string>> values,
+            List<long> timestamps)
+        {
+            var client = _clients.Take();
+            var req = GenInsertStringRecordsReq(deviceIds, measurements, values, timestamps, client.SessionId, true);
+            try
+            {
+                var status = await client.ServiceClient.insertStringRecordsAsync(req);
+
+                if (_debugMode)
+                {
+                    _logger.LogInformation("insert string records to devices {0}， server message: {1}", deviceIds, status.Message);
+                }
+
+                return _utilFunctions.VerifySuccess(status, SuccessCode);
+
+            }
+            catch (TException e)
+            {
+                await Open(_enableRpcCompression);
+                client = _clients.Take();
+                req.SessionId = client.SessionId;
+                try
+                {
+                    var status = await client.ServiceClient.insertStringRecordsAsync(req);
+
+                    if (_debugMode)
+                    {
+                        _logger.LogInformation("insert string records to devices {0}， server message: {1}", deviceIds, status.Message);
+                    }
+
+                    return _utilFunctions.VerifySuccess(status, SuccessCode);
+
+                }
+                catch (TException ex)
+                {
+                    throw new TException("Error occurs when inserting string records", ex);
+                }
+            }
+            finally
+            {
+                _clients.Add(client);
+            }
         }
 
         public async Task<int> InsertRecordsAsync(List<string> deviceId, List<RowRecord> rowRecords)
