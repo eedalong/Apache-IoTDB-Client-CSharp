@@ -40,66 +40,67 @@ namespace Apache.IoTDB.Samples
         public async Task Test()
         {
 
-            await TestInsertAlignedRecord();
+            // await TestInsertAlignedRecord();
 
-            await TestInsertAlignedRecords();
+            // await TestInsertAlignedRecords();
 
-            await TestInsertAlignedRecordsOfOneDevice();
+            // await TestInsertAlignedRecordsOfOneDevice();
 
-            await TestInsertAlignedTablet();
+            // await TestInsertAlignedTablet();
 
-            await TestInsertAlignedTablets();
+            // await TestInsertAlignedTablets();
 
-            await TestInsertRecord();
+            // await TestInsertRecord();
 
-            await TestCreateMultiTimeSeries();
+            // await TestCreateMultiTimeSeries();
 
-            await TestInsertStrRecord();
+            // await TestInsertStrRecord();
 
-            await TestInsertRecords();
+            // await TestInsertRecords();
 
-            await TestInsertRecordsOfOneDevice();
+            // await TestInsertRecordsOfOneDevice();
 
-            await TestInsertTablet();
+            // await TestInsertTablet();
 
-            await TestInsertTabletWithNullValue();
+            // await TestInsertTabletWithNullValue();
 
-            await TestInsertTablets();
+            // await TestInsertTablets();
 
-            await TestAddAlignedMeasurements();
+            // await TestAddAlignedMeasurements();
 
-            await TestAddUnalignedMeasurements();
+            // await TestAddUnalignedMeasurements();
 
-            await TestSetAndUnsetSchemaTemplate();
+            // await TestSetAndUnsetSchemaTemplate();
 
-            await TestCreateAlignedTimeseries();
+            // await TestCreateAlignedTimeseries();
 
-            await TestCreateAndDropSchemaTemplate();
+            // await TestCreateAndDropSchemaTemplate();
 
-            await TestDeleteNodeInTemplate();
+            // await TestDeleteNodeInTemplate();
 
-            await TestGetTimeZone();
+            // await TestGetTimeZone();
 
-            await TestSetAndDeleteStorageGroup();
+            // await TestSetAndDeleteStorageGroup();
 
-            await TestCreateTimeSeries();
+            // await TestCreateTimeSeries();
 
-            await TestDeleteTimeSeries();
+            // await TestDeleteTimeSeries();
 
-            await TestDeleteStorageGroups();
+            // await TestDeleteStorageGroups();
 
-            await TestCheckTimeSeriesExists();
+            // await TestCheckTimeSeriesExists();
 
-            await TestSetTimeZone();
+            // await TestSetTimeZone();
 
-            await TestDeleteData();
+            // await TestDeleteData();
 
-            await TestNonSql();
+            // await TestNonSql();
 
 
-            await TestSqlQuery();
+            // await TestSqlQuery();
 
-            await TestNonSqlBy_ADO();
+            // await TestNonSqlBy_ADO();
+            await TestManyQuery();
         }
 
         public async Task TestGetTimeZone()
@@ -132,6 +133,93 @@ namespace Apache.IoTDB.Samples
                 await session_pool.DeleteStorageGroupAsync(test_group_name) == 0);
             await session_pool.Close();
             Console.WriteLine("TestSetAndDeleteStorageGroup Passed!");
+        }
+        public async Task TestManyQuery()
+        {
+            var session_pool = new SessionPool(host, port, pool_size);
+            var status = 0;
+            await session_pool.Open(false);
+            if (debug) session_pool.OpenDebugMode();
+            // bool isInitTest = false;
+            // if (isInitTest)
+            // {
+            //     status = await session_pool.DeleteStorageGroupAsync(test_group_name);
+            //     System.Diagnostics.Debug.Assert(
+            //         await session_pool.SetStorageGroup(test_group_name) == 0);
+            // }
+
+            // List<object> values = new List<object>();
+            // List<string> measurements = new List<string>();
+            // for (int i = 0; i < 150; i++)//150个DOUBLE_Ser_
+            // {
+            //     values.Add(double.Parse(i.ToString()));
+            //     var meas_name = string.Format("{0}.{1}.DOUBLESer{2}", test_group_name, test_device, i);
+            //     measurements.Add(meas_name.Replace($"{test_group_name}.{test_device}.", ""));
+            //     if (isInitTest)
+            //         System.Diagnostics.Debug.Assert(await session_pool.CreateTimeSeries(meas_name,
+            //                 TSDataType.DOUBLE, TSEncoding.GORILLA, Compressor.SNAPPY) == 0);
+
+            // }
+            // for (int i = 0; i < 5; i++)//5个BOOL_Ser_
+            // {
+
+            //     values.Add(i % 3 == 0);
+            //     var meas_name = string.Format("{0}.{1}.BOOLEANSer{2}", test_group_name, test_device, i);
+            //     measurements.Add(meas_name.Replace($"{test_group_name}.{test_device}.", ""));
+            //     if (isInitTest)
+            //         System.Diagnostics.Debug.Assert(await session_pool.CreateTimeSeries(meas_name,
+            //                 TSDataType.BOOLEAN, TSEncoding.RLE, Compressor.SNAPPY) == 0);
+            // }
+            // for (int i = 0; i < 5; i++)//5个INT32_Ser_
+            // {
+
+            //     values.Add(Int32.Parse(i.ToString()));
+            //     var meas_name = string.Format("{0}.{1}.INT32Ser{2}", test_group_name, test_device, i);
+            //     measurements.Add(meas_name.Replace($"{test_group_name}.{test_device}.", ""));
+            //     if (isInitTest)
+            //         System.Diagnostics.Debug.Assert(await session_pool.CreateTimeSeries(meas_name,
+            //                 TSDataType.INT32, TSEncoding.RLE, Compressor.SNAPPY) == 0);
+            // }
+            // for (int i = 0; i < 10; i++)//10个TEXT_Ser_
+            // {
+
+            //     values.Add($"aaaaaaaaaaaaabbbbbbbb_{i}");
+            //     var meas_name = string.Format("{0}.{1}.TEXTSer{2}", test_group_name, test_device, i);
+            //     measurements.Add(meas_name.Replace($"{test_group_name}.{test_device}.", ""));
+            //     if (isInitTest)
+            //         System.Diagnostics.Debug.Assert(await session_pool.CreateTimeSeries(meas_name,
+            //                 TSDataType.TEXT, TSEncoding.PLAIN, Compressor.SNAPPY) == 0);
+            // }
+            // //插入数据
+            // Console.WriteLine("********************\n准备插入数据 \n\n");
+            // var device_id = string.Format("{0}.{1}", test_group_name, test_device);
+            // var rowRecords = new List<RowRecord>() { new RowRecord(DateTime.Now, values, measurements) };
+            // status = await session_pool.InsertRecordsOfOneDeviceAsync(device_id, rowRecords);
+            // System.Diagnostics.Debug.Assert(status == 0);
+            // Console.WriteLine($"********************\n插入数据完成,code={status} \n\n");
+            for (int i = 0; i < 10000; i++)
+            {
+                Console.WriteLine($"********************\n查询测试,{i}次 \n\n");
+                //await session_pool.Open(false);
+
+                var res = await session_pool.ExecuteQueryStatementAsync(
+                    "select last_value(*) from " + string.Format("{0}.{1} align by device", test_group_name, test_device));
+                // System.Diagnostics.Debug.Assert(res.RowCount == 1);
+                int cnt = 0;
+                // while (res.HasNext())
+                // {
+                //     cnt++;
+                //     Console.WriteLine("cnt = " + cnt);
+                // //    Console.WriteLine(res.Next());
+                //     var next = res.Next();
+                //     Console.WriteLine(next);
+                //     // break;
+                // }
+                await res.Close();
+                //await session_pool.Close();
+            }
+            Console.WriteLine("********************\n查询测试完成 \n\n");
+            await session_pool.Close();
         }
 
 
