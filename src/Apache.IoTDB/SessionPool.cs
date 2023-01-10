@@ -1592,9 +1592,9 @@ namespace Apache.IoTDB
 
             _clients.Add(client);
 
-            var sessionDataset = new SessionDataSet(sql, resp, _clients)
+            var sessionDataset = new SessionDataSet(sql, resp, _clients, client.StatementId)
             {
-                FetchSize = _fetchSize
+                FetchSize = _fetchSize,
             };
 
             return sessionDataset;
