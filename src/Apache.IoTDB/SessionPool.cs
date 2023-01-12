@@ -1247,7 +1247,95 @@ namespace Apache.IoTDB
             var sortedRowRecords = rowRecords.OrderBy(x => x.Timestamps).ToList();
             return await InsertAlignedRecordsOfOneDeviceSortedAsync(deviceId, sortedRowRecords);
         }
+        public async Task<int> InsertStringRecordsOfOneDeviceAsync(string deviceId, List<long> timestamps,
+            List<List<string>> measurementsList, List<List<string>> valuesList)
+        {
+            var joined = timestamps.Zip(measurementsList, (t, m) => new { t, m })
+                .Zip(valuesList, (tm, v) => new { tm.t, tm.m, v })
+                .OrderBy(x => x.t);
 
+            var sortedTimestamps = joined.Select(x => x.t).ToList();
+            var sortedMeasurementsList = joined.Select(x => x.m).ToList();
+            var sortedValuesList = joined.Select(x => x.v).ToList();
+
+            return await InsertStringRecordsOfOneDeviceSortedAsync(deviceId, sortedTimestamps, sortedMeasurementsList, sortedValuesList, false);
+        }
+        public async Task<int> InsertAlignedStringRecordsOfOneDeviceAsync(string deviceId, List<long> timestamps,
+            List<List<string>> measurementsList, List<List<string>> valuesList)
+        {
+            var joined = timestamps.Zip(measurementsList, (t, m) => new { t, m })
+                .Zip(valuesList, (tm, v) => new { tm.t, tm.m, v })
+                .OrderBy(x => x.t);
+
+            var sortedTimestamps = joined.Select(x => x.t).ToList();
+            var sortedMeasurementsList = joined.Select(x => x.m).ToList();
+            var sortedValuesList = joined.Select(x => x.v).ToList();
+
+            return await InsertStringRecordsOfOneDeviceSortedAsync(deviceId, sortedTimestamps, sortedMeasurementsList, sortedValuesList, true);
+        }
+        public async Task<int> InsertStringRecordsOfOneDeviceSortedAsync(string deviceId, List<long> timestamps,
+            List<List<string>> measurementsList, List<List<string>> valuesList, bool isAligned)
+        {
+            var client = _clients.Take();
+
+            if (!_utilFunctions.IsSorted(timestamps))
+            {
+                throw new TException("insert string records of one device error: timestamp not sorted", null);
+            }
+
+            var req = GenInsertStringRecordsOfOneDeviceReq(deviceId, timestamps, measurementsList, valuesList, client.SessionId, isAligned);
+            try
+            {
+                var status = await client.ServiceClient.insertStringRecordsOfOneDeviceAsync(req);
+
+                if (_debugMode)
+                {
+                    _logger.LogInformation("insert string records of one device, message: {0}", status.Message);
+                }
+
+                return _utilFunctions.VerifySuccess(status, SuccessCode);
+            }
+            catch (TException e)
+            {
+                await Open(_enableRpcCompression);
+                client = _clients.Take();
+                req.SessionId = client.SessionId;
+                try
+                {
+                    var status = await client.ServiceClient.insertStringRecordsOfOneDeviceAsync(req);
+
+                    if (_debugMode)
+                    {
+                        _logger.LogInformation("insert string records of one device, message: {0}", status.Message);
+                    }
+
+                    return _utilFunctions.VerifySuccess(status, SuccessCode);
+                }
+                catch (TException ex)
+                {
+                    throw new TException("Error occurs when inserting string records of one device", ex);
+                }
+            }
+            finally
+            {
+                _clients.Add(client);
+
+            }
+        }
+        private TSInsertStringRecordsOfOneDeviceReq GenInsertStringRecordsOfOneDeviceReq(string deviceId,
+            List<long> timestamps, List<List<string>> measurementsList, List<List<string>> valuesList,
+             long sessionId, bool isAligned = false)
+        {
+            return new TSInsertStringRecordsOfOneDeviceReq(
+                sessionId,
+                deviceId,
+                measurementsList,
+                valuesList,
+                timestamps)
+            {
+                IsAligned = isAligned
+            };
+        }
         private TSInsertRecordsOfOneDeviceReq GenInsertRecordsOfOneDeviceRequest(
             string deviceId,
             List<RowRecord> records,
@@ -1599,6 +1687,55 @@ namespace Apache.IoTDB
 
             return sessionDataset;
         }
+        public async Task<SessionDataSet> ExecuteStatementAsync(string sql){
+            TSExecuteStatementResp resp;
+            TSStatus status;
+            var client = _clients.Take();
+            var req = new TSExecuteStatementReq(client.SessionId, sql, client.StatementId)
+            {
+                FetchSize = _fetchSize
+            };
+            try
+            {
+                resp = await client.ServiceClient.executeStatementAsync(req);
+                status = resp.Status;
+            }
+            catch (TException e)
+            {
+                _clients.Add(client);
+
+                await Open(_enableRpcCompression);
+                client = _clients.Take();
+                req.SessionId = client.SessionId;
+                req.StatementId = client.StatementId;
+                try
+                {
+                    resp = await client.ServiceClient.executeStatementAsync(req);
+                    status = resp.Status;
+                }
+                catch (TException ex)
+                {
+                    _clients.Add(client);
+                    throw new TException("Error occurs when executing query statement", ex);
+                }
+            }
+
+            if (_utilFunctions.VerifySuccess(status, SuccessCode) == -1)
+            {
+                _clients.Add(client);
+
+                throw new TException("execute query failed", null);
+            }
+
+            _clients.Add(client);
+
+            var sessionDataset = new SessionDataSet(sql, resp, _clients, client.StatementId)
+            {
+                FetchSize = _fetchSize,
+            };
+
+            return sessionDataset;
+        }
 
         public async Task<int> ExecuteNonQueryStatementAsync(string sql)
         {
@@ -1644,6 +1781,108 @@ namespace Apache.IoTDB
             {
                 _clients.Add(client);
             }
+        }
+        public async Task<SessionDataSet> ExecuteRawDataQuery(List<string> paths, int startTime, int endTime)
+        {
+            TSExecuteStatementResp resp;
+            TSStatus status;
+            var client = _clients.Take();
+            var req = new TSRawDataQueryReq(client.SessionId, paths, startTime, endTime, client.StatementId)
+            {
+                FetchSize = _fetchSize,
+                EnableRedirectQuery = false
+            };
+            try
+            {
+                resp = await client.ServiceClient.executeRawDataQueryAsync(req);
+                status = resp.Status;
+            }
+            catch (TException e)
+            {
+                _clients.Add(client);
+
+                await Open(_enableRpcCompression);
+                client = _clients.Take();
+                req.SessionId = client.SessionId;
+                req.StatementId = client.StatementId;
+                try
+                {
+                    resp = await client.ServiceClient.executeRawDataQueryAsync(req);
+                    status = resp.Status;
+                }
+                catch (TException ex)
+                {
+                    _clients.Add(client);
+                    throw new TException("Error occurs when executing raw data query", ex);
+                }
+            }
+
+            if (_utilFunctions.VerifySuccess(status, SuccessCode) == -1)
+            {
+                _clients.Add(client);
+
+                throw new TException("execute raw data query failed", null);
+            }
+
+            _clients.Add(client);
+
+            var sessionDataset = new SessionDataSet("", resp, _clients, client.StatementId)
+            {
+                FetchSize = _fetchSize,
+            };
+
+            return sessionDataset;
+        }
+        public async Task<SessionDataSet> ExecuteLastDataQueryAsync(List<string> paths, int lastTime)
+        {
+            TSExecuteStatementResp resp;
+            TSStatus status;
+            var client = _clients.Take();
+            var req = new TSLastDataQueryReq(client.SessionId, paths, lastTime, client.StatementId)
+            {
+                FetchSize = _fetchSize,
+                EnableRedirectQuery = false
+            };
+            try
+            {
+                resp = await client.ServiceClient.executeLastDataQueryAsync(req);
+                status = resp.Status;
+            }
+            catch (TException e)
+            {
+                _clients.Add(client);
+
+                await Open(_enableRpcCompression);
+                client = _clients.Take();
+                req.SessionId = client.SessionId;
+                req.StatementId = client.StatementId;
+                try
+                {
+                    resp = await client.ServiceClient.executeLastDataQueryAsync(req);
+                    status = resp.Status;
+                }
+                catch (TException ex)
+                {
+                    _clients.Add(client);
+                    throw new TException("Error occurs when executing last data query", ex);
+                }
+            }
+
+            if (_utilFunctions.VerifySuccess(status, SuccessCode) == -1)
+            {
+                _clients.Add(client);
+
+                throw new TException("execute last data query failed", null);
+            }
+
+            _clients.Add(client);
+
+            var sessionDataset = new SessionDataSet("", resp, _clients, client.StatementId)
+            {
+                FetchSize = _fetchSize,
+            };
+
+            return sessionDataset;
         }
 
         public async Task<int> CreateSchemaTemplateAsync(Template template)
