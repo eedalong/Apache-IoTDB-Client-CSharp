@@ -18,11 +18,11 @@ namespace Apache.IoTDB
             return true;
         }
 
-        public int VerifySuccess(TSStatus status, int successCode)
+        public int VerifySuccess(TSStatus status, int successCode, int redirectRecommendCode)
         {
             if (status.__isset.subStatus)
             {
-                if (status.SubStatus.Any(subStatus => VerifySuccess(subStatus, successCode) != 0))
+                if (status.SubStatus.Any(subStatus => VerifySuccess(subStatus, successCode, redirectRecommendCode) != 0))
                 {
                     return -1;
                 }
@@ -30,7 +30,7 @@ namespace Apache.IoTDB
                 return 0;
             }
 
-            if (status.Code == successCode)
+            if (status.Code == successCode || status.Code == redirectRecommendCode)
             {
                 return 0;
             }
