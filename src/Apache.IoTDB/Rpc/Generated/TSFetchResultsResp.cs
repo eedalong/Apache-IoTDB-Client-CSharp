@@ -33,6 +33,8 @@ public partial class TSFetchResultsResp : TBase
 {
   private TSQueryDataSet _queryDataSet;
   private TSQueryNonAlignDataSet _nonAlignQueryDataSet;
+  private List<byte[]> _queryResult;
+  private bool _moreData;
 
   public TSStatus Status { get; set; }
 
@@ -66,12 +68,40 @@ public partial class TSFetchResultsResp : TBase
     }
   }
 
+  public List<byte[]> QueryResult
+  {
+    get
+    {
+      return _queryResult;
+    }
+    set
+    {
+      __isset.queryResult = true;
+      this._queryResult = value;
+    }
+  }
+
+  public bool MoreData
+  {
+    get
+    {
+      return _moreData;
+    }
+    set
+    {
+      __isset.moreData = true;
+      this._moreData = value;
+    }
+  }
+
 
   public Isset __isset;
   public struct Isset
   {
     public bool queryDataSet;
     public bool nonAlignQueryDataSet;
+    public bool queryResult;
+    public bool moreData;
   }
 
   public TSFetchResultsResp()
@@ -87,24 +117,34 @@ public partial class TSFetchResultsResp : TBase
 
   public TSFetchResultsResp DeepCopy()
   {
-    var tmp93 = new TSFetchResultsResp();
+    var tmp89 = new TSFetchResultsResp();
     if((Status != null))
     {
-      tmp93.Status = (TSStatus)this.Status.DeepCopy();
+      tmp89.Status = (TSStatus)this.Status.DeepCopy();
     }
-    tmp93.HasResultSet = this.HasResultSet;
-    tmp93.IsAlign = this.IsAlign;
+    tmp89.HasResultSet = this.HasResultSet;
+    tmp89.IsAlign = this.IsAlign;
     if((QueryDataSet != null) && __isset.queryDataSet)
     {
-      tmp93.QueryDataSet = (TSQueryDataSet)this.QueryDataSet.DeepCopy();
+      tmp89.QueryDataSet = (TSQueryDataSet)this.QueryDataSet.DeepCopy();
     }
-    tmp93.__isset.queryDataSet = this.__isset.queryDataSet;
+    tmp89.__isset.queryDataSet = this.__isset.queryDataSet;
     if((NonAlignQueryDataSet != null) && __isset.nonAlignQueryDataSet)
     {
-      tmp93.NonAlignQueryDataSet = (TSQueryNonAlignDataSet)this.NonAlignQueryDataSet.DeepCopy();
+      tmp89.NonAlignQueryDataSet = (TSQueryNonAlignDataSet)this.NonAlignQueryDataSet.DeepCopy();
     }
-    tmp93.__isset.nonAlignQueryDataSet = this.__isset.nonAlignQueryDataSet;
-    return tmp93;
+    tmp89.__isset.nonAlignQueryDataSet = this.__isset.nonAlignQueryDataSet;
+    if((QueryResult != null) && __isset.queryResult)
+    {
+      tmp89.QueryResult = this.QueryResult.DeepCopy();
+    }
+    tmp89.__isset.queryResult = this.__isset.queryResult;
+    if(__isset.moreData)
+    {
+      tmp89.MoreData = this.MoreData;
+    }
+    tmp89.__isset.moreData = this.__isset.moreData;
+    return tmp89;
   }
 
   public async global::System.Threading.Tasks.Task ReadAsync(TProtocol iprot, CancellationToken cancellationToken)
@@ -177,6 +217,36 @@ public partial class TSFetchResultsResp : TBase
             {
               NonAlignQueryDataSet = new TSQueryNonAlignDataSet();
               await NonAlignQueryDataSet.ReadAsync(iprot, cancellationToken);
+            }
+            else
+            {
+              await TProtocolUtil.SkipAsync(iprot, field.Type, cancellationToken);
+            }
+            break;
+          case 6:
+            if (field.Type == TType.List)
+            {
+              {
+                TList _list90 = await iprot.ReadListBeginAsync(cancellationToken);
+                QueryResult = new List<byte[]>(_list90.Count);
+                for(int _i91 = 0; _i91 < _list90.Count; ++_i91)
+                {
+                  byte[] _elem92;
+                  _elem92 = await iprot.ReadBinaryAsync(cancellationToken);
+                  QueryResult.Add(_elem92);
+                }
+                await iprot.ReadListEndAsync(cancellationToken);
+              }
+            }
+            else
+            {
+              await TProtocolUtil.SkipAsync(iprot, field.Type, cancellationToken);
+            }
+            break;
+          case 7:
+            if (field.Type == TType.Bool)
+            {
+              MoreData = await iprot.ReadBoolAsync(cancellationToken);
             }
             else
             {
@@ -258,6 +328,31 @@ public partial class TSFetchResultsResp : TBase
         await NonAlignQueryDataSet.WriteAsync(oprot, cancellationToken);
         await oprot.WriteFieldEndAsync(cancellationToken);
       }
+      if((QueryResult != null) && __isset.queryResult)
+      {
+        field.Name = "queryResult";
+        field.Type = TType.List;
+        field.ID = 6;
+        await oprot.WriteFieldBeginAsync(field, cancellationToken);
+        {
+          await oprot.WriteListBeginAsync(new TList(TType.String, QueryResult.Count), cancellationToken);
+          foreach (byte[] _iter93 in QueryResult)
+          {
+            await oprot.WriteBinaryAsync(_iter93, cancellationToken);
+          }
+          await oprot.WriteListEndAsync(cancellationToken);
+        }
+        await oprot.WriteFieldEndAsync(cancellationToken);
+      }
+      if(__isset.moreData)
+      {
+        field.Name = "moreData";
+        field.Type = TType.Bool;
+        field.ID = 7;
+        await oprot.WriteFieldBeginAsync(field, cancellationToken);
+        await oprot.WriteBoolAsync(MoreData, cancellationToken);
+        await oprot.WriteFieldEndAsync(cancellationToken);
+      }
       await oprot.WriteFieldStopAsync(cancellationToken);
       await oprot.WriteStructEndAsync(cancellationToken);
     }
@@ -275,7 +370,9 @@ public partial class TSFetchResultsResp : TBase
       && System.Object.Equals(HasResultSet, other.HasResultSet)
       && System.Object.Equals(IsAlign, other.IsAlign)
       && ((__isset.queryDataSet == other.__isset.queryDataSet) && ((!__isset.queryDataSet) || (System.Object.Equals(QueryDataSet, other.QueryDataSet))))
-      && ((__isset.nonAlignQueryDataSet == other.__isset.nonAlignQueryDataSet) && ((!__isset.nonAlignQueryDataSet) || (System.Object.Equals(NonAlignQueryDataSet, other.NonAlignQueryDataSet))));
+      && ((__isset.nonAlignQueryDataSet == other.__isset.nonAlignQueryDataSet) && ((!__isset.nonAlignQueryDataSet) || (System.Object.Equals(NonAlignQueryDataSet, other.NonAlignQueryDataSet))))
+      && ((__isset.queryResult == other.__isset.queryResult) && ((!__isset.queryResult) || (TCollections.Equals(QueryResult, other.QueryResult))))
+      && ((__isset.moreData == other.__isset.moreData) && ((!__isset.moreData) || (System.Object.Equals(MoreData, other.MoreData))));
   }
 
   public override int GetHashCode() {
@@ -294,6 +391,14 @@ public partial class TSFetchResultsResp : TBase
       if((NonAlignQueryDataSet != null) && __isset.nonAlignQueryDataSet)
       {
         hashcode = (hashcode * 397) + NonAlignQueryDataSet.GetHashCode();
+      }
+      if((QueryResult != null) && __isset.queryResult)
+      {
+        hashcode = (hashcode * 397) + TCollections.GetHashCode(QueryResult);
+      }
+      if(__isset.moreData)
+      {
+        hashcode = (hashcode * 397) + MoreData.GetHashCode();
       }
     }
     return hashcode;
@@ -320,6 +425,16 @@ public partial class TSFetchResultsResp : TBase
     {
       sb.Append(", NonAlignQueryDataSet: ");
       NonAlignQueryDataSet.ToString(sb);
+    }
+    if((QueryResult != null) && __isset.queryResult)
+    {
+      sb.Append(", QueryResult: ");
+      QueryResult.ToString(sb);
+    }
+    if(__isset.moreData)
+    {
+      sb.Append(", MoreData: ");
+      MoreData.ToString(sb);
     }
     sb.Append(')');
     return sb.ToString();

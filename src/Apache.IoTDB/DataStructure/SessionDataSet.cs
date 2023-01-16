@@ -6,9 +6,10 @@ using Thrift;
 
 namespace Apache.IoTDB.DataStructure
 {
-    public class SessionDataSet: System.IDisposable
+    public class SessionDataSet : System.IDisposable
     {
         private readonly long _queryId;
+        private readonly long _statementId;
         private readonly string _sql;
         private readonly List<string> _columnNames;
         private readonly Dictionary<string, int> _columnNameIndexMap;
@@ -23,23 +24,22 @@ namespace Apache.IoTDB.DataStructure
         private int _rowIndex;
         private bool _hasCatchedResult;
         private RowRecord _cachedRowRecord;
-        private   bool _isClosed = false;
+        private bool _isClosed = false;
         private bool disposedValue;
 
         private string TimestampStr => "Time";
         private int StartIndex => 2;
         private int Flag => 0x80;
         private int DefaultTimeout => 10000;
-
         public int FetchSize { get; set; }
-
         public int RowCount { get; set; }
-        public SessionDataSet(string sql, TSExecuteStatementResp resp, ConcurrentClientQueue clientQueue)
+        public SessionDataSet(string sql, TSExecuteStatementResp resp, ConcurrentClientQueue clientQueue, long statementId)
         {
             _clientQueue = clientQueue;
             _sql = sql;
             _queryDataset = resp.QueryDataSet;
             _queryId = resp.QueryId;
+            _statementId = statementId;
             _columnSize = resp.Columns.Count;
             _currentBitmap = new byte[_columnSize];
             _columnNames = new List<string>();
@@ -89,7 +89,7 @@ namespace Apache.IoTDB.DataStructure
                 _valueBufferLst.Add(new ByteBuffer(_queryDataset.ValueList[index]));
                 _bitmapBufferLst.Add(new ByteBuffer(_queryDataset.BitmapList[index]));
             }
-       
+
         }
         public List<string> ColumnNames => _columnNames;
 
@@ -146,7 +146,7 @@ namespace Apache.IoTDB.DataStructure
             _hasCatchedResult = false;
             return _cachedRowRecord;
         }
-        public  RowRecord  GetRow()
+        public RowRecord GetRow()
         {
             return _cachedRowRecord;
         }
@@ -169,7 +169,7 @@ namespace Apache.IoTDB.DataStructure
         private void ConstructOneRow()
         {
             List<object> fieldLst = new List<Object>();
-            
+
             for (int i = 0; i < _columnSize; i++)
             {
                 if (_duplicateLocation.ContainsKey(i))
@@ -181,7 +181,7 @@ namespace Apache.IoTDB.DataStructure
                 {
                     var columnValueBuffer = _valueBufferLst[i];
                     var columnBitmapBuffer = _bitmapBufferLst[i];
-                    
+
                     if (_rowIndex % 8 == 0)
                     {
                         _currentBitmap[i] = columnBitmapBuffer.GetByte();
@@ -253,7 +253,7 @@ namespace Apache.IoTDB.DataStructure
                 var task = myClient.ServiceClient.fetchResultsAsync(req);
                 task.Wait();
                 var resp = task.Result;
-                
+
                 if (resp.HasResultSet)
                 {
                     _queryDataset = resp.QueryDataSet;
@@ -290,12 +290,13 @@ namespace Apache.IoTDB.DataStructure
                 var myClient = _clientQueue.Take();
                 var req = new TSCloseOperationReq(myClient.SessionId)
                 {
-                    QueryId = _queryId
+                    QueryId = _queryId,
+                    StatementId = _statementId
                 };
 
                 try
                 {
-                  var status=  await myClient.ServiceClient.closeOperationAsync(req);
+                    var status = await myClient.ServiceClient.closeOperationAsync(req);
                 }
                 catch (TException e)
                 {
@@ -318,11 +319,11 @@ namespace Apache.IoTDB.DataStructure
                     {
                         this.Close().Wait();
                     }
-                    catch 
+                    catch
                     {
                     }
                 }
-                _queryDataset=null; 
+                _queryDataset = null;
                 _timeBuffer = null;
                 _valueBufferLst = null;
                 _bitmapBufferLst = null;

@@ -29,35 +29,35 @@ using Thrift.Processor;
 #pragma warning disable IDE1006  // parts of the code use IDL spelling
 
 
-public partial class TSQueryNonAlignDataSet : TBase
+public partial class TFilesResp : TBase
 {
 
-  public List<byte[]> TimeList { get; set; }
+  public TSStatus Status { get; set; }
 
-  public List<byte[]> ValueList { get; set; }
+  public List<TFile> Files { get; set; }
 
-  public TSQueryNonAlignDataSet()
+  public TFilesResp()
   {
   }
 
-  public TSQueryNonAlignDataSet(List<byte[]> timeList, List<byte[]> valueList) : this()
+  public TFilesResp(TSStatus status, List<TFile> files) : this()
   {
-    this.TimeList = timeList;
-    this.ValueList = valueList;
+    this.Status = status;
+    this.Files = files;
   }
 
-  public TSQueryNonAlignDataSet DeepCopy()
+  public TFilesResp DeepCopy()
   {
-    var tmp10 = new TSQueryNonAlignDataSet();
-    if((TimeList != null))
+    var tmp44 = new TFilesResp();
+    if((Status != null))
     {
-      tmp10.TimeList = this.TimeList.DeepCopy();
+      tmp44.Status = (TSStatus)this.Status.DeepCopy();
     }
-    if((ValueList != null))
+    if((Files != null))
     {
-      tmp10.ValueList = this.ValueList.DeepCopy();
+      tmp44.Files = this.Files.DeepCopy();
     }
-    return tmp10;
+    return tmp44;
   }
 
   public async global::System.Threading.Tasks.Task ReadAsync(TProtocol iprot, CancellationToken cancellationToken)
@@ -65,8 +65,8 @@ public partial class TSQueryNonAlignDataSet : TBase
     iprot.IncrementRecursionDepth();
     try
     {
-      bool isset_timeList = false;
-      bool isset_valueList = false;
+      bool isset_status = false;
+      bool isset_files = false;
       TField field;
       await iprot.ReadStructBeginAsync(cancellationToken);
       while (true)
@@ -80,20 +80,11 @@ public partial class TSQueryNonAlignDataSet : TBase
         switch (field.ID)
         {
           case 1:
-            if (field.Type == TType.List)
+            if (field.Type == TType.Struct)
             {
-              {
-                TList _list11 = await iprot.ReadListBeginAsync(cancellationToken);
-                TimeList = new List<byte[]>(_list11.Count);
-                for(int _i12 = 0; _i12 < _list11.Count; ++_i12)
-                {
-                  byte[] _elem13;
-                  _elem13 = await iprot.ReadBinaryAsync(cancellationToken);
-                  TimeList.Add(_elem13);
-                }
-                await iprot.ReadListEndAsync(cancellationToken);
-              }
-              isset_timeList = true;
+              Status = new TSStatus();
+              await Status.ReadAsync(iprot, cancellationToken);
+              isset_status = true;
             }
             else
             {
@@ -104,17 +95,18 @@ public partial class TSQueryNonAlignDataSet : TBase
             if (field.Type == TType.List)
             {
               {
-                TList _list14 = await iprot.ReadListBeginAsync(cancellationToken);
-                ValueList = new List<byte[]>(_list14.Count);
-                for(int _i15 = 0; _i15 < _list14.Count; ++_i15)
+                TList _list45 = await iprot.ReadListBeginAsync(cancellationToken);
+                Files = new List<TFile>(_list45.Count);
+                for(int _i46 = 0; _i46 < _list45.Count; ++_i46)
                 {
-                  byte[] _elem16;
-                  _elem16 = await iprot.ReadBinaryAsync(cancellationToken);
-                  ValueList.Add(_elem16);
+                  TFile _elem47;
+                  _elem47 = new TFile();
+                  await _elem47.ReadAsync(iprot, cancellationToken);
+                  Files.Add(_elem47);
                 }
                 await iprot.ReadListEndAsync(cancellationToken);
               }
-              isset_valueList = true;
+              isset_files = true;
             }
             else
             {
@@ -130,11 +122,11 @@ public partial class TSQueryNonAlignDataSet : TBase
       }
 
       await iprot.ReadStructEndAsync(cancellationToken);
-      if (!isset_timeList)
+      if (!isset_status)
       {
         throw new TProtocolException(TProtocolException.INVALID_DATA);
       }
-      if (!isset_valueList)
+      if (!isset_files)
       {
         throw new TProtocolException(TProtocolException.INVALID_DATA);
       }
@@ -150,36 +142,29 @@ public partial class TSQueryNonAlignDataSet : TBase
     oprot.IncrementRecursionDepth();
     try
     {
-      var struc = new TStruct("TSQueryNonAlignDataSet");
+      var struc = new TStruct("TFilesResp");
       await oprot.WriteStructBeginAsync(struc, cancellationToken);
       var field = new TField();
-      if((TimeList != null))
+      if((Status != null))
       {
-        field.Name = "timeList";
-        field.Type = TType.List;
+        field.Name = "status";
+        field.Type = TType.Struct;
         field.ID = 1;
         await oprot.WriteFieldBeginAsync(field, cancellationToken);
-        {
-          await oprot.WriteListBeginAsync(new TList(TType.String, TimeList.Count), cancellationToken);
-          foreach (byte[] _iter17 in TimeList)
-          {
-            await oprot.WriteBinaryAsync(_iter17, cancellationToken);
-          }
-          await oprot.WriteListEndAsync(cancellationToken);
-        }
+        await Status.WriteAsync(oprot, cancellationToken);
         await oprot.WriteFieldEndAsync(cancellationToken);
       }
-      if((ValueList != null))
+      if((Files != null))
       {
-        field.Name = "valueList";
+        field.Name = "files";
         field.Type = TType.List;
         field.ID = 2;
         await oprot.WriteFieldBeginAsync(field, cancellationToken);
         {
-          await oprot.WriteListBeginAsync(new TList(TType.String, ValueList.Count), cancellationToken);
-          foreach (byte[] _iter18 in ValueList)
+          await oprot.WriteListBeginAsync(new TList(TType.Struct, Files.Count), cancellationToken);
+          foreach (TFile _iter48 in Files)
           {
-            await oprot.WriteBinaryAsync(_iter18, cancellationToken);
+            await _iter48.WriteAsync(oprot, cancellationToken);
           }
           await oprot.WriteListEndAsync(cancellationToken);
         }
@@ -196,22 +181,22 @@ public partial class TSQueryNonAlignDataSet : TBase
 
   public override bool Equals(object that)
   {
-    if (!(that is TSQueryNonAlignDataSet other)) return false;
+    if (!(that is TFilesResp other)) return false;
     if (ReferenceEquals(this, other)) return true;
-    return TCollections.Equals(TimeList, other.TimeList)
-      && TCollections.Equals(ValueList, other.ValueList);
+    return System.Object.Equals(Status, other.Status)
+      && TCollections.Equals(Files, other.Files);
   }
 
   public override int GetHashCode() {
     int hashcode = 157;
     unchecked {
-      if((TimeList != null))
+      if((Status != null))
       {
-        hashcode = (hashcode * 397) + TCollections.GetHashCode(TimeList);
+        hashcode = (hashcode * 397) + Status.GetHashCode();
       }
-      if((ValueList != null))
+      if((Files != null))
       {
-        hashcode = (hashcode * 397) + TCollections.GetHashCode(ValueList);
+        hashcode = (hashcode * 397) + TCollections.GetHashCode(Files);
       }
     }
     return hashcode;
@@ -219,16 +204,16 @@ public partial class TSQueryNonAlignDataSet : TBase
 
   public override string ToString()
   {
-    var sb = new StringBuilder("TSQueryNonAlignDataSet(");
-    if((TimeList != null))
+    var sb = new StringBuilder("TFilesResp(");
+    if((Status != null))
     {
-      sb.Append(", TimeList: ");
-      TimeList.ToString(sb);
+      sb.Append(", Status: ");
+      Status.ToString(sb);
     }
-    if((ValueList != null))
+    if((Files != null))
     {
-      sb.Append(", ValueList: ");
-      ValueList.ToString(sb);
+      sb.Append(", Files: ");
+      Files.ToString(sb);
     }
     sb.Append(')');
     return sb.ToString();

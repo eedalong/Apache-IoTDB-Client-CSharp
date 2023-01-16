@@ -29,25 +29,25 @@ using Thrift.Processor;
 #pragma warning disable IDE1006  // parts of the code use IDL spelling
 
 
-public partial class TSCloseSessionReq : TBase
+public partial class TTimePartitionSlot : TBase
 {
 
-  public long SessionId { get; set; }
+  public long StartTime { get; set; }
 
-  public TSCloseSessionReq()
+  public TTimePartitionSlot()
   {
   }
 
-  public TSCloseSessionReq(long sessionId) : this()
+  public TTimePartitionSlot(long startTime) : this()
   {
-    this.SessionId = sessionId;
+    this.StartTime = startTime;
   }
 
-  public TSCloseSessionReq DeepCopy()
+  public TTimePartitionSlot DeepCopy()
   {
-    var tmp71 = new TSCloseSessionReq();
-    tmp71.SessionId = this.SessionId;
-    return tmp71;
+    var tmp12 = new TTimePartitionSlot();
+    tmp12.StartTime = this.StartTime;
+    return tmp12;
   }
 
   public async global::System.Threading.Tasks.Task ReadAsync(TProtocol iprot, CancellationToken cancellationToken)
@@ -55,7 +55,7 @@ public partial class TSCloseSessionReq : TBase
     iprot.IncrementRecursionDepth();
     try
     {
-      bool isset_sessionId = false;
+      bool isset_startTime = false;
       TField field;
       await iprot.ReadStructBeginAsync(cancellationToken);
       while (true)
@@ -71,8 +71,8 @@ public partial class TSCloseSessionReq : TBase
           case 1:
             if (field.Type == TType.I64)
             {
-              SessionId = await iprot.ReadI64Async(cancellationToken);
-              isset_sessionId = true;
+              StartTime = await iprot.ReadI64Async(cancellationToken);
+              isset_startTime = true;
             }
             else
             {
@@ -88,7 +88,7 @@ public partial class TSCloseSessionReq : TBase
       }
 
       await iprot.ReadStructEndAsync(cancellationToken);
-      if (!isset_sessionId)
+      if (!isset_startTime)
       {
         throw new TProtocolException(TProtocolException.INVALID_DATA);
       }
@@ -104,14 +104,14 @@ public partial class TSCloseSessionReq : TBase
     oprot.IncrementRecursionDepth();
     try
     {
-      var struc = new TStruct("TSCloseSessionReq");
+      var struc = new TStruct("TTimePartitionSlot");
       await oprot.WriteStructBeginAsync(struc, cancellationToken);
       var field = new TField();
-      field.Name = "sessionId";
+      field.Name = "startTime";
       field.Type = TType.I64;
       field.ID = 1;
       await oprot.WriteFieldBeginAsync(field, cancellationToken);
-      await oprot.WriteI64Async(SessionId, cancellationToken);
+      await oprot.WriteI64Async(StartTime, cancellationToken);
       await oprot.WriteFieldEndAsync(cancellationToken);
       await oprot.WriteFieldStopAsync(cancellationToken);
       await oprot.WriteStructEndAsync(cancellationToken);
@@ -124,24 +124,24 @@ public partial class TSCloseSessionReq : TBase
 
   public override bool Equals(object that)
   {
-    if (!(that is TSCloseSessionReq other)) return false;
+    if (!(that is TTimePartitionSlot other)) return false;
     if (ReferenceEquals(this, other)) return true;
-    return System.Object.Equals(SessionId, other.SessionId);
+    return System.Object.Equals(StartTime, other.StartTime);
   }
 
   public override int GetHashCode() {
     int hashcode = 157;
     unchecked {
-      hashcode = (hashcode * 397) + SessionId.GetHashCode();
+      hashcode = (hashcode * 397) + StartTime.GetHashCode();
     }
     return hashcode;
   }
 
   public override string ToString()
   {
-    var sb = new StringBuilder("TSCloseSessionReq(");
-    sb.Append(", SessionId: ");
-    SessionId.ToString(sb);
+    var sb = new StringBuilder("TTimePartitionSlot(");
+    sb.Append(", StartTime: ");
+    StartTime.ToString(sb);
     sb.Append(')');
     return sb.ToString();
   }

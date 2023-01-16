@@ -29,25 +29,32 @@ using Thrift.Processor;
 #pragma warning disable IDE1006  // parts of the code use IDL spelling
 
 
-public partial class TSCloseSessionReq : TBase
+public partial class TEndPoint : TBase
 {
 
-  public long SessionId { get; set; }
+  public string Ip { get; set; }
 
-  public TSCloseSessionReq()
+  public int Port { get; set; }
+
+  public TEndPoint()
   {
   }
 
-  public TSCloseSessionReq(long sessionId) : this()
+  public TEndPoint(string ip, int port) : this()
   {
-    this.SessionId = sessionId;
+    this.Ip = ip;
+    this.Port = port;
   }
 
-  public TSCloseSessionReq DeepCopy()
+  public TEndPoint DeepCopy()
   {
-    var tmp71 = new TSCloseSessionReq();
-    tmp71.SessionId = this.SessionId;
-    return tmp71;
+    var tmp0 = new TEndPoint();
+    if((Ip != null))
+    {
+      tmp0.Ip = this.Ip;
+    }
+    tmp0.Port = this.Port;
+    return tmp0;
   }
 
   public async global::System.Threading.Tasks.Task ReadAsync(TProtocol iprot, CancellationToken cancellationToken)
@@ -55,7 +62,8 @@ public partial class TSCloseSessionReq : TBase
     iprot.IncrementRecursionDepth();
     try
     {
-      bool isset_sessionId = false;
+      bool isset_ip = false;
+      bool isset_port = false;
       TField field;
       await iprot.ReadStructBeginAsync(cancellationToken);
       while (true)
@@ -69,10 +77,21 @@ public partial class TSCloseSessionReq : TBase
         switch (field.ID)
         {
           case 1:
-            if (field.Type == TType.I64)
+            if (field.Type == TType.String)
             {
-              SessionId = await iprot.ReadI64Async(cancellationToken);
-              isset_sessionId = true;
+              Ip = await iprot.ReadStringAsync(cancellationToken);
+              isset_ip = true;
+            }
+            else
+            {
+              await TProtocolUtil.SkipAsync(iprot, field.Type, cancellationToken);
+            }
+            break;
+          case 2:
+            if (field.Type == TType.I32)
+            {
+              Port = await iprot.ReadI32Async(cancellationToken);
+              isset_port = true;
             }
             else
             {
@@ -88,7 +107,11 @@ public partial class TSCloseSessionReq : TBase
       }
 
       await iprot.ReadStructEndAsync(cancellationToken);
-      if (!isset_sessionId)
+      if (!isset_ip)
+      {
+        throw new TProtocolException(TProtocolException.INVALID_DATA);
+      }
+      if (!isset_port)
       {
         throw new TProtocolException(TProtocolException.INVALID_DATA);
       }
@@ -104,14 +127,23 @@ public partial class TSCloseSessionReq : TBase
     oprot.IncrementRecursionDepth();
     try
     {
-      var struc = new TStruct("TSCloseSessionReq");
+      var struc = new TStruct("TEndPoint");
       await oprot.WriteStructBeginAsync(struc, cancellationToken);
       var field = new TField();
-      field.Name = "sessionId";
-      field.Type = TType.I64;
-      field.ID = 1;
+      if((Ip != null))
+      {
+        field.Name = "ip";
+        field.Type = TType.String;
+        field.ID = 1;
+        await oprot.WriteFieldBeginAsync(field, cancellationToken);
+        await oprot.WriteStringAsync(Ip, cancellationToken);
+        await oprot.WriteFieldEndAsync(cancellationToken);
+      }
+      field.Name = "port";
+      field.Type = TType.I32;
+      field.ID = 2;
       await oprot.WriteFieldBeginAsync(field, cancellationToken);
-      await oprot.WriteI64Async(SessionId, cancellationToken);
+      await oprot.WriteI32Async(Port, cancellationToken);
       await oprot.WriteFieldEndAsync(cancellationToken);
       await oprot.WriteFieldStopAsync(cancellationToken);
       await oprot.WriteStructEndAsync(cancellationToken);
@@ -124,24 +156,34 @@ public partial class TSCloseSessionReq : TBase
 
   public override bool Equals(object that)
   {
-    if (!(that is TSCloseSessionReq other)) return false;
+    if (!(that is TEndPoint other)) return false;
     if (ReferenceEquals(this, other)) return true;
-    return System.Object.Equals(SessionId, other.SessionId);
+    return System.Object.Equals(Ip, other.Ip)
+      && System.Object.Equals(Port, other.Port);
   }
 
   public override int GetHashCode() {
     int hashcode = 157;
     unchecked {
-      hashcode = (hashcode * 397) + SessionId.GetHashCode();
+      if((Ip != null))
+      {
+        hashcode = (hashcode * 397) + Ip.GetHashCode();
+      }
+      hashcode = (hashcode * 397) + Port.GetHashCode();
     }
     return hashcode;
   }
 
   public override string ToString()
   {
-    var sb = new StringBuilder("TSCloseSessionReq(");
-    sb.Append(", SessionId: ");
-    SessionId.ToString(sb);
+    var sb = new StringBuilder("TEndPoint(");
+    if((Ip != null))
+    {
+      sb.Append(", Ip: ");
+      Ip.ToString(sb);
+    }
+    sb.Append(", Port: ");
+    Port.ToString(sb);
     sb.Append(')');
     return sb.ToString();
   }

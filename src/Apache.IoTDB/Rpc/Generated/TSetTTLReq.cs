@@ -29,35 +29,32 @@ using Thrift.Processor;
 #pragma warning disable IDE1006  // parts of the code use IDL spelling
 
 
-public partial class TSQueryNonAlignDataSet : TBase
+public partial class TSetTTLReq : TBase
 {
 
-  public List<byte[]> TimeList { get; set; }
+  public List<string> StorageGroupPathPattern { get; set; }
 
-  public List<byte[]> ValueList { get; set; }
+  public long TTL { get; set; }
 
-  public TSQueryNonAlignDataSet()
+  public TSetTTLReq()
   {
   }
 
-  public TSQueryNonAlignDataSet(List<byte[]> timeList, List<byte[]> valueList) : this()
+  public TSetTTLReq(List<string> storageGroupPathPattern, long TTL) : this()
   {
-    this.TimeList = timeList;
-    this.ValueList = valueList;
+    this.StorageGroupPathPattern = storageGroupPathPattern;
+    this.TTL = TTL;
   }
 
-  public TSQueryNonAlignDataSet DeepCopy()
+  public TSetTTLReq DeepCopy()
   {
-    var tmp10 = new TSQueryNonAlignDataSet();
-    if((TimeList != null))
+    var tmp36 = new TSetTTLReq();
+    if((StorageGroupPathPattern != null))
     {
-      tmp10.TimeList = this.TimeList.DeepCopy();
+      tmp36.StorageGroupPathPattern = this.StorageGroupPathPattern.DeepCopy();
     }
-    if((ValueList != null))
-    {
-      tmp10.ValueList = this.ValueList.DeepCopy();
-    }
-    return tmp10;
+    tmp36.TTL = this.TTL;
+    return tmp36;
   }
 
   public async global::System.Threading.Tasks.Task ReadAsync(TProtocol iprot, CancellationToken cancellationToken)
@@ -65,8 +62,8 @@ public partial class TSQueryNonAlignDataSet : TBase
     iprot.IncrementRecursionDepth();
     try
     {
-      bool isset_timeList = false;
-      bool isset_valueList = false;
+      bool isset_storageGroupPathPattern = false;
+      bool isset_TTL = false;
       TField field;
       await iprot.ReadStructBeginAsync(cancellationToken);
       while (true)
@@ -83,17 +80,17 @@ public partial class TSQueryNonAlignDataSet : TBase
             if (field.Type == TType.List)
             {
               {
-                TList _list11 = await iprot.ReadListBeginAsync(cancellationToken);
-                TimeList = new List<byte[]>(_list11.Count);
-                for(int _i12 = 0; _i12 < _list11.Count; ++_i12)
+                TList _list37 = await iprot.ReadListBeginAsync(cancellationToken);
+                StorageGroupPathPattern = new List<string>(_list37.Count);
+                for(int _i38 = 0; _i38 < _list37.Count; ++_i38)
                 {
-                  byte[] _elem13;
-                  _elem13 = await iprot.ReadBinaryAsync(cancellationToken);
-                  TimeList.Add(_elem13);
+                  string _elem39;
+                  _elem39 = await iprot.ReadStringAsync(cancellationToken);
+                  StorageGroupPathPattern.Add(_elem39);
                 }
                 await iprot.ReadListEndAsync(cancellationToken);
               }
-              isset_timeList = true;
+              isset_storageGroupPathPattern = true;
             }
             else
             {
@@ -101,20 +98,10 @@ public partial class TSQueryNonAlignDataSet : TBase
             }
             break;
           case 2:
-            if (field.Type == TType.List)
+            if (field.Type == TType.I64)
             {
-              {
-                TList _list14 = await iprot.ReadListBeginAsync(cancellationToken);
-                ValueList = new List<byte[]>(_list14.Count);
-                for(int _i15 = 0; _i15 < _list14.Count; ++_i15)
-                {
-                  byte[] _elem16;
-                  _elem16 = await iprot.ReadBinaryAsync(cancellationToken);
-                  ValueList.Add(_elem16);
-                }
-                await iprot.ReadListEndAsync(cancellationToken);
-              }
-              isset_valueList = true;
+              TTL = await iprot.ReadI64Async(cancellationToken);
+              isset_TTL = true;
             }
             else
             {
@@ -130,11 +117,11 @@ public partial class TSQueryNonAlignDataSet : TBase
       }
 
       await iprot.ReadStructEndAsync(cancellationToken);
-      if (!isset_timeList)
+      if (!isset_storageGroupPathPattern)
       {
         throw new TProtocolException(TProtocolException.INVALID_DATA);
       }
-      if (!isset_valueList)
+      if (!isset_TTL)
       {
         throw new TProtocolException(TProtocolException.INVALID_DATA);
       }
@@ -150,41 +137,31 @@ public partial class TSQueryNonAlignDataSet : TBase
     oprot.IncrementRecursionDepth();
     try
     {
-      var struc = new TStruct("TSQueryNonAlignDataSet");
+      var struc = new TStruct("TSetTTLReq");
       await oprot.WriteStructBeginAsync(struc, cancellationToken);
       var field = new TField();
-      if((TimeList != null))
+      if((StorageGroupPathPattern != null))
       {
-        field.Name = "timeList";
+        field.Name = "storageGroupPathPattern";
         field.Type = TType.List;
         field.ID = 1;
         await oprot.WriteFieldBeginAsync(field, cancellationToken);
         {
-          await oprot.WriteListBeginAsync(new TList(TType.String, TimeList.Count), cancellationToken);
-          foreach (byte[] _iter17 in TimeList)
+          await oprot.WriteListBeginAsync(new TList(TType.String, StorageGroupPathPattern.Count), cancellationToken);
+          foreach (string _iter40 in StorageGroupPathPattern)
           {
-            await oprot.WriteBinaryAsync(_iter17, cancellationToken);
+            await oprot.WriteStringAsync(_iter40, cancellationToken);
           }
           await oprot.WriteListEndAsync(cancellationToken);
         }
         await oprot.WriteFieldEndAsync(cancellationToken);
       }
-      if((ValueList != null))
-      {
-        field.Name = "valueList";
-        field.Type = TType.List;
-        field.ID = 2;
-        await oprot.WriteFieldBeginAsync(field, cancellationToken);
-        {
-          await oprot.WriteListBeginAsync(new TList(TType.String, ValueList.Count), cancellationToken);
-          foreach (byte[] _iter18 in ValueList)
-          {
-            await oprot.WriteBinaryAsync(_iter18, cancellationToken);
-          }
-          await oprot.WriteListEndAsync(cancellationToken);
-        }
-        await oprot.WriteFieldEndAsync(cancellationToken);
-      }
+      field.Name = "TTL";
+      field.Type = TType.I64;
+      field.ID = 2;
+      await oprot.WriteFieldBeginAsync(field, cancellationToken);
+      await oprot.WriteI64Async(TTL, cancellationToken);
+      await oprot.WriteFieldEndAsync(cancellationToken);
       await oprot.WriteFieldStopAsync(cancellationToken);
       await oprot.WriteStructEndAsync(cancellationToken);
     }
@@ -196,40 +173,34 @@ public partial class TSQueryNonAlignDataSet : TBase
 
   public override bool Equals(object that)
   {
-    if (!(that is TSQueryNonAlignDataSet other)) return false;
+    if (!(that is TSetTTLReq other)) return false;
     if (ReferenceEquals(this, other)) return true;
-    return TCollections.Equals(TimeList, other.TimeList)
-      && TCollections.Equals(ValueList, other.ValueList);
+    return TCollections.Equals(StorageGroupPathPattern, other.StorageGroupPathPattern)
+      && System.Object.Equals(TTL, other.TTL);
   }
 
   public override int GetHashCode() {
     int hashcode = 157;
     unchecked {
-      if((TimeList != null))
+      if((StorageGroupPathPattern != null))
       {
-        hashcode = (hashcode * 397) + TCollections.GetHashCode(TimeList);
+        hashcode = (hashcode * 397) + TCollections.GetHashCode(StorageGroupPathPattern);
       }
-      if((ValueList != null))
-      {
-        hashcode = (hashcode * 397) + TCollections.GetHashCode(ValueList);
-      }
+      hashcode = (hashcode * 397) + TTL.GetHashCode();
     }
     return hashcode;
   }
 
   public override string ToString()
   {
-    var sb = new StringBuilder("TSQueryNonAlignDataSet(");
-    if((TimeList != null))
+    var sb = new StringBuilder("TSetTTLReq(");
+    if((StorageGroupPathPattern != null))
     {
-      sb.Append(", TimeList: ");
-      TimeList.ToString(sb);
+      sb.Append(", StorageGroupPathPattern: ");
+      StorageGroupPathPattern.ToString(sb);
     }
-    if((ValueList != null))
-    {
-      sb.Append(", ValueList: ");
-      ValueList.ToString(sb);
-    }
+    sb.Append(", TTL: ");
+    TTL.ToString(sb);
     sb.Append(')');
     return sb.ToString();
   }

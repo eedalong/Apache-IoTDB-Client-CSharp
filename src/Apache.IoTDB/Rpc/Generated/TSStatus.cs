@@ -33,7 +33,7 @@ public partial class TSStatus : TBase
 {
   private string _message;
   private List<TSStatus> _subStatus;
-  private EndPoint _redirectNode;
+  private TEndPoint _redirectNode;
 
   public int Code { get; set; }
 
@@ -63,7 +63,7 @@ public partial class TSStatus : TBase
     }
   }
 
-  public EndPoint RedirectNode
+  public TEndPoint RedirectNode
   {
     get
     {
@@ -110,7 +110,7 @@ public partial class TSStatus : TBase
     tmp2.__isset.subStatus = this.__isset.subStatus;
     if((RedirectNode != null) && __isset.redirectNode)
     {
-      tmp2.RedirectNode = (EndPoint)this.RedirectNode.DeepCopy();
+      tmp2.RedirectNode = (TEndPoint)this.RedirectNode.DeepCopy();
     }
     tmp2.__isset.redirectNode = this.__isset.redirectNode;
     return tmp2;
@@ -179,7 +179,7 @@ public partial class TSStatus : TBase
           case 4:
             if (field.Type == TType.Struct)
             {
-              RedirectNode = new EndPoint();
+              RedirectNode = new TEndPoint();
               await RedirectNode.ReadAsync(iprot, cancellationToken);
             }
             else

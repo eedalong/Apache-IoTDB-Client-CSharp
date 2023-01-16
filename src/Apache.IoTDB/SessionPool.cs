@@ -16,9 +16,10 @@ using Thrift.Transport.Client;
 namespace Apache.IoTDB
 {
 
-    public class SessionPool:IDisposable
+    public class SessionPool : IDisposable
     {
         private static int SuccessCode => 200;
+        private static int RedirectRecommendCode => 400;
         private static readonly TSProtocolVersion ProtocolVersion = TSProtocolVersion.IOTDB_SERVICE_PROTOCOL_V3;
 
         private readonly string _username;
@@ -81,7 +82,7 @@ namespace Apache.IoTDB
         public void OpenDebugMode(Action<ILoggingBuilder> configure)
         {
             _debugMode = true;
-            factory= LoggerFactory.Create(configure);
+            factory = LoggerFactory.Create(configure);
             _logger = factory.CreateLogger(nameof(Apache.IoTDB));
         }
 
@@ -99,10 +100,10 @@ namespace Apache.IoTDB
         public async Task Open(CancellationToken cancellationToken = default)
         {
             _clients = new ConcurrentClientQueue();
-            _clients.Timeout = _timeout*5;
+            _clients.Timeout = _timeout * 5;
             for (var index = 0; index < _poolSize; index++)
             {
-                _clients.Add(await CreateAndOpen(_enableRpcCompression,_timeout, cancellationToken));
+                _clients.Add(await CreateAndOpen(_enableRpcCompression, _timeout, cancellationToken));
             }
         }
 
@@ -182,7 +183,7 @@ namespace Apache.IoTDB
             }
         }
 
-        private async Task<Client> CreateAndOpen(bool enableRpcCompression,int timeout, CancellationToken cancellationToken = default)
+        private async Task<Client> CreateAndOpen(bool enableRpcCompression, int timeout, CancellationToken cancellationToken = default)
         {
             var tcpClient = new TcpClient(_host, _port);
             tcpClient.SendTimeout = timeout;
@@ -195,13 +196,12 @@ namespace Apache.IoTDB
             }
 
             var client = enableRpcCompression ?
-                new TSIService.Client(new TCompactProtocol(transport)) :
-                new TSIService.Client(new TBinaryProtocol(transport));
+                new IClientRPCService.Client(new TCompactProtocol(transport)) :
+                new IClientRPCService.Client(new TBinaryProtocol(transport));
 
-            var openReq = new TSOpenSessionReq(ProtocolVersion, _zoneId)
+            var openReq = new TSOpenSessionReq(ProtocolVersion, _zoneId, _username)
             {
-                Username = _username,
-                Password = _password
+                Password = _password,
             };
 
             try
@@ -252,7 +252,7 @@ namespace Apache.IoTDB
                     _logger.LogInformation("set storage group {0} successfully, server message is {1}", groupName, status.Message);
                 }
 
-                return _utilFunctions.VerifySuccess(status, SuccessCode);
+                return _utilFunctions.VerifySuccess(status, SuccessCode, RedirectRecommendCode);
             }
             catch (TException e)
             {
@@ -266,7 +266,7 @@ namespace Apache.IoTDB
                     {
                         _logger.LogInformation("set storage group {0} successfully, server message is {1}", groupName, status.Message);
                     }
-                    return _utilFunctions.VerifySuccess(status, SuccessCode);
+                    return _utilFunctions.VerifySuccess(status, SuccessCode, RedirectRecommendCode);
                 }
                 catch (TException ex)
                 {
@@ -301,7 +301,8 @@ namespace Apache.IoTDB
                     _logger.LogInformation("creating time series {0} successfully, server message is {1}", tsPath, status.Message);
                 }
 
-                return _utilFunctions.VerifySuccess(status, SuccessCode);
+                return _utilFunctions.VerifySuccess(status, SuccessCode, RedirectRecommendCode);
+
             }
             catch (TException e)
             {
@@ -315,7 +316,8 @@ namespace Apache.IoTDB
                     {
                         _logger.LogInformation("creating time series {0} successfully, server message is {1}", tsPath, status.Message);
                     }
-                    return _utilFunctions.VerifySuccess(status, SuccessCode);
+                    return _utilFunctions.VerifySuccess(status, SuccessCode, RedirectRecommendCode);
+
                 }
                 catch (TException ex)
                 {
@@ -357,7 +359,8 @@ namespace Apache.IoTDB
                     _logger.LogInformation("creating aligned time series {0} successfully, server message is {1}", prefixPath, status.Message);
                 }
 
-                return _utilFunctions.VerifySuccess(status, SuccessCode);
+                return _utilFunctions.VerifySuccess(status, SuccessCode, RedirectRecommendCode);
+
             }
             catch (TException e)
             {
@@ -371,7 +374,8 @@ namespace Apache.IoTDB
                     {
                         _logger.LogInformation("creating aligned time series {0} successfully, server message is {1}", prefixPath, status.Message);
                     }
-                    return _utilFunctions.VerifySuccess(status, SuccessCode);
+                    return _utilFunctions.VerifySuccess(status, SuccessCode, RedirectRecommendCode);
+
                 }
                 catch (TException ex)
                 {
@@ -398,7 +402,8 @@ namespace Apache.IoTDB
                     _logger.LogInformation($"delete storage group {groupName} successfully, server message is {status?.Message}");
                 }
 
-                return _utilFunctions.VerifySuccess(status, SuccessCode);
+                return _utilFunctions.VerifySuccess(status, SuccessCode, RedirectRecommendCode);
+
             }
             catch (TException e)
             {
@@ -415,7 +420,8 @@ namespace Apache.IoTDB
                         _logger.LogInformation($"delete storage group {groupName} successfully, server message is {status?.Message}");
                     }
 
-                    return _utilFunctions.VerifySuccess(status, SuccessCode);
+                    return _utilFunctions.VerifySuccess(status, SuccessCode, RedirectRecommendCode);
+
                 }
                 catch (TException ex)
                 {
@@ -444,7 +450,8 @@ namespace Apache.IoTDB
                         status.Message);
                 }
 
-                return _utilFunctions.VerifySuccess(status, SuccessCode);
+                return _utilFunctions.VerifySuccess(status, SuccessCode, RedirectRecommendCode);
+
             }
             catch (TException e)
             {
@@ -462,7 +469,8 @@ namespace Apache.IoTDB
                             status.Message);
                     }
 
-                    return _utilFunctions.VerifySuccess(status, SuccessCode);
+                    return _utilFunctions.VerifySuccess(status, SuccessCode, RedirectRecommendCode);
+
                 }
                 catch (TException ex)
                 {
@@ -497,7 +505,8 @@ namespace Apache.IoTDB
                     _logger.LogInformation("creating multiple time series {0}, server message is {1}", tsPathLst, status.Message);
                 }
 
-                return _utilFunctions.VerifySuccess(status, SuccessCode);
+                return _utilFunctions.VerifySuccess(status, SuccessCode, RedirectRecommendCode);
+
             }
             catch (TException e)
             {
@@ -511,7 +520,8 @@ namespace Apache.IoTDB
                     {
                         _logger.LogInformation("creating multiple time series {0}, server message is {1}", tsPathLst, status.Message);
                     }
-                    return _utilFunctions.VerifySuccess(status, SuccessCode);
+                    return _utilFunctions.VerifySuccess(status, SuccessCode, RedirectRecommendCode);
+
                 }
                 catch (TException ex)
                 {
@@ -537,7 +547,8 @@ namespace Apache.IoTDB
                     _logger.LogInformation("deleting multiple time series {0}, server message is {1}", pathList, status.Message);
                 }
 
-                return _utilFunctions.VerifySuccess(status, SuccessCode);
+                return _utilFunctions.VerifySuccess(status, SuccessCode, RedirectRecommendCode);
+
             }
             catch (TException e)
             {
@@ -552,7 +563,8 @@ namespace Apache.IoTDB
                         _logger.LogInformation("deleting multiple time series {0}, server message is {1}", pathList, status.Message);
                     }
 
-                    return _utilFunctions.VerifySuccess(status, SuccessCode);
+                    return _utilFunctions.VerifySuccess(status, SuccessCode, RedirectRecommendCode);
+
                 }
                 catch (TException ex)
                 {
@@ -602,7 +614,8 @@ namespace Apache.IoTDB
                         status.Message);
                 }
 
-                return _utilFunctions.VerifySuccess(status, SuccessCode);
+                return _utilFunctions.VerifySuccess(status, SuccessCode, RedirectRecommendCode);
+
             }
             catch (TException e)
             {
@@ -621,7 +634,8 @@ namespace Apache.IoTDB
                             status.Message);
                     }
 
-                    return _utilFunctions.VerifySuccess(status, SuccessCode);
+                    return _utilFunctions.VerifySuccess(status, SuccessCode, RedirectRecommendCode);
+
                 }
                 catch (TException ex)
                 {
@@ -643,13 +657,13 @@ namespace Apache.IoTDB
             try
             {
                 var status = await client.ServiceClient.insertRecordAsync(req);
-
                 if (_debugMode)
                 {
                     _logger.LogInformation("insert one record to device {0}， server message: {1}", deviceId, status.Message);
                 }
 
-                return _utilFunctions.VerifySuccess(status, SuccessCode);
+                return _utilFunctions.VerifySuccess(status, SuccessCode, RedirectRecommendCode);
+
             }
             catch (TException e)
             {
@@ -665,7 +679,8 @@ namespace Apache.IoTDB
                         _logger.LogInformation("insert one record to device {0}， server message: {1}", deviceId, status.Message);
                     }
 
-                    return _utilFunctions.VerifySuccess(status, SuccessCode);
+                    return _utilFunctions.VerifySuccess(status, SuccessCode, RedirectRecommendCode);
+
                 }
                 catch (TException ex)
                 {
@@ -694,7 +709,8 @@ namespace Apache.IoTDB
                     _logger.LogInformation("insert one record to device {0}， server message: {1}", deviceId, status.Message);
                 }
 
-                return _utilFunctions.VerifySuccess(status, SuccessCode);
+                return _utilFunctions.VerifySuccess(status, SuccessCode, RedirectRecommendCode);
+
             }
             catch (TException e)
             {
@@ -710,7 +726,8 @@ namespace Apache.IoTDB
                         _logger.LogInformation("insert one record to device {0}， server message: {1}", deviceId, status.Message);
                     }
 
-                    return _utilFunctions.VerifySuccess(status, SuccessCode);
+                    return _utilFunctions.VerifySuccess(status, SuccessCode, RedirectRecommendCode);
+
                 }
                 catch (TException ex)
                 {
@@ -724,25 +741,220 @@ namespace Apache.IoTDB
         }
 
         public TSInsertStringRecordReq GenInsertStrRecordReq(string deviceId, List<string> measurements,
-            List<string> values, long timestamp, long sessionId)
+            List<string> values, long timestamp, long sessionId, bool isAligned = false)
         {
             if (values.Count() != measurements.Count())
             {
                 throw new TException("length of data types does not equal to length of values!", null);
             }
 
-            return new TSInsertStringRecordReq(sessionId, deviceId, measurements, values, timestamp);
+            return new TSInsertStringRecordReq(sessionId, deviceId, measurements, values, timestamp)
+            {
+                IsAligned = isAligned
+            };
+        }
+        public TSInsertStringRecordsReq GenInsertStringRecordsReq(List<string> deviceIds, List<List<string>> measurementsList,
+            List<List<string>> valuesList, List<long> timestamps, long sessionId, bool isAligned = false)
+        {
+            if (valuesList.Count() != measurementsList.Count())
+            {
+                throw new TException("length of data types does not equal to length of values!", null);
+            }
+
+            return new TSInsertStringRecordsReq(sessionId, deviceIds, measurementsList, valuesList, timestamps)
+            {
+                IsAligned = isAligned
+            };
         }
 
         public TSInsertRecordsReq GenInsertRecordsReq(List<string> deviceId, List<RowRecord> rowRecords,
             long sessionId)
         {
-            //TODO
             var measurementLst = rowRecords.Select(x => x.Measurements).ToList();
             var timestampLst = rowRecords.Select(x => x.Timestamps).ToList();
             var valuesLstInBytes = rowRecords.Select(row => row.ToBytes()).ToList();
 
             return new TSInsertRecordsReq(sessionId, deviceId, measurementLst, valuesLstInBytes, timestampLst);
+        }
+        public async Task<int> InsertStringRecordAsync(string deviceId, List<string> measurements, List<string> values,
+            long timestamp)
+        {
+            var client = _clients.Take();
+            var req = GenInsertStrRecordReq(deviceId, measurements, values, timestamp, client.SessionId);
+            try
+            {
+                var status = await client.ServiceClient.insertStringRecordAsync(req);
+
+                if (_debugMode)
+                {
+                    _logger.LogInformation("insert one string record to device {0}， server message: {1}", deviceId, status.Message);
+                }
+
+                return _utilFunctions.VerifySuccess(status, SuccessCode, RedirectRecommendCode);
+
+            }
+            catch (TException e)
+            {
+                await Open(_enableRpcCompression);
+                client = _clients.Take();
+                req.SessionId = client.SessionId;
+                try
+                {
+                    var status = await client.ServiceClient.insertStringRecordAsync(req);
+
+                    if (_debugMode)
+                    {
+                        _logger.LogInformation("insert one record to device {0}， server message: {1}", deviceId, status.Message);
+                    }
+
+                    return _utilFunctions.VerifySuccess(status, SuccessCode, RedirectRecommendCode);
+
+                }
+                catch (TException ex)
+                {
+                    throw new TException("Error occurs when inserting a string record", ex);
+                }
+            }
+            finally
+            {
+                _clients.Add(client);
+            }
+        }
+        public async Task<int> InsertAlignedStringRecordAsync(string deviceId, List<string> measurements, List<string> values,
+            long timestamp)
+        {
+            var client = _clients.Take();
+            var req = GenInsertStrRecordReq(deviceId, measurements, values, timestamp, client.SessionId, true);
+            try
+            {
+                var status = await client.ServiceClient.insertStringRecordAsync(req);
+
+                if (_debugMode)
+                {
+                    _logger.LogInformation("insert one record to device {0}， server message: {1}", deviceId, status.Message);
+                }
+
+                return _utilFunctions.VerifySuccess(status, SuccessCode, RedirectRecommendCode);
+
+            }
+            catch (TException e)
+            {
+                await Open(_enableRpcCompression);
+                client = _clients.Take();
+                req.SessionId = client.SessionId;
+                try
+                {
+                    var status = await client.ServiceClient.insertStringRecordAsync(req);
+
+                    if (_debugMode)
+                    {
+                        _logger.LogInformation("insert one record to device {0}， server message: {1}", deviceId, status.Message);
+                    }
+
+                    return _utilFunctions.VerifySuccess(status, SuccessCode, RedirectRecommendCode);
+
+                }
+                catch (TException ex)
+                {
+                    throw new TException("Error occurs when inserting record", ex);
+                }
+            }
+            finally
+            {
+                _clients.Add(client);
+            }
+        }
+        public async Task<int> InsertStringRecordsAsync(List<string> deviceIds, List<List<string>> measurements, List<List<string>> values,
+            List<long> timestamps)
+        {
+            var client = _clients.Take();
+            var req = GenInsertStringRecordsReq(deviceIds, measurements, values, timestamps, client.SessionId);
+            try
+            {
+                var status = await client.ServiceClient.insertStringRecordsAsync(req);
+
+                if (_debugMode)
+                {
+                    _logger.LogInformation("insert string records to devices {0}， server message: {1}", deviceIds, status.Message);
+                }
+
+                return _utilFunctions.VerifySuccess(status, SuccessCode, RedirectRecommendCode);
+
+
+            }
+            catch (TException e)
+            {
+                await Open(_enableRpcCompression);
+                client = _clients.Take();
+                req.SessionId = client.SessionId;
+                try
+                {
+                    var status = await client.ServiceClient.insertStringRecordsAsync(req);
+
+                    if (_debugMode)
+                    {
+                        _logger.LogInformation("insert string records to devices {0}， server message: {1}", deviceIds, status.Message);
+                    }
+
+                    return _utilFunctions.VerifySuccess(status, SuccessCode, RedirectRecommendCode);
+
+
+                }
+                catch (TException ex)
+                {
+                    throw new TException("Error occurs when inserting string records", ex);
+                }
+            }
+            finally
+            {
+                _clients.Add(client);
+            }
+        }
+        public async Task<int> InsertAlignedStringRecordsAsync(List<string> deviceIds, List<List<string>> measurements, List<List<string>> values,
+            List<long> timestamps)
+        {
+            var client = _clients.Take();
+            var req = GenInsertStringRecordsReq(deviceIds, measurements, values, timestamps, client.SessionId, true);
+            try
+            {
+                var status = await client.ServiceClient.insertStringRecordsAsync(req);
+
+                if (_debugMode)
+                {
+                    _logger.LogInformation("insert string records to devices {0}， server message: {1}", deviceIds, status.Message);
+                }
+
+                return _utilFunctions.VerifySuccess(status, SuccessCode, RedirectRecommendCode);
+
+
+            }
+            catch (TException e)
+            {
+                await Open(_enableRpcCompression);
+                client = _clients.Take();
+                req.SessionId = client.SessionId;
+                try
+                {
+                    var status = await client.ServiceClient.insertStringRecordsAsync(req);
+
+                    if (_debugMode)
+                    {
+                        _logger.LogInformation("insert string records to devices {0}， server message: {1}", deviceIds, status.Message);
+                    }
+
+                    return _utilFunctions.VerifySuccess(status, SuccessCode, RedirectRecommendCode);
+
+
+                }
+                catch (TException ex)
+                {
+                    throw new TException("Error occurs when inserting string records", ex);
+                }
+            }
+            finally
+            {
+                _clients.Add(client);
+            }
         }
 
         public async Task<int> InsertRecordsAsync(List<string> deviceId, List<RowRecord> rowRecords)
@@ -760,7 +972,8 @@ namespace Apache.IoTDB
                     _logger.LogInformation("insert multiple records to devices {0}, server message: {1}", deviceId, status.Message);
                 }
 
-                return _utilFunctions.VerifySuccess(status, SuccessCode);
+                return _utilFunctions.VerifySuccess(status, SuccessCode, RedirectRecommendCode);
+
             }
             catch (TException e)
             {
@@ -776,7 +989,8 @@ namespace Apache.IoTDB
                         _logger.LogInformation("insert multiple records to devices {0}, server message: {1}", deviceId, status.Message);
                     }
 
-                    return _utilFunctions.VerifySuccess(status, SuccessCode);
+                    return _utilFunctions.VerifySuccess(status, SuccessCode, RedirectRecommendCode);
+
                 }
                 catch (TException ex)
                 {
@@ -806,7 +1020,8 @@ namespace Apache.IoTDB
                     _logger.LogInformation("insert multiple records to devices {0}, server message: {1}", deviceId, status.Message);
                 }
 
-                return _utilFunctions.VerifySuccess(status, SuccessCode);
+                return _utilFunctions.VerifySuccess(status, SuccessCode, RedirectRecommendCode);
+
             }
             catch (TException e)
             {
@@ -822,7 +1037,8 @@ namespace Apache.IoTDB
                         _logger.LogInformation("insert multiple records to devices {0}, server message: {1}", deviceId, status.Message);
                     }
 
-                    return _utilFunctions.VerifySuccess(status, SuccessCode);
+                    return _utilFunctions.VerifySuccess(status, SuccessCode, RedirectRecommendCode);
+
                 }
                 catch (TException ex)
                 {
@@ -860,7 +1076,8 @@ namespace Apache.IoTDB
                     _logger.LogInformation("insert one tablet to device {0}, server message: {1}", tablet.DeviceId, status.Message);
                 }
 
-                return _utilFunctions.VerifySuccess(status, SuccessCode);
+                return _utilFunctions.VerifySuccess(status, SuccessCode, RedirectRecommendCode);
+
             }
             catch (TException e)
             {
@@ -876,7 +1093,8 @@ namespace Apache.IoTDB
                         _logger.LogInformation("insert one tablet to device {0}, server message: {1}", tablet.DeviceId, status.Message);
                     }
 
-                    return _utilFunctions.VerifySuccess(status, SuccessCode);
+                    return _utilFunctions.VerifySuccess(status, SuccessCode, RedirectRecommendCode);
+
                 }
                 catch (TException ex)
                 {
@@ -903,7 +1121,8 @@ namespace Apache.IoTDB
                     _logger.LogInformation("insert one aligned tablet to device {0}, server message: {1}", tablet.DeviceId, status.Message);
                 }
 
-                return _utilFunctions.VerifySuccess(status, SuccessCode);
+                return _utilFunctions.VerifySuccess(status, SuccessCode, RedirectRecommendCode);
+
             }
             catch (TException e)
             {
@@ -919,7 +1138,8 @@ namespace Apache.IoTDB
                         _logger.LogInformation("insert one aligned tablet to device {0}, server message: {1}", tablet.DeviceId, status.Message);
                     }
 
-                    return _utilFunctions.VerifySuccess(status, SuccessCode);
+                    return _utilFunctions.VerifySuccess(status, SuccessCode, RedirectRecommendCode);
+
                 }
                 catch (TException ex)
                 {
@@ -977,7 +1197,8 @@ namespace Apache.IoTDB
                     _logger.LogInformation("insert multiple tablets, message: {0}", status.Message);
                 }
 
-                return _utilFunctions.VerifySuccess(status, SuccessCode);
+                return _utilFunctions.VerifySuccess(status, SuccessCode, RedirectRecommendCode);
+
             }
             catch (TException e)
             {
@@ -993,7 +1214,8 @@ namespace Apache.IoTDB
                         _logger.LogInformation("insert multiple tablets, message: {0}", status.Message);
                     }
 
-                    return _utilFunctions.VerifySuccess(status, SuccessCode);
+                    return _utilFunctions.VerifySuccess(status, SuccessCode, RedirectRecommendCode);
+
                 }
                 catch (TException ex)
                 {
@@ -1021,7 +1243,8 @@ namespace Apache.IoTDB
                     _logger.LogInformation("insert multiple aligned tablets, message: {0}", status.Message);
                 }
 
-                return _utilFunctions.VerifySuccess(status, SuccessCode);
+                return _utilFunctions.VerifySuccess(status, SuccessCode, RedirectRecommendCode);
+
             }
             catch (TException e)
             {
@@ -1037,7 +1260,8 @@ namespace Apache.IoTDB
                         _logger.LogInformation("insert multiple aligned tablets, message: {0}", status.Message);
                     }
 
-                    return _utilFunctions.VerifySuccess(status, SuccessCode);
+                    return _utilFunctions.VerifySuccess(status, SuccessCode, RedirectRecommendCode);
+
                 }
                 catch (TException ex)
                 {
@@ -1060,7 +1284,97 @@ namespace Apache.IoTDB
             var sortedRowRecords = rowRecords.OrderBy(x => x.Timestamps).ToList();
             return await InsertAlignedRecordsOfOneDeviceSortedAsync(deviceId, sortedRowRecords);
         }
+        public async Task<int> InsertStringRecordsOfOneDeviceAsync(string deviceId, List<long> timestamps,
+            List<List<string>> measurementsList, List<List<string>> valuesList)
+        {
+            var joined = timestamps.Zip(measurementsList, (t, m) => new { t, m })
+                .Zip(valuesList, (tm, v) => new { tm.t, tm.m, v })
+                .OrderBy(x => x.t);
 
+            var sortedTimestamps = joined.Select(x => x.t).ToList();
+            var sortedMeasurementsList = joined.Select(x => x.m).ToList();
+            var sortedValuesList = joined.Select(x => x.v).ToList();
+
+            return await InsertStringRecordsOfOneDeviceSortedAsync(deviceId, sortedTimestamps, sortedMeasurementsList, sortedValuesList, false);
+        }
+        public async Task<int> InsertAlignedStringRecordsOfOneDeviceAsync(string deviceId, List<long> timestamps,
+            List<List<string>> measurementsList, List<List<string>> valuesList)
+        {
+            var joined = timestamps.Zip(measurementsList, (t, m) => new { t, m })
+                .Zip(valuesList, (tm, v) => new { tm.t, tm.m, v })
+                .OrderBy(x => x.t);
+
+            var sortedTimestamps = joined.Select(x => x.t).ToList();
+            var sortedMeasurementsList = joined.Select(x => x.m).ToList();
+            var sortedValuesList = joined.Select(x => x.v).ToList();
+
+            return await InsertStringRecordsOfOneDeviceSortedAsync(deviceId, sortedTimestamps, sortedMeasurementsList, sortedValuesList, true);
+        }
+        public async Task<int> InsertStringRecordsOfOneDeviceSortedAsync(string deviceId, List<long> timestamps,
+            List<List<string>> measurementsList, List<List<string>> valuesList, bool isAligned)
+        {
+            var client = _clients.Take();
+
+            if (!_utilFunctions.IsSorted(timestamps))
+            {
+                throw new TException("insert string records of one device error: timestamp not sorted", null);
+            }
+
+            var req = GenInsertStringRecordsOfOneDeviceReq(deviceId, timestamps, measurementsList, valuesList, client.SessionId, isAligned);
+            try
+            {
+                var status = await client.ServiceClient.insertStringRecordsOfOneDeviceAsync(req);
+
+                if (_debugMode)
+                {
+                    _logger.LogInformation("insert string records of one device, message: {0}", status.Message);
+                }
+
+                return _utilFunctions.VerifySuccess(status, SuccessCode, RedirectRecommendCode);
+
+            }
+            catch (TException e)
+            {
+                await Open(_enableRpcCompression);
+                client = _clients.Take();
+                req.SessionId = client.SessionId;
+                try
+                {
+                    var status = await client.ServiceClient.insertStringRecordsOfOneDeviceAsync(req);
+
+                    if (_debugMode)
+                    {
+                        _logger.LogInformation("insert string records of one device, message: {0}", status.Message);
+                    }
+
+                    return _utilFunctions.VerifySuccess(status, SuccessCode, RedirectRecommendCode);
+
+                }
+                catch (TException ex)
+                {
+                    throw new TException("Error occurs when inserting string records of one device", ex);
+                }
+            }
+            finally
+            {
+                _clients.Add(client);
+
+            }
+        }
+        private TSInsertStringRecordsOfOneDeviceReq GenInsertStringRecordsOfOneDeviceReq(string deviceId,
+            List<long> timestamps, List<List<string>> measurementsList, List<List<string>> valuesList,
+             long sessionId, bool isAligned = false)
+        {
+            return new TSInsertStringRecordsOfOneDeviceReq(
+                sessionId,
+                deviceId,
+                measurementsList,
+                valuesList,
+                timestamps)
+            {
+                IsAligned = isAligned
+            };
+        }
         private TSInsertRecordsOfOneDeviceReq GenInsertRecordsOfOneDeviceRequest(
             string deviceId,
             List<RowRecord> records,
@@ -1100,7 +1414,8 @@ namespace Apache.IoTDB
                     _logger.LogInformation("insert records of one device, message: {0}", status.Message);
                 }
 
-                return _utilFunctions.VerifySuccess(status, SuccessCode);
+                return _utilFunctions.VerifySuccess(status, SuccessCode, RedirectRecommendCode);
+
             }
             catch (TException e)
             {
@@ -1116,7 +1431,8 @@ namespace Apache.IoTDB
                         _logger.LogInformation("insert records of one device, message: {0}", status.Message);
                     }
 
-                    return _utilFunctions.VerifySuccess(status, SuccessCode);
+                    return _utilFunctions.VerifySuccess(status, SuccessCode, RedirectRecommendCode);
+
                 }
                 catch (TException ex)
                 {
@@ -1151,7 +1467,8 @@ namespace Apache.IoTDB
                     _logger.LogInformation("insert aligned records of one device, message: {0}", status.Message);
                 }
 
-                return _utilFunctions.VerifySuccess(status, SuccessCode);
+                return _utilFunctions.VerifySuccess(status, SuccessCode, RedirectRecommendCode);
+
             }
             catch (TException e)
             {
@@ -1167,7 +1484,8 @@ namespace Apache.IoTDB
                         _logger.LogInformation("insert aligned records of one device, message: {0}", status.Message);
                     }
 
-                    return _utilFunctions.VerifySuccess(status, SuccessCode);
+                    return _utilFunctions.VerifySuccess(status, SuccessCode, RedirectRecommendCode);
+
                 }
                 catch (TException ex)
                 {
@@ -1200,7 +1518,8 @@ namespace Apache.IoTDB
                     _logger.LogInformation("insert one record to device {0}， server message: {1}", deviceId, status.Message);
                 }
 
-                return _utilFunctions.VerifySuccess(status, SuccessCode);
+                return _utilFunctions.VerifySuccess(status, SuccessCode, RedirectRecommendCode);
+
             }
             catch (TException e)
             {
@@ -1216,7 +1535,8 @@ namespace Apache.IoTDB
                         _logger.LogInformation("insert one record to device {0}， server message: {1}", deviceId, status.Message);
                     }
 
-                    return _utilFunctions.VerifySuccess(status, SuccessCode);
+                    return _utilFunctions.VerifySuccess(status, SuccessCode, RedirectRecommendCode);
+
                 }
                 catch (TException ex)
                 {
@@ -1243,7 +1563,8 @@ namespace Apache.IoTDB
                     _logger.LogInformation("insert multiple records to devices {0}, server message: {1}", deviceId, status.Message);
                 }
 
-                return _utilFunctions.VerifySuccess(status, SuccessCode);
+                return _utilFunctions.VerifySuccess(status, SuccessCode, RedirectRecommendCode);
+
             }
             catch (TException e)
             {
@@ -1259,7 +1580,8 @@ namespace Apache.IoTDB
                         _logger.LogInformation("insert multiple records to devices {0}, server message: {1}", deviceId, status.Message);
                     }
 
-                    return _utilFunctions.VerifySuccess(status, SuccessCode);
+                    return _utilFunctions.VerifySuccess(status, SuccessCode, RedirectRecommendCode);
+
                 }
                 catch (TException ex)
                 {
@@ -1288,7 +1610,8 @@ namespace Apache.IoTDB
                         status.Message);
                 }
 
-                return _utilFunctions.VerifySuccess(status, SuccessCode);
+                return _utilFunctions.VerifySuccess(status, SuccessCode, RedirectRecommendCode);
+
             }
             catch (TException e)
             {
@@ -1305,7 +1628,8 @@ namespace Apache.IoTDB
                             status.Message);
                     }
 
-                    return _utilFunctions.VerifySuccess(status, SuccessCode);
+                    return _utilFunctions.VerifySuccess(status, SuccessCode, RedirectRecommendCode);
+
                 }
                 catch (TException ex)
                 {
@@ -1333,7 +1657,8 @@ namespace Apache.IoTDB
                     _logger.LogInformation("insert multiple tablets, message: {0}", status.Message);
                 }
 
-                return _utilFunctions.VerifySuccess(status, SuccessCode);
+                return _utilFunctions.VerifySuccess(status, SuccessCode, RedirectRecommendCode);
+
             }
             catch (TException e)
             {
@@ -1349,7 +1674,8 @@ namespace Apache.IoTDB
                         _logger.LogInformation("insert multiple tablets, message: {0}", status.Message);
                     }
 
-                    return _utilFunctions.VerifySuccess(status, SuccessCode);
+                    return _utilFunctions.VerifySuccess(status, SuccessCode, RedirectRecommendCode);
+
                 }
                 catch (TException ex)
                 {
@@ -1396,7 +1722,7 @@ namespace Apache.IoTDB
                 }
             }
 
-            if (_utilFunctions.VerifySuccess(status, SuccessCode) == -1)
+            if (_utilFunctions.VerifySuccess(status, SuccessCode, RedirectRecommendCode) == -1)
             {
                 _clients.Add(client);
 
@@ -1405,9 +1731,59 @@ namespace Apache.IoTDB
 
             _clients.Add(client);
 
-            var sessionDataset = new SessionDataSet(sql, resp, _clients)
+            var sessionDataset = new SessionDataSet(sql, resp, _clients, client.StatementId)
+            {
+                FetchSize = _fetchSize,
+            };
+
+            return sessionDataset;
+        }
+        public async Task<SessionDataSet> ExecuteStatementAsync(string sql)
+        {
+            TSExecuteStatementResp resp;
+            TSStatus status;
+            var client = _clients.Take();
+            var req = new TSExecuteStatementReq(client.SessionId, sql, client.StatementId)
             {
                 FetchSize = _fetchSize
+            };
+            try
+            {
+                resp = await client.ServiceClient.executeStatementAsync(req);
+                status = resp.Status;
+            }
+            catch (TException e)
+            {
+                _clients.Add(client);
+
+                await Open(_enableRpcCompression);
+                client = _clients.Take();
+                req.SessionId = client.SessionId;
+                req.StatementId = client.StatementId;
+                try
+                {
+                    resp = await client.ServiceClient.executeStatementAsync(req);
+                    status = resp.Status;
+                }
+                catch (TException ex)
+                {
+                    _clients.Add(client);
+                    throw new TException("Error occurs when executing query statement", ex);
+                }
+            }
+
+            if (_utilFunctions.VerifySuccess(status, SuccessCode, RedirectRecommendCode) == -1)
+            {
+                _clients.Add(client);
+
+                throw new TException("execute query failed", null);
+            }
+
+            _clients.Add(client);
+
+            var sessionDataset = new SessionDataSet(sql, resp, _clients, client.StatementId)
+            {
+                FetchSize = _fetchSize,
             };
 
             return sessionDataset;
@@ -1428,7 +1804,8 @@ namespace Apache.IoTDB
                     _logger.LogInformation("execute non-query statement {0} message: {1}", sql, status.Message);
                 }
 
-                return _utilFunctions.VerifySuccess(status, SuccessCode);
+                return _utilFunctions.VerifySuccess(status, SuccessCode, RedirectRecommendCode);
+
             }
             catch (TException e)
             {
@@ -1446,7 +1823,8 @@ namespace Apache.IoTDB
                         _logger.LogInformation("execute non-query statement {0} message: {1}", sql, status.Message);
                     }
 
-                    return _utilFunctions.VerifySuccess(status, SuccessCode);
+                    return _utilFunctions.VerifySuccess(status, SuccessCode, RedirectRecommendCode);
+
                 }
                 catch (TException ex)
                 {
@@ -1457,6 +1835,108 @@ namespace Apache.IoTDB
             {
                 _clients.Add(client);
             }
+        }
+        public async Task<SessionDataSet> ExecuteRawDataQuery(List<string> paths, int startTime, int endTime)
+        {
+            TSExecuteStatementResp resp;
+            TSStatus status;
+            var client = _clients.Take();
+            var req = new TSRawDataQueryReq(client.SessionId, paths, startTime, endTime, client.StatementId)
+            {
+                FetchSize = _fetchSize,
+                EnableRedirectQuery = false
+            };
+            try
+            {
+                resp = await client.ServiceClient.executeRawDataQueryAsync(req);
+                status = resp.Status;
+            }
+            catch (TException e)
+            {
+                _clients.Add(client);
+
+                await Open(_enableRpcCompression);
+                client = _clients.Take();
+                req.SessionId = client.SessionId;
+                req.StatementId = client.StatementId;
+                try
+                {
+                    resp = await client.ServiceClient.executeRawDataQueryAsync(req);
+                    status = resp.Status;
+                }
+                catch (TException ex)
+                {
+                    _clients.Add(client);
+                    throw new TException("Error occurs when executing raw data query", ex);
+                }
+            }
+
+            if (_utilFunctions.VerifySuccess(status, SuccessCode, RedirectRecommendCode) == -1)
+            {
+                _clients.Add(client);
+
+                throw new TException("execute raw data query failed", null);
+            }
+
+            _clients.Add(client);
+
+            var sessionDataset = new SessionDataSet("", resp, _clients, client.StatementId)
+            {
+                FetchSize = _fetchSize,
+            };
+
+            return sessionDataset;
+        }
+        public async Task<SessionDataSet> ExecuteLastDataQueryAsync(List<string> paths, int lastTime)
+        {
+            TSExecuteStatementResp resp;
+            TSStatus status;
+            var client = _clients.Take();
+            var req = new TSLastDataQueryReq(client.SessionId, paths, lastTime, client.StatementId)
+            {
+                FetchSize = _fetchSize,
+                EnableRedirectQuery = false
+            };
+            try
+            {
+                resp = await client.ServiceClient.executeLastDataQueryAsync(req);
+                status = resp.Status;
+            }
+            catch (TException e)
+            {
+                _clients.Add(client);
+
+                await Open(_enableRpcCompression);
+                client = _clients.Take();
+                req.SessionId = client.SessionId;
+                req.StatementId = client.StatementId;
+                try
+                {
+                    resp = await client.ServiceClient.executeLastDataQueryAsync(req);
+                    status = resp.Status;
+                }
+                catch (TException ex)
+                {
+                    _clients.Add(client);
+                    throw new TException("Error occurs when executing last data query", ex);
+                }
+            }
+
+            if (_utilFunctions.VerifySuccess(status, SuccessCode, RedirectRecommendCode) == -1)
+            {
+                _clients.Add(client);
+
+                throw new TException("execute last data query failed", null);
+            }
+
+            _clients.Add(client);
+
+            var sessionDataset = new SessionDataSet("", resp, _clients, client.StatementId)
+            {
+                FetchSize = _fetchSize,
+            };
+
+            return sessionDataset;
         }
 
         public async Task<int> CreateSchemaTemplateAsync(Template template)
@@ -1472,7 +1952,8 @@ namespace Apache.IoTDB
                     _logger.LogInformation("create schema template {0} message: {1}", template.Name, status.Message);
                 }
 
-                return _utilFunctions.VerifySuccess(status, SuccessCode);
+                return _utilFunctions.VerifySuccess(status, SuccessCode, RedirectRecommendCode);
+
             }
             catch (TException e)
             {
@@ -1488,7 +1969,8 @@ namespace Apache.IoTDB
                         _logger.LogInformation("create schema template {0} message: {1}", template.Name, status.Message);
                     }
 
-                    return _utilFunctions.VerifySuccess(status, SuccessCode);
+                    return _utilFunctions.VerifySuccess(status, SuccessCode, RedirectRecommendCode);
+
                 }
                 catch (TException ex)
                 {
@@ -1514,7 +1996,8 @@ namespace Apache.IoTDB
                     _logger.LogInformation("drop schema template {0} message: {1}", templateName, status.Message);
                 }
 
-                return _utilFunctions.VerifySuccess(status, SuccessCode);
+                return _utilFunctions.VerifySuccess(status, SuccessCode, RedirectRecommendCode);
+
             }
             catch (TException e)
             {
@@ -1530,7 +2013,8 @@ namespace Apache.IoTDB
                         _logger.LogInformation("drop schema template {0} message: {1}", templateName, status.Message);
                     }
 
-                    return _utilFunctions.VerifySuccess(status, SuccessCode);
+                    return _utilFunctions.VerifySuccess(status, SuccessCode, RedirectRecommendCode);
+
                 }
                 catch (TException ex)
                 {
@@ -1556,7 +2040,8 @@ namespace Apache.IoTDB
                     _logger.LogInformation("set schema template {0} message: {1}", templateName, status.Message);
                 }
 
-                return _utilFunctions.VerifySuccess(status, SuccessCode);
+                return _utilFunctions.VerifySuccess(status, SuccessCode, RedirectRecommendCode);
+
             }
             catch (TException e)
             {
@@ -1572,7 +2057,8 @@ namespace Apache.IoTDB
                         _logger.LogInformation("set schema template {0} message: {1}", templateName, status.Message);
                     }
 
-                    return _utilFunctions.VerifySuccess(status, SuccessCode);
+                    return _utilFunctions.VerifySuccess(status, SuccessCode, RedirectRecommendCode);
+
                 }
                 catch (TException ex)
                 {
@@ -1598,7 +2084,8 @@ namespace Apache.IoTDB
                     _logger.LogInformation("unset schema template {0} message: {1}", templateName, status.Message);
                 }
 
-                return _utilFunctions.VerifySuccess(status, SuccessCode);
+                return _utilFunctions.VerifySuccess(status, SuccessCode, RedirectRecommendCode);
+
             }
             catch (TException e)
             {
@@ -1614,7 +2101,8 @@ namespace Apache.IoTDB
                         _logger.LogInformation("unset schema template {0} message: {1}", templateName, status.Message);
                     }
 
-                    return _utilFunctions.VerifySuccess(status, SuccessCode);
+                    return _utilFunctions.VerifySuccess(status, SuccessCode, RedirectRecommendCode);
+
                 }
                 catch (TException ex)
                 {
@@ -1626,97 +2114,7 @@ namespace Apache.IoTDB
                 _clients.Add(client);
             }
         }
-        public async Task<int> AddAlignedMeasurementsInTemplateAsync(string templateName, List<MeasurementNode> measurementNodes)
-        {
-            var client = _clients.Take();
-            var measurements = measurementNodes.ConvertAll(m => m.Name);
-            var dataTypes = measurementNodes.ConvertAll(m => (int)m.DataType);
-            var encodings = measurementNodes.ConvertAll(m => (int)m.Encoding);
-            var compressors = measurementNodes.ConvertAll(m => (int)m.Compressor);
-            var req = new TSAppendSchemaTemplateReq(client.SessionId, templateName, true, measurements, dataTypes, encodings, compressors);
-            try
-            {
-                var status = await client.ServiceClient.appendSchemaTemplateAsync(req);
 
-                if (_debugMode)
-                {
-                    _logger.LogInformation("add aligned measurements in template {0} message: {1}", templateName, status.Message);
-                }
-
-                return _utilFunctions.VerifySuccess(status, SuccessCode);
-            }
-            catch (TException e)
-            {
-                await Open(_enableRpcCompression);
-                client = _clients.Take();
-                req.SessionId = client.SessionId;
-                try
-                {
-                    var status = await client.ServiceClient.appendSchemaTemplateAsync(req);
-
-                    if (_debugMode)
-                    {
-                        _logger.LogInformation("add aligned measurements in template {0} message: {1}", templateName, status.Message);
-                    }
-
-                    return _utilFunctions.VerifySuccess(status, SuccessCode);
-                }
-                catch (TException ex)
-                {
-                    throw new TException("Error occurs when adding aligned measurements in template", ex);
-                }
-            }
-            finally
-            {
-                _clients.Add(client);
-            }
-        }
-
-        public async Task<int> AddUnalignedMeasurementsInTemplateAsync(string templateName, List<MeasurementNode> measurementNodes)
-        {
-            var client = _clients.Take();
-            var measurements = measurementNodes.ConvertAll(m => m.Name);
-            var dataTypes = measurementNodes.ConvertAll(m => (int)m.DataType);
-            var encodings = measurementNodes.ConvertAll(m => (int)m.Encoding);
-            var compressors = measurementNodes.ConvertAll(m => (int)m.Compressor);
-            var req = new TSAppendSchemaTemplateReq(client.SessionId, templateName, false, measurements, dataTypes, encodings, compressors);
-            try
-            {
-                var status = await client.ServiceClient.appendSchemaTemplateAsync(req);
-
-                if (_debugMode)
-                {
-                    _logger.LogInformation("add unaligned measurements in template {0} message: {1}", templateName, status.Message);
-                }
-
-                return _utilFunctions.VerifySuccess(status, SuccessCode);
-            }
-            catch (TException e)
-            {
-                await Open(_enableRpcCompression);
-                client = _clients.Take();
-                req.SessionId = client.SessionId;
-                try
-                {
-                    var status = await client.ServiceClient.appendSchemaTemplateAsync(req);
-
-                    if (_debugMode)
-                    {
-                        _logger.LogInformation("add unaligned measurements in template {0} message: {1}", templateName, status.Message);
-                    }
-
-                    return _utilFunctions.VerifySuccess(status, SuccessCode);
-                }
-                catch (TException ex)
-                {
-                    throw new TException("Error occurs when adding unaligned measurements in template", ex);
-                }
-            }
-            finally
-            {
-                _clients.Add(client);
-            }
-        }
         public async Task<int> DeleteNodeInTemplateAsync(string templateName, string path)
         {
             var client = _clients.Take();
@@ -1730,7 +2128,8 @@ namespace Apache.IoTDB
                     _logger.LogInformation("delete node in template {0} message: {1}", templateName, status.Message);
                 }
 
-                return _utilFunctions.VerifySuccess(status, SuccessCode);
+                return _utilFunctions.VerifySuccess(status, SuccessCode, RedirectRecommendCode);
+
             }
             catch (TException e)
             {
@@ -1746,7 +2145,8 @@ namespace Apache.IoTDB
                         _logger.LogInformation("delete node in template {0} message: {1}", templateName, status.Message);
                     }
 
-                    return _utilFunctions.VerifySuccess(status, SuccessCode);
+                    return _utilFunctions.VerifySuccess(status, SuccessCode, RedirectRecommendCode);
+
                 }
                 catch (TException ex)
                 {
@@ -1772,7 +2172,7 @@ namespace Apache.IoTDB
                     _logger.LogInformation("count measurements in template {0} message: {1}", name, status.Message);
                 }
 
-                _utilFunctions.VerifySuccess(status, SuccessCode);
+                _utilFunctions.VerifySuccess(status, SuccessCode, RedirectRecommendCode);
                 return resp.Count;
             }
             catch (TException e)
@@ -1789,7 +2189,7 @@ namespace Apache.IoTDB
                         _logger.LogInformation("count measurements in template {0} message: {1}", name, status.Message);
                     }
 
-                    _utilFunctions.VerifySuccess(status, SuccessCode);
+                    _utilFunctions.VerifySuccess(status, SuccessCode, RedirectRecommendCode);
                     return resp.Count;
                 }
                 catch (TException ex)
@@ -1816,7 +2216,7 @@ namespace Apache.IoTDB
                     _logger.LogInformation("is measurement in template {0} message: {1}", templateName, status.Message);
                 }
 
-                _utilFunctions.VerifySuccess(status, SuccessCode);
+                _utilFunctions.VerifySuccess(status, SuccessCode, RedirectRecommendCode);
                 return resp.Result;
             }
             catch (TException e)
@@ -1833,7 +2233,7 @@ namespace Apache.IoTDB
                         _logger.LogInformation("is measurement in template {0} message: {1}", templateName, status.Message);
                     }
 
-                    _utilFunctions.VerifySuccess(status, SuccessCode);
+                    _utilFunctions.VerifySuccess(status, SuccessCode, RedirectRecommendCode);
                     return resp.Result;
                 }
                 catch (TException ex)
@@ -1861,7 +2261,7 @@ namespace Apache.IoTDB
                     _logger.LogInformation("is path exist in template {0} message: {1}", templateName, status.Message);
                 }
 
-                _utilFunctions.VerifySuccess(status, SuccessCode);
+                _utilFunctions.VerifySuccess(status, SuccessCode, RedirectRecommendCode);
                 return resp.Result;
             }
             catch (TException e)
@@ -1878,7 +2278,7 @@ namespace Apache.IoTDB
                         _logger.LogInformation("is path exist in template {0} message: {1}", templateName, status.Message);
                     }
 
-                    _utilFunctions.VerifySuccess(status, SuccessCode);
+                    _utilFunctions.VerifySuccess(status, SuccessCode, RedirectRecommendCode);
                     return resp.Result;
                 }
                 catch (TException ex)
@@ -1906,7 +2306,7 @@ namespace Apache.IoTDB
                     _logger.LogInformation("get measurements in template {0} message: {1}", templateName, status.Message);
                 }
 
-                _utilFunctions.VerifySuccess(status, SuccessCode);
+                _utilFunctions.VerifySuccess(status, SuccessCode, RedirectRecommendCode);
                 return resp.Measurements;
             }
             catch (TException e)
@@ -1923,7 +2323,7 @@ namespace Apache.IoTDB
                         _logger.LogInformation("get measurements in template {0} message: {1}", templateName, status.Message);
                     }
 
-                    _utilFunctions.VerifySuccess(status, SuccessCode);
+                    _utilFunctions.VerifySuccess(status, SuccessCode, RedirectRecommendCode);
                     return resp.Measurements;
                 }
                 catch (TException ex)
@@ -1949,7 +2349,7 @@ namespace Apache.IoTDB
                     _logger.LogInformation("get all templates message: {0}", status.Message);
                 }
 
-                _utilFunctions.VerifySuccess(status, SuccessCode);
+                _utilFunctions.VerifySuccess(status, SuccessCode, RedirectRecommendCode);
                 return resp.Measurements;
             }
             catch (TException e)
@@ -1966,7 +2366,7 @@ namespace Apache.IoTDB
                         _logger.LogInformation("get all templates message: {0}", status.Message);
                     }
 
-                    _utilFunctions.VerifySuccess(status, SuccessCode);
+                    _utilFunctions.VerifySuccess(status, SuccessCode, RedirectRecommendCode);
                     return resp.Measurements;
                 }
                 catch (TException ex)
@@ -1992,7 +2392,7 @@ namespace Apache.IoTDB
                     _logger.LogInformation("get paths template set on {0} message: {1}", templateName, status.Message);
                 }
 
-                _utilFunctions.VerifySuccess(status, SuccessCode);
+                _utilFunctions.VerifySuccess(status, SuccessCode, RedirectRecommendCode);
                 return resp.Measurements;
             }
             catch (TException e)
@@ -2009,7 +2409,7 @@ namespace Apache.IoTDB
                         _logger.LogInformation("get paths template set on {0} message: {1}", templateName, status.Message);
                     }
 
-                    _utilFunctions.VerifySuccess(status, SuccessCode);
+                    _utilFunctions.VerifySuccess(status, SuccessCode, RedirectRecommendCode);
                     return resp.Measurements;
                 }
                 catch (TException ex)
@@ -2035,7 +2435,7 @@ namespace Apache.IoTDB
                     _logger.LogInformation("get paths template using on {0} message: {1}", templateName, status.Message);
                 }
 
-                _utilFunctions.VerifySuccess(status, SuccessCode);
+                _utilFunctions.VerifySuccess(status, SuccessCode, RedirectRecommendCode);
                 return resp.Measurements;
             }
             catch (TException e)
@@ -2052,7 +2452,7 @@ namespace Apache.IoTDB
                         _logger.LogInformation("get paths template using on {0} message: {1}", templateName, status.Message);
                     }
 
-                    _utilFunctions.VerifySuccess(status, SuccessCode);
+                    _utilFunctions.VerifySuccess(status, SuccessCode, RedirectRecommendCode);
                     return resp.Measurements;
                 }
                 catch (TException ex)

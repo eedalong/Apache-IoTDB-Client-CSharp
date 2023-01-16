@@ -29,32 +29,32 @@ using Thrift.Processor;
 #pragma warning disable IDE1006  // parts of the code use IDL spelling
 
 
-public partial class EndPoint : TBase
+public partial class TSchemaNode : TBase
 {
 
-  public string Ip { get; set; }
+  public string NodeName { get; set; }
 
-  public int Port { get; set; }
+  public sbyte NodeType { get; set; }
 
-  public EndPoint()
+  public TSchemaNode()
   {
   }
 
-  public EndPoint(string ip, int port) : this()
+  public TSchemaNode(string nodeName, sbyte nodeType) : this()
   {
-    this.Ip = ip;
-    this.Port = port;
+    this.NodeName = nodeName;
+    this.NodeType = nodeType;
   }
 
-  public EndPoint DeepCopy()
+  public TSchemaNode DeepCopy()
   {
-    var tmp0 = new EndPoint();
-    if((Ip != null))
+    var tmp34 = new TSchemaNode();
+    if((NodeName != null))
     {
-      tmp0.Ip = this.Ip;
+      tmp34.NodeName = this.NodeName;
     }
-    tmp0.Port = this.Port;
-    return tmp0;
+    tmp34.NodeType = this.NodeType;
+    return tmp34;
   }
 
   public async global::System.Threading.Tasks.Task ReadAsync(TProtocol iprot, CancellationToken cancellationToken)
@@ -62,8 +62,8 @@ public partial class EndPoint : TBase
     iprot.IncrementRecursionDepth();
     try
     {
-      bool isset_ip = false;
-      bool isset_port = false;
+      bool isset_nodeName = false;
+      bool isset_nodeType = false;
       TField field;
       await iprot.ReadStructBeginAsync(cancellationToken);
       while (true)
@@ -79,8 +79,8 @@ public partial class EndPoint : TBase
           case 1:
             if (field.Type == TType.String)
             {
-              Ip = await iprot.ReadStringAsync(cancellationToken);
-              isset_ip = true;
+              NodeName = await iprot.ReadStringAsync(cancellationToken);
+              isset_nodeName = true;
             }
             else
             {
@@ -88,10 +88,10 @@ public partial class EndPoint : TBase
             }
             break;
           case 2:
-            if (field.Type == TType.I32)
+            if (field.Type == TType.Byte)
             {
-              Port = await iprot.ReadI32Async(cancellationToken);
-              isset_port = true;
+              NodeType = await iprot.ReadByteAsync(cancellationToken);
+              isset_nodeType = true;
             }
             else
             {
@@ -107,11 +107,11 @@ public partial class EndPoint : TBase
       }
 
       await iprot.ReadStructEndAsync(cancellationToken);
-      if (!isset_ip)
+      if (!isset_nodeName)
       {
         throw new TProtocolException(TProtocolException.INVALID_DATA);
       }
-      if (!isset_port)
+      if (!isset_nodeType)
       {
         throw new TProtocolException(TProtocolException.INVALID_DATA);
       }
@@ -127,23 +127,23 @@ public partial class EndPoint : TBase
     oprot.IncrementRecursionDepth();
     try
     {
-      var struc = new TStruct("EndPoint");
+      var struc = new TStruct("TSchemaNode");
       await oprot.WriteStructBeginAsync(struc, cancellationToken);
       var field = new TField();
-      if((Ip != null))
+      if((NodeName != null))
       {
-        field.Name = "ip";
+        field.Name = "nodeName";
         field.Type = TType.String;
         field.ID = 1;
         await oprot.WriteFieldBeginAsync(field, cancellationToken);
-        await oprot.WriteStringAsync(Ip, cancellationToken);
+        await oprot.WriteStringAsync(NodeName, cancellationToken);
         await oprot.WriteFieldEndAsync(cancellationToken);
       }
-      field.Name = "port";
-      field.Type = TType.I32;
+      field.Name = "nodeType";
+      field.Type = TType.Byte;
       field.ID = 2;
       await oprot.WriteFieldBeginAsync(field, cancellationToken);
-      await oprot.WriteI32Async(Port, cancellationToken);
+      await oprot.WriteByteAsync(NodeType, cancellationToken);
       await oprot.WriteFieldEndAsync(cancellationToken);
       await oprot.WriteFieldStopAsync(cancellationToken);
       await oprot.WriteStructEndAsync(cancellationToken);
@@ -156,34 +156,34 @@ public partial class EndPoint : TBase
 
   public override bool Equals(object that)
   {
-    if (!(that is EndPoint other)) return false;
+    if (!(that is TSchemaNode other)) return false;
     if (ReferenceEquals(this, other)) return true;
-    return System.Object.Equals(Ip, other.Ip)
-      && System.Object.Equals(Port, other.Port);
+    return System.Object.Equals(NodeName, other.NodeName)
+      && System.Object.Equals(NodeType, other.NodeType);
   }
 
   public override int GetHashCode() {
     int hashcode = 157;
     unchecked {
-      if((Ip != null))
+      if((NodeName != null))
       {
-        hashcode = (hashcode * 397) + Ip.GetHashCode();
+        hashcode = (hashcode * 397) + NodeName.GetHashCode();
       }
-      hashcode = (hashcode * 397) + Port.GetHashCode();
+      hashcode = (hashcode * 397) + NodeType.GetHashCode();
     }
     return hashcode;
   }
 
   public override string ToString()
   {
-    var sb = new StringBuilder("EndPoint(");
-    if((Ip != null))
+    var sb = new StringBuilder("TSchemaNode(");
+    if((NodeName != null))
     {
-      sb.Append(", Ip: ");
-      Ip.ToString(sb);
+      sb.Append(", NodeName: ");
+      NodeName.ToString(sb);
     }
-    sb.Append(", Port: ");
-    Port.ToString(sb);
+    sb.Append(", NodeType: ");
+    NodeType.ToString(sb);
     sb.Append(')');
     return sb.ToString();
   }

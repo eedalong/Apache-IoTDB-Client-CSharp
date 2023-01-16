@@ -117,34 +117,34 @@ public partial class TSExecuteStatementReq : TBase
 
   public TSExecuteStatementReq DeepCopy()
   {
-    var tmp77 = new TSExecuteStatementReq();
-    tmp77.SessionId = this.SessionId;
+    var tmp73 = new TSExecuteStatementReq();
+    tmp73.SessionId = this.SessionId;
     if((Statement != null))
     {
-      tmp77.Statement = this.Statement;
+      tmp73.Statement = this.Statement;
     }
-    tmp77.StatementId = this.StatementId;
+    tmp73.StatementId = this.StatementId;
     if(__isset.fetchSize)
     {
-      tmp77.FetchSize = this.FetchSize;
+      tmp73.FetchSize = this.FetchSize;
     }
-    tmp77.__isset.fetchSize = this.__isset.fetchSize;
+    tmp73.__isset.fetchSize = this.__isset.fetchSize;
     if(__isset.timeout)
     {
-      tmp77.Timeout = this.Timeout;
+      tmp73.Timeout = this.Timeout;
     }
-    tmp77.__isset.timeout = this.__isset.timeout;
+    tmp73.__isset.timeout = this.__isset.timeout;
     if(__isset.enableRedirectQuery)
     {
-      tmp77.EnableRedirectQuery = this.EnableRedirectQuery;
+      tmp73.EnableRedirectQuery = this.EnableRedirectQuery;
     }
-    tmp77.__isset.enableRedirectQuery = this.__isset.enableRedirectQuery;
+    tmp73.__isset.enableRedirectQuery = this.__isset.enableRedirectQuery;
     if(__isset.jdbcQuery)
     {
-      tmp77.JdbcQuery = this.JdbcQuery;
+      tmp73.JdbcQuery = this.JdbcQuery;
     }
-    tmp77.__isset.jdbcQuery = this.__isset.jdbcQuery;
-    return tmp77;
+    tmp73.__isset.jdbcQuery = this.__isset.jdbcQuery;
+    return tmp73;
   }
 
   public async global::System.Threading.Tasks.Task ReadAsync(TProtocol iprot, CancellationToken cancellationToken)

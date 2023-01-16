@@ -29,25 +29,29 @@ using Thrift.Processor;
 #pragma warning disable IDE1006  // parts of the code use IDL spelling
 
 
-public partial class TSCloseSessionReq : TBase
+public partial class TNodeResource : TBase
 {
 
-  public long SessionId { get; set; }
+  public int CpuCoreNum { get; set; }
 
-  public TSCloseSessionReq()
+  public long MaxMemory { get; set; }
+
+  public TNodeResource()
   {
   }
 
-  public TSCloseSessionReq(long sessionId) : this()
+  public TNodeResource(int cpuCoreNum, long maxMemory) : this()
   {
-    this.SessionId = sessionId;
+    this.CpuCoreNum = cpuCoreNum;
+    this.MaxMemory = maxMemory;
   }
 
-  public TSCloseSessionReq DeepCopy()
+  public TNodeResource DeepCopy()
   {
-    var tmp71 = new TSCloseSessionReq();
-    tmp71.SessionId = this.SessionId;
-    return tmp71;
+    var tmp20 = new TNodeResource();
+    tmp20.CpuCoreNum = this.CpuCoreNum;
+    tmp20.MaxMemory = this.MaxMemory;
+    return tmp20;
   }
 
   public async global::System.Threading.Tasks.Task ReadAsync(TProtocol iprot, CancellationToken cancellationToken)
@@ -55,7 +59,8 @@ public partial class TSCloseSessionReq : TBase
     iprot.IncrementRecursionDepth();
     try
     {
-      bool isset_sessionId = false;
+      bool isset_cpuCoreNum = false;
+      bool isset_maxMemory = false;
       TField field;
       await iprot.ReadStructBeginAsync(cancellationToken);
       while (true)
@@ -69,10 +74,21 @@ public partial class TSCloseSessionReq : TBase
         switch (field.ID)
         {
           case 1:
+            if (field.Type == TType.I32)
+            {
+              CpuCoreNum = await iprot.ReadI32Async(cancellationToken);
+              isset_cpuCoreNum = true;
+            }
+            else
+            {
+              await TProtocolUtil.SkipAsync(iprot, field.Type, cancellationToken);
+            }
+            break;
+          case 2:
             if (field.Type == TType.I64)
             {
-              SessionId = await iprot.ReadI64Async(cancellationToken);
-              isset_sessionId = true;
+              MaxMemory = await iprot.ReadI64Async(cancellationToken);
+              isset_maxMemory = true;
             }
             else
             {
@@ -88,7 +104,11 @@ public partial class TSCloseSessionReq : TBase
       }
 
       await iprot.ReadStructEndAsync(cancellationToken);
-      if (!isset_sessionId)
+      if (!isset_cpuCoreNum)
+      {
+        throw new TProtocolException(TProtocolException.INVALID_DATA);
+      }
+      if (!isset_maxMemory)
       {
         throw new TProtocolException(TProtocolException.INVALID_DATA);
       }
@@ -104,14 +124,20 @@ public partial class TSCloseSessionReq : TBase
     oprot.IncrementRecursionDepth();
     try
     {
-      var struc = new TStruct("TSCloseSessionReq");
+      var struc = new TStruct("TNodeResource");
       await oprot.WriteStructBeginAsync(struc, cancellationToken);
       var field = new TField();
-      field.Name = "sessionId";
-      field.Type = TType.I64;
+      field.Name = "cpuCoreNum";
+      field.Type = TType.I32;
       field.ID = 1;
       await oprot.WriteFieldBeginAsync(field, cancellationToken);
-      await oprot.WriteI64Async(SessionId, cancellationToken);
+      await oprot.WriteI32Async(CpuCoreNum, cancellationToken);
+      await oprot.WriteFieldEndAsync(cancellationToken);
+      field.Name = "maxMemory";
+      field.Type = TType.I64;
+      field.ID = 2;
+      await oprot.WriteFieldBeginAsync(field, cancellationToken);
+      await oprot.WriteI64Async(MaxMemory, cancellationToken);
       await oprot.WriteFieldEndAsync(cancellationToken);
       await oprot.WriteFieldStopAsync(cancellationToken);
       await oprot.WriteStructEndAsync(cancellationToken);
@@ -124,24 +150,28 @@ public partial class TSCloseSessionReq : TBase
 
   public override bool Equals(object that)
   {
-    if (!(that is TSCloseSessionReq other)) return false;
+    if (!(that is TNodeResource other)) return false;
     if (ReferenceEquals(this, other)) return true;
-    return System.Object.Equals(SessionId, other.SessionId);
+    return System.Object.Equals(CpuCoreNum, other.CpuCoreNum)
+      && System.Object.Equals(MaxMemory, other.MaxMemory);
   }
 
   public override int GetHashCode() {
     int hashcode = 157;
     unchecked {
-      hashcode = (hashcode * 397) + SessionId.GetHashCode();
+      hashcode = (hashcode * 397) + CpuCoreNum.GetHashCode();
+      hashcode = (hashcode * 397) + MaxMemory.GetHashCode();
     }
     return hashcode;
   }
 
   public override string ToString()
   {
-    var sb = new StringBuilder("TSCloseSessionReq(");
-    sb.Append(", SessionId: ");
-    SessionId.ToString(sb);
+    var sb = new StringBuilder("TNodeResource(");
+    sb.Append(", CpuCoreNum: ");
+    CpuCoreNum.ToString(sb);
+    sb.Append(", MaxMemory: ");
+    MaxMemory.ToString(sb);
     sb.Append(')');
     return sb.ToString();
   }

@@ -29,35 +29,35 @@ using Thrift.Processor;
 #pragma warning disable IDE1006  // parts of the code use IDL spelling
 
 
-public partial class TSQueryNonAlignDataSet : TBase
+public partial class TRegionReplicaSet : TBase
 {
 
-  public List<byte[]> TimeList { get; set; }
+  public TConsensusGroupId RegionId { get; set; }
 
-  public List<byte[]> ValueList { get; set; }
+  public List<TDataNodeLocation> DataNodeLocations { get; set; }
 
-  public TSQueryNonAlignDataSet()
+  public TRegionReplicaSet()
   {
   }
 
-  public TSQueryNonAlignDataSet(List<byte[]> timeList, List<byte[]> valueList) : this()
+  public TRegionReplicaSet(TConsensusGroupId regionId, List<TDataNodeLocation> dataNodeLocations) : this()
   {
-    this.TimeList = timeList;
-    this.ValueList = valueList;
+    this.RegionId = regionId;
+    this.DataNodeLocations = dataNodeLocations;
   }
 
-  public TSQueryNonAlignDataSet DeepCopy()
+  public TRegionReplicaSet DeepCopy()
   {
-    var tmp10 = new TSQueryNonAlignDataSet();
-    if((TimeList != null))
+    var tmp14 = new TRegionReplicaSet();
+    if((RegionId != null))
     {
-      tmp10.TimeList = this.TimeList.DeepCopy();
+      tmp14.RegionId = (TConsensusGroupId)this.RegionId.DeepCopy();
     }
-    if((ValueList != null))
+    if((DataNodeLocations != null))
     {
-      tmp10.ValueList = this.ValueList.DeepCopy();
+      tmp14.DataNodeLocations = this.DataNodeLocations.DeepCopy();
     }
-    return tmp10;
+    return tmp14;
   }
 
   public async global::System.Threading.Tasks.Task ReadAsync(TProtocol iprot, CancellationToken cancellationToken)
@@ -65,8 +65,8 @@ public partial class TSQueryNonAlignDataSet : TBase
     iprot.IncrementRecursionDepth();
     try
     {
-      bool isset_timeList = false;
-      bool isset_valueList = false;
+      bool isset_regionId = false;
+      bool isset_dataNodeLocations = false;
       TField field;
       await iprot.ReadStructBeginAsync(cancellationToken);
       while (true)
@@ -80,20 +80,11 @@ public partial class TSQueryNonAlignDataSet : TBase
         switch (field.ID)
         {
           case 1:
-            if (field.Type == TType.List)
+            if (field.Type == TType.Struct)
             {
-              {
-                TList _list11 = await iprot.ReadListBeginAsync(cancellationToken);
-                TimeList = new List<byte[]>(_list11.Count);
-                for(int _i12 = 0; _i12 < _list11.Count; ++_i12)
-                {
-                  byte[] _elem13;
-                  _elem13 = await iprot.ReadBinaryAsync(cancellationToken);
-                  TimeList.Add(_elem13);
-                }
-                await iprot.ReadListEndAsync(cancellationToken);
-              }
-              isset_timeList = true;
+              RegionId = new TConsensusGroupId();
+              await RegionId.ReadAsync(iprot, cancellationToken);
+              isset_regionId = true;
             }
             else
             {
@@ -104,17 +95,18 @@ public partial class TSQueryNonAlignDataSet : TBase
             if (field.Type == TType.List)
             {
               {
-                TList _list14 = await iprot.ReadListBeginAsync(cancellationToken);
-                ValueList = new List<byte[]>(_list14.Count);
-                for(int _i15 = 0; _i15 < _list14.Count; ++_i15)
+                TList _list15 = await iprot.ReadListBeginAsync(cancellationToken);
+                DataNodeLocations = new List<TDataNodeLocation>(_list15.Count);
+                for(int _i16 = 0; _i16 < _list15.Count; ++_i16)
                 {
-                  byte[] _elem16;
-                  _elem16 = await iprot.ReadBinaryAsync(cancellationToken);
-                  ValueList.Add(_elem16);
+                  TDataNodeLocation _elem17;
+                  _elem17 = new TDataNodeLocation();
+                  await _elem17.ReadAsync(iprot, cancellationToken);
+                  DataNodeLocations.Add(_elem17);
                 }
                 await iprot.ReadListEndAsync(cancellationToken);
               }
-              isset_valueList = true;
+              isset_dataNodeLocations = true;
             }
             else
             {
@@ -130,11 +122,11 @@ public partial class TSQueryNonAlignDataSet : TBase
       }
 
       await iprot.ReadStructEndAsync(cancellationToken);
-      if (!isset_timeList)
+      if (!isset_regionId)
       {
         throw new TProtocolException(TProtocolException.INVALID_DATA);
       }
-      if (!isset_valueList)
+      if (!isset_dataNodeLocations)
       {
         throw new TProtocolException(TProtocolException.INVALID_DATA);
       }
@@ -150,36 +142,29 @@ public partial class TSQueryNonAlignDataSet : TBase
     oprot.IncrementRecursionDepth();
     try
     {
-      var struc = new TStruct("TSQueryNonAlignDataSet");
+      var struc = new TStruct("TRegionReplicaSet");
       await oprot.WriteStructBeginAsync(struc, cancellationToken);
       var field = new TField();
-      if((TimeList != null))
+      if((RegionId != null))
       {
-        field.Name = "timeList";
-        field.Type = TType.List;
+        field.Name = "regionId";
+        field.Type = TType.Struct;
         field.ID = 1;
         await oprot.WriteFieldBeginAsync(field, cancellationToken);
-        {
-          await oprot.WriteListBeginAsync(new TList(TType.String, TimeList.Count), cancellationToken);
-          foreach (byte[] _iter17 in TimeList)
-          {
-            await oprot.WriteBinaryAsync(_iter17, cancellationToken);
-          }
-          await oprot.WriteListEndAsync(cancellationToken);
-        }
+        await RegionId.WriteAsync(oprot, cancellationToken);
         await oprot.WriteFieldEndAsync(cancellationToken);
       }
-      if((ValueList != null))
+      if((DataNodeLocations != null))
       {
-        field.Name = "valueList";
+        field.Name = "dataNodeLocations";
         field.Type = TType.List;
         field.ID = 2;
         await oprot.WriteFieldBeginAsync(field, cancellationToken);
         {
-          await oprot.WriteListBeginAsync(new TList(TType.String, ValueList.Count), cancellationToken);
-          foreach (byte[] _iter18 in ValueList)
+          await oprot.WriteListBeginAsync(new TList(TType.Struct, DataNodeLocations.Count), cancellationToken);
+          foreach (TDataNodeLocation _iter18 in DataNodeLocations)
           {
-            await oprot.WriteBinaryAsync(_iter18, cancellationToken);
+            await _iter18.WriteAsync(oprot, cancellationToken);
           }
           await oprot.WriteListEndAsync(cancellationToken);
         }
@@ -196,22 +181,22 @@ public partial class TSQueryNonAlignDataSet : TBase
 
   public override bool Equals(object that)
   {
-    if (!(that is TSQueryNonAlignDataSet other)) return false;
+    if (!(that is TRegionReplicaSet other)) return false;
     if (ReferenceEquals(this, other)) return true;
-    return TCollections.Equals(TimeList, other.TimeList)
-      && TCollections.Equals(ValueList, other.ValueList);
+    return System.Object.Equals(RegionId, other.RegionId)
+      && TCollections.Equals(DataNodeLocations, other.DataNodeLocations);
   }
 
   public override int GetHashCode() {
     int hashcode = 157;
     unchecked {
-      if((TimeList != null))
+      if((RegionId != null))
       {
-        hashcode = (hashcode * 397) + TCollections.GetHashCode(TimeList);
+        hashcode = (hashcode * 397) + RegionId.GetHashCode();
       }
-      if((ValueList != null))
+      if((DataNodeLocations != null))
       {
-        hashcode = (hashcode * 397) + TCollections.GetHashCode(ValueList);
+        hashcode = (hashcode * 397) + TCollections.GetHashCode(DataNodeLocations);
       }
     }
     return hashcode;
@@ -219,16 +204,16 @@ public partial class TSQueryNonAlignDataSet : TBase
 
   public override string ToString()
   {
-    var sb = new StringBuilder("TSQueryNonAlignDataSet(");
-    if((TimeList != null))
+    var sb = new StringBuilder("TRegionReplicaSet(");
+    if((RegionId != null))
     {
-      sb.Append(", TimeList: ");
-      TimeList.ToString(sb);
+      sb.Append(", RegionId: ");
+      RegionId.ToString(sb);
     }
-    if((ValueList != null))
+    if((DataNodeLocations != null))
     {
-      sb.Append(", ValueList: ");
-      ValueList.ToString(sb);
+      sb.Append(", DataNodeLocations: ");
+      DataNodeLocations.ToString(sb);
     }
     sb.Append(')');
     return sb.ToString();

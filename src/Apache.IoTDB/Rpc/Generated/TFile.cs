@@ -29,25 +29,35 @@ using Thrift.Processor;
 #pragma warning disable IDE1006  // parts of the code use IDL spelling
 
 
-public partial class TSCloseSessionReq : TBase
+public partial class TFile : TBase
 {
 
-  public long SessionId { get; set; }
+  public string FileName { get; set; }
 
-  public TSCloseSessionReq()
+  public byte[] File { get; set; }
+
+  public TFile()
   {
   }
 
-  public TSCloseSessionReq(long sessionId) : this()
+  public TFile(string fileName, byte[] file) : this()
   {
-    this.SessionId = sessionId;
+    this.FileName = fileName;
+    this.File = file;
   }
 
-  public TSCloseSessionReq DeepCopy()
+  public TFile DeepCopy()
   {
-    var tmp71 = new TSCloseSessionReq();
-    tmp71.SessionId = this.SessionId;
-    return tmp71;
+    var tmp42 = new TFile();
+    if((FileName != null))
+    {
+      tmp42.FileName = this.FileName;
+    }
+    if((File != null))
+    {
+      tmp42.File = this.File.ToArray();
+    }
+    return tmp42;
   }
 
   public async global::System.Threading.Tasks.Task ReadAsync(TProtocol iprot, CancellationToken cancellationToken)
@@ -55,7 +65,8 @@ public partial class TSCloseSessionReq : TBase
     iprot.IncrementRecursionDepth();
     try
     {
-      bool isset_sessionId = false;
+      bool isset_fileName = false;
+      bool isset_file = false;
       TField field;
       await iprot.ReadStructBeginAsync(cancellationToken);
       while (true)
@@ -69,10 +80,21 @@ public partial class TSCloseSessionReq : TBase
         switch (field.ID)
         {
           case 1:
-            if (field.Type == TType.I64)
+            if (field.Type == TType.String)
             {
-              SessionId = await iprot.ReadI64Async(cancellationToken);
-              isset_sessionId = true;
+              FileName = await iprot.ReadStringAsync(cancellationToken);
+              isset_fileName = true;
+            }
+            else
+            {
+              await TProtocolUtil.SkipAsync(iprot, field.Type, cancellationToken);
+            }
+            break;
+          case 2:
+            if (field.Type == TType.String)
+            {
+              File = await iprot.ReadBinaryAsync(cancellationToken);
+              isset_file = true;
             }
             else
             {
@@ -88,7 +110,11 @@ public partial class TSCloseSessionReq : TBase
       }
 
       await iprot.ReadStructEndAsync(cancellationToken);
-      if (!isset_sessionId)
+      if (!isset_fileName)
+      {
+        throw new TProtocolException(TProtocolException.INVALID_DATA);
+      }
+      if (!isset_file)
       {
         throw new TProtocolException(TProtocolException.INVALID_DATA);
       }
@@ -104,15 +130,27 @@ public partial class TSCloseSessionReq : TBase
     oprot.IncrementRecursionDepth();
     try
     {
-      var struc = new TStruct("TSCloseSessionReq");
+      var struc = new TStruct("TFile");
       await oprot.WriteStructBeginAsync(struc, cancellationToken);
       var field = new TField();
-      field.Name = "sessionId";
-      field.Type = TType.I64;
-      field.ID = 1;
-      await oprot.WriteFieldBeginAsync(field, cancellationToken);
-      await oprot.WriteI64Async(SessionId, cancellationToken);
-      await oprot.WriteFieldEndAsync(cancellationToken);
+      if((FileName != null))
+      {
+        field.Name = "fileName";
+        field.Type = TType.String;
+        field.ID = 1;
+        await oprot.WriteFieldBeginAsync(field, cancellationToken);
+        await oprot.WriteStringAsync(FileName, cancellationToken);
+        await oprot.WriteFieldEndAsync(cancellationToken);
+      }
+      if((File != null))
+      {
+        field.Name = "file";
+        field.Type = TType.String;
+        field.ID = 2;
+        await oprot.WriteFieldBeginAsync(field, cancellationToken);
+        await oprot.WriteBinaryAsync(File, cancellationToken);
+        await oprot.WriteFieldEndAsync(cancellationToken);
+      }
       await oprot.WriteFieldStopAsync(cancellationToken);
       await oprot.WriteStructEndAsync(cancellationToken);
     }
@@ -124,24 +162,40 @@ public partial class TSCloseSessionReq : TBase
 
   public override bool Equals(object that)
   {
-    if (!(that is TSCloseSessionReq other)) return false;
+    if (!(that is TFile other)) return false;
     if (ReferenceEquals(this, other)) return true;
-    return System.Object.Equals(SessionId, other.SessionId);
+    return System.Object.Equals(FileName, other.FileName)
+      && TCollections.Equals(File, other.File);
   }
 
   public override int GetHashCode() {
     int hashcode = 157;
     unchecked {
-      hashcode = (hashcode * 397) + SessionId.GetHashCode();
+      if((FileName != null))
+      {
+        hashcode = (hashcode * 397) + FileName.GetHashCode();
+      }
+      if((File != null))
+      {
+        hashcode = (hashcode * 397) + File.GetHashCode();
+      }
     }
     return hashcode;
   }
 
   public override string ToString()
   {
-    var sb = new StringBuilder("TSCloseSessionReq(");
-    sb.Append(", SessionId: ");
-    SessionId.ToString(sb);
+    var sb = new StringBuilder("TFile(");
+    if((FileName != null))
+    {
+      sb.Append(", FileName: ");
+      FileName.ToString(sb);
+    }
+    if((File != null))
+    {
+      sb.Append(", File: ");
+      File.ToString(sb);
+    }
     sb.Append(')');
     return sb.ToString();
   }

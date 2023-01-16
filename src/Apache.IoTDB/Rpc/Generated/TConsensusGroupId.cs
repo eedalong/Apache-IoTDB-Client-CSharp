@@ -29,25 +29,33 @@ using Thrift.Processor;
 #pragma warning disable IDE1006  // parts of the code use IDL spelling
 
 
-public partial class TSCloseSessionReq : TBase
+public partial class TConsensusGroupId : TBase
 {
 
-  public long SessionId { get; set; }
+  /// <summary>
+  /// 
+  /// <seealso cref="global::.TConsensusGroupType"/>
+  /// </summary>
+  public TConsensusGroupType Type { get; set; }
 
-  public TSCloseSessionReq()
+  public int Id { get; set; }
+
+  public TConsensusGroupId()
   {
   }
 
-  public TSCloseSessionReq(long sessionId) : this()
+  public TConsensusGroupId(TConsensusGroupType type, int id) : this()
   {
-    this.SessionId = sessionId;
+    this.Type = type;
+    this.Id = id;
   }
 
-  public TSCloseSessionReq DeepCopy()
+  public TConsensusGroupId DeepCopy()
   {
-    var tmp71 = new TSCloseSessionReq();
-    tmp71.SessionId = this.SessionId;
-    return tmp71;
+    var tmp8 = new TConsensusGroupId();
+    tmp8.Type = this.Type;
+    tmp8.Id = this.Id;
+    return tmp8;
   }
 
   public async global::System.Threading.Tasks.Task ReadAsync(TProtocol iprot, CancellationToken cancellationToken)
@@ -55,7 +63,8 @@ public partial class TSCloseSessionReq : TBase
     iprot.IncrementRecursionDepth();
     try
     {
-      bool isset_sessionId = false;
+      bool isset_type = false;
+      bool isset_id = false;
       TField field;
       await iprot.ReadStructBeginAsync(cancellationToken);
       while (true)
@@ -69,10 +78,21 @@ public partial class TSCloseSessionReq : TBase
         switch (field.ID)
         {
           case 1:
-            if (field.Type == TType.I64)
+            if (field.Type == TType.I32)
             {
-              SessionId = await iprot.ReadI64Async(cancellationToken);
-              isset_sessionId = true;
+              Type = (TConsensusGroupType)await iprot.ReadI32Async(cancellationToken);
+              isset_type = true;
+            }
+            else
+            {
+              await TProtocolUtil.SkipAsync(iprot, field.Type, cancellationToken);
+            }
+            break;
+          case 2:
+            if (field.Type == TType.I32)
+            {
+              Id = await iprot.ReadI32Async(cancellationToken);
+              isset_id = true;
             }
             else
             {
@@ -88,7 +108,11 @@ public partial class TSCloseSessionReq : TBase
       }
 
       await iprot.ReadStructEndAsync(cancellationToken);
-      if (!isset_sessionId)
+      if (!isset_type)
+      {
+        throw new TProtocolException(TProtocolException.INVALID_DATA);
+      }
+      if (!isset_id)
       {
         throw new TProtocolException(TProtocolException.INVALID_DATA);
       }
@@ -104,14 +128,20 @@ public partial class TSCloseSessionReq : TBase
     oprot.IncrementRecursionDepth();
     try
     {
-      var struc = new TStruct("TSCloseSessionReq");
+      var struc = new TStruct("TConsensusGroupId");
       await oprot.WriteStructBeginAsync(struc, cancellationToken);
       var field = new TField();
-      field.Name = "sessionId";
-      field.Type = TType.I64;
+      field.Name = "type";
+      field.Type = TType.I32;
       field.ID = 1;
       await oprot.WriteFieldBeginAsync(field, cancellationToken);
-      await oprot.WriteI64Async(SessionId, cancellationToken);
+      await oprot.WriteI32Async((int)Type, cancellationToken);
+      await oprot.WriteFieldEndAsync(cancellationToken);
+      field.Name = "id";
+      field.Type = TType.I32;
+      field.ID = 2;
+      await oprot.WriteFieldBeginAsync(field, cancellationToken);
+      await oprot.WriteI32Async(Id, cancellationToken);
       await oprot.WriteFieldEndAsync(cancellationToken);
       await oprot.WriteFieldStopAsync(cancellationToken);
       await oprot.WriteStructEndAsync(cancellationToken);
@@ -124,24 +154,28 @@ public partial class TSCloseSessionReq : TBase
 
   public override bool Equals(object that)
   {
-    if (!(that is TSCloseSessionReq other)) return false;
+    if (!(that is TConsensusGroupId other)) return false;
     if (ReferenceEquals(this, other)) return true;
-    return System.Object.Equals(SessionId, other.SessionId);
+    return System.Object.Equals(Type, other.Type)
+      && System.Object.Equals(Id, other.Id);
   }
 
   public override int GetHashCode() {
     int hashcode = 157;
     unchecked {
-      hashcode = (hashcode * 397) + SessionId.GetHashCode();
+      hashcode = (hashcode * 397) + Type.GetHashCode();
+      hashcode = (hashcode * 397) + Id.GetHashCode();
     }
     return hashcode;
   }
 
   public override string ToString()
   {
-    var sb = new StringBuilder("TSCloseSessionReq(");
-    sb.Append(", SessionId: ");
-    SessionId.ToString(sb);
+    var sb = new StringBuilder("TConsensusGroupId(");
+    sb.Append(", Type: ");
+    Type.ToString(sb);
+    sb.Append(", Id: ");
+    Id.ToString(sb);
     sb.Append(')');
     return sb.ToString();
   }

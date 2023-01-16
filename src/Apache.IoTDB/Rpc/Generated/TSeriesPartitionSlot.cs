@@ -29,25 +29,25 @@ using Thrift.Processor;
 #pragma warning disable IDE1006  // parts of the code use IDL spelling
 
 
-public partial class TSCloseSessionReq : TBase
+public partial class TSeriesPartitionSlot : TBase
 {
 
-  public long SessionId { get; set; }
+  public int SlotId { get; set; }
 
-  public TSCloseSessionReq()
+  public TSeriesPartitionSlot()
   {
   }
 
-  public TSCloseSessionReq(long sessionId) : this()
+  public TSeriesPartitionSlot(int slotId) : this()
   {
-    this.SessionId = sessionId;
+    this.SlotId = slotId;
   }
 
-  public TSCloseSessionReq DeepCopy()
+  public TSeriesPartitionSlot DeepCopy()
   {
-    var tmp71 = new TSCloseSessionReq();
-    tmp71.SessionId = this.SessionId;
-    return tmp71;
+    var tmp10 = new TSeriesPartitionSlot();
+    tmp10.SlotId = this.SlotId;
+    return tmp10;
   }
 
   public async global::System.Threading.Tasks.Task ReadAsync(TProtocol iprot, CancellationToken cancellationToken)
@@ -55,7 +55,7 @@ public partial class TSCloseSessionReq : TBase
     iprot.IncrementRecursionDepth();
     try
     {
-      bool isset_sessionId = false;
+      bool isset_slotId = false;
       TField field;
       await iprot.ReadStructBeginAsync(cancellationToken);
       while (true)
@@ -69,10 +69,10 @@ public partial class TSCloseSessionReq : TBase
         switch (field.ID)
         {
           case 1:
-            if (field.Type == TType.I64)
+            if (field.Type == TType.I32)
             {
-              SessionId = await iprot.ReadI64Async(cancellationToken);
-              isset_sessionId = true;
+              SlotId = await iprot.ReadI32Async(cancellationToken);
+              isset_slotId = true;
             }
             else
             {
@@ -88,7 +88,7 @@ public partial class TSCloseSessionReq : TBase
       }
 
       await iprot.ReadStructEndAsync(cancellationToken);
-      if (!isset_sessionId)
+      if (!isset_slotId)
       {
         throw new TProtocolException(TProtocolException.INVALID_DATA);
       }
@@ -104,14 +104,14 @@ public partial class TSCloseSessionReq : TBase
     oprot.IncrementRecursionDepth();
     try
     {
-      var struc = new TStruct("TSCloseSessionReq");
+      var struc = new TStruct("TSeriesPartitionSlot");
       await oprot.WriteStructBeginAsync(struc, cancellationToken);
       var field = new TField();
-      field.Name = "sessionId";
-      field.Type = TType.I64;
+      field.Name = "slotId";
+      field.Type = TType.I32;
       field.ID = 1;
       await oprot.WriteFieldBeginAsync(field, cancellationToken);
-      await oprot.WriteI64Async(SessionId, cancellationToken);
+      await oprot.WriteI32Async(SlotId, cancellationToken);
       await oprot.WriteFieldEndAsync(cancellationToken);
       await oprot.WriteFieldStopAsync(cancellationToken);
       await oprot.WriteStructEndAsync(cancellationToken);
@@ -124,24 +124,24 @@ public partial class TSCloseSessionReq : TBase
 
   public override bool Equals(object that)
   {
-    if (!(that is TSCloseSessionReq other)) return false;
+    if (!(that is TSeriesPartitionSlot other)) return false;
     if (ReferenceEquals(this, other)) return true;
-    return System.Object.Equals(SessionId, other.SessionId);
+    return System.Object.Equals(SlotId, other.SlotId);
   }
 
   public override int GetHashCode() {
     int hashcode = 157;
     unchecked {
-      hashcode = (hashcode * 397) + SessionId.GetHashCode();
+      hashcode = (hashcode * 397) + SlotId.GetHashCode();
     }
     return hashcode;
   }
 
   public override string ToString()
   {
-    var sb = new StringBuilder("TSCloseSessionReq(");
-    sb.Append(", SessionId: ");
-    SessionId.ToString(sb);
+    var sb = new StringBuilder("TSeriesPartitionSlot(");
+    sb.Append(", SlotId: ");
+    SlotId.ToString(sb);
     sb.Append(')');
     return sb.ToString();
   }

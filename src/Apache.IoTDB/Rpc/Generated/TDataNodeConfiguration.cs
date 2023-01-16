@@ -29,29 +29,35 @@ using Thrift.Processor;
 #pragma warning disable IDE1006  // parts of the code use IDL spelling
 
 
-public partial class TSGetOperationStatusReq : TBase
+public partial class TDataNodeConfiguration : TBase
 {
 
-  public long SessionId { get; set; }
+  public TDataNodeLocation Location { get; set; }
 
-  public long QueryId { get; set; }
+  public TNodeResource Resource { get; set; }
 
-  public TSGetOperationStatusReq()
+  public TDataNodeConfiguration()
   {
   }
 
-  public TSGetOperationStatusReq(long sessionId, long queryId) : this()
+  public TDataNodeConfiguration(TDataNodeLocation location, TNodeResource resource) : this()
   {
-    this.SessionId = sessionId;
-    this.QueryId = queryId;
+    this.Location = location;
+    this.Resource = resource;
   }
 
-  public TSGetOperationStatusReq DeepCopy()
+  public TDataNodeConfiguration DeepCopy()
   {
-    var tmp81 = new TSGetOperationStatusReq();
-    tmp81.SessionId = this.SessionId;
-    tmp81.QueryId = this.QueryId;
-    return tmp81;
+    var tmp26 = new TDataNodeConfiguration();
+    if((Location != null))
+    {
+      tmp26.Location = (TDataNodeLocation)this.Location.DeepCopy();
+    }
+    if((Resource != null))
+    {
+      tmp26.Resource = (TNodeResource)this.Resource.DeepCopy();
+    }
+    return tmp26;
   }
 
   public async global::System.Threading.Tasks.Task ReadAsync(TProtocol iprot, CancellationToken cancellationToken)
@@ -59,8 +65,8 @@ public partial class TSGetOperationStatusReq : TBase
     iprot.IncrementRecursionDepth();
     try
     {
-      bool isset_sessionId = false;
-      bool isset_queryId = false;
+      bool isset_location = false;
+      bool isset_resource = false;
       TField field;
       await iprot.ReadStructBeginAsync(cancellationToken);
       while (true)
@@ -74,10 +80,11 @@ public partial class TSGetOperationStatusReq : TBase
         switch (field.ID)
         {
           case 1:
-            if (field.Type == TType.I64)
+            if (field.Type == TType.Struct)
             {
-              SessionId = await iprot.ReadI64Async(cancellationToken);
-              isset_sessionId = true;
+              Location = new TDataNodeLocation();
+              await Location.ReadAsync(iprot, cancellationToken);
+              isset_location = true;
             }
             else
             {
@@ -85,10 +92,11 @@ public partial class TSGetOperationStatusReq : TBase
             }
             break;
           case 2:
-            if (field.Type == TType.I64)
+            if (field.Type == TType.Struct)
             {
-              QueryId = await iprot.ReadI64Async(cancellationToken);
-              isset_queryId = true;
+              Resource = new TNodeResource();
+              await Resource.ReadAsync(iprot, cancellationToken);
+              isset_resource = true;
             }
             else
             {
@@ -104,11 +112,11 @@ public partial class TSGetOperationStatusReq : TBase
       }
 
       await iprot.ReadStructEndAsync(cancellationToken);
-      if (!isset_sessionId)
+      if (!isset_location)
       {
         throw new TProtocolException(TProtocolException.INVALID_DATA);
       }
-      if (!isset_queryId)
+      if (!isset_resource)
       {
         throw new TProtocolException(TProtocolException.INVALID_DATA);
       }
@@ -124,21 +132,27 @@ public partial class TSGetOperationStatusReq : TBase
     oprot.IncrementRecursionDepth();
     try
     {
-      var struc = new TStruct("TSGetOperationStatusReq");
+      var struc = new TStruct("TDataNodeConfiguration");
       await oprot.WriteStructBeginAsync(struc, cancellationToken);
       var field = new TField();
-      field.Name = "sessionId";
-      field.Type = TType.I64;
-      field.ID = 1;
-      await oprot.WriteFieldBeginAsync(field, cancellationToken);
-      await oprot.WriteI64Async(SessionId, cancellationToken);
-      await oprot.WriteFieldEndAsync(cancellationToken);
-      field.Name = "queryId";
-      field.Type = TType.I64;
-      field.ID = 2;
-      await oprot.WriteFieldBeginAsync(field, cancellationToken);
-      await oprot.WriteI64Async(QueryId, cancellationToken);
-      await oprot.WriteFieldEndAsync(cancellationToken);
+      if((Location != null))
+      {
+        field.Name = "location";
+        field.Type = TType.Struct;
+        field.ID = 1;
+        await oprot.WriteFieldBeginAsync(field, cancellationToken);
+        await Location.WriteAsync(oprot, cancellationToken);
+        await oprot.WriteFieldEndAsync(cancellationToken);
+      }
+      if((Resource != null))
+      {
+        field.Name = "resource";
+        field.Type = TType.Struct;
+        field.ID = 2;
+        await oprot.WriteFieldBeginAsync(field, cancellationToken);
+        await Resource.WriteAsync(oprot, cancellationToken);
+        await oprot.WriteFieldEndAsync(cancellationToken);
+      }
       await oprot.WriteFieldStopAsync(cancellationToken);
       await oprot.WriteStructEndAsync(cancellationToken);
     }
@@ -150,28 +164,40 @@ public partial class TSGetOperationStatusReq : TBase
 
   public override bool Equals(object that)
   {
-    if (!(that is TSGetOperationStatusReq other)) return false;
+    if (!(that is TDataNodeConfiguration other)) return false;
     if (ReferenceEquals(this, other)) return true;
-    return System.Object.Equals(SessionId, other.SessionId)
-      && System.Object.Equals(QueryId, other.QueryId);
+    return System.Object.Equals(Location, other.Location)
+      && System.Object.Equals(Resource, other.Resource);
   }
 
   public override int GetHashCode() {
     int hashcode = 157;
     unchecked {
-      hashcode = (hashcode * 397) + SessionId.GetHashCode();
-      hashcode = (hashcode * 397) + QueryId.GetHashCode();
+      if((Location != null))
+      {
+        hashcode = (hashcode * 397) + Location.GetHashCode();
+      }
+      if((Resource != null))
+      {
+        hashcode = (hashcode * 397) + Resource.GetHashCode();
+      }
     }
     return hashcode;
   }
 
   public override string ToString()
   {
-    var sb = new StringBuilder("TSGetOperationStatusReq(");
-    sb.Append(", SessionId: ");
-    SessionId.ToString(sb);
-    sb.Append(", QueryId: ");
-    QueryId.ToString(sb);
+    var sb = new StringBuilder("TDataNodeConfiguration(");
+    if((Location != null))
+    {
+      sb.Append(", Location: ");
+      Location.ToString(sb);
+    }
+    if((Resource != null))
+    {
+      sb.Append(", Resource: ");
+      Resource.ToString(sb);
+    }
     sb.Append(')');
     return sb.ToString();
   }

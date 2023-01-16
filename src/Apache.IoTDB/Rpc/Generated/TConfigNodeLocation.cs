@@ -29,71 +29,39 @@ using Thrift.Processor;
 #pragma warning disable IDE1006  // parts of the code use IDL spelling
 
 
-public partial class TSCloseOperationReq : TBase
+public partial class TConfigNodeLocation : TBase
 {
-  private long _queryId;
-  private long _statementId;
 
-  public long SessionId { get; set; }
+  public int ConfigNodeId { get; set; }
 
-  public long QueryId
-  {
-    get
-    {
-      return _queryId;
-    }
-    set
-    {
-      __isset.queryId = true;
-      this._queryId = value;
-    }
-  }
+  public TEndPoint InternalEndPoint { get; set; }
 
-  public long StatementId
-  {
-    get
-    {
-      return _statementId;
-    }
-    set
-    {
-      __isset.statementId = true;
-      this._statementId = value;
-    }
-  }
+  public TEndPoint ConsensusEndPoint { get; set; }
 
-
-  public Isset __isset;
-  public struct Isset
-  {
-    public bool queryId;
-    public bool statementId;
-  }
-
-  public TSCloseOperationReq()
+  public TConfigNodeLocation()
   {
   }
 
-  public TSCloseOperationReq(long sessionId) : this()
+  public TConfigNodeLocation(int configNodeId, TEndPoint internalEndPoint, TEndPoint consensusEndPoint) : this()
   {
-    this.SessionId = sessionId;
+    this.ConfigNodeId = configNodeId;
+    this.InternalEndPoint = internalEndPoint;
+    this.ConsensusEndPoint = consensusEndPoint;
   }
 
-  public TSCloseOperationReq DeepCopy()
+  public TConfigNodeLocation DeepCopy()
   {
-    var tmp85 = new TSCloseOperationReq();
-    tmp85.SessionId = this.SessionId;
-    if(__isset.queryId)
+    var tmp22 = new TConfigNodeLocation();
+    tmp22.ConfigNodeId = this.ConfigNodeId;
+    if((InternalEndPoint != null))
     {
-      tmp85.QueryId = this.QueryId;
+      tmp22.InternalEndPoint = (TEndPoint)this.InternalEndPoint.DeepCopy();
     }
-    tmp85.__isset.queryId = this.__isset.queryId;
-    if(__isset.statementId)
+    if((ConsensusEndPoint != null))
     {
-      tmp85.StatementId = this.StatementId;
+      tmp22.ConsensusEndPoint = (TEndPoint)this.ConsensusEndPoint.DeepCopy();
     }
-    tmp85.__isset.statementId = this.__isset.statementId;
-    return tmp85;
+    return tmp22;
   }
 
   public async global::System.Threading.Tasks.Task ReadAsync(TProtocol iprot, CancellationToken cancellationToken)
@@ -101,7 +69,9 @@ public partial class TSCloseOperationReq : TBase
     iprot.IncrementRecursionDepth();
     try
     {
-      bool isset_sessionId = false;
+      bool isset_configNodeId = false;
+      bool isset_internalEndPoint = false;
+      bool isset_consensusEndPoint = false;
       TField field;
       await iprot.ReadStructBeginAsync(cancellationToken);
       while (true)
@@ -115,10 +85,10 @@ public partial class TSCloseOperationReq : TBase
         switch (field.ID)
         {
           case 1:
-            if (field.Type == TType.I64)
+            if (field.Type == TType.I32)
             {
-              SessionId = await iprot.ReadI64Async(cancellationToken);
-              isset_sessionId = true;
+              ConfigNodeId = await iprot.ReadI32Async(cancellationToken);
+              isset_configNodeId = true;
             }
             else
             {
@@ -126,9 +96,11 @@ public partial class TSCloseOperationReq : TBase
             }
             break;
           case 2:
-            if (field.Type == TType.I64)
+            if (field.Type == TType.Struct)
             {
-              QueryId = await iprot.ReadI64Async(cancellationToken);
+              InternalEndPoint = new TEndPoint();
+              await InternalEndPoint.ReadAsync(iprot, cancellationToken);
+              isset_internalEndPoint = true;
             }
             else
             {
@@ -136,9 +108,11 @@ public partial class TSCloseOperationReq : TBase
             }
             break;
           case 3:
-            if (field.Type == TType.I64)
+            if (field.Type == TType.Struct)
             {
-              StatementId = await iprot.ReadI64Async(cancellationToken);
+              ConsensusEndPoint = new TEndPoint();
+              await ConsensusEndPoint.ReadAsync(iprot, cancellationToken);
+              isset_consensusEndPoint = true;
             }
             else
             {
@@ -154,7 +128,15 @@ public partial class TSCloseOperationReq : TBase
       }
 
       await iprot.ReadStructEndAsync(cancellationToken);
-      if (!isset_sessionId)
+      if (!isset_configNodeId)
+      {
+        throw new TProtocolException(TProtocolException.INVALID_DATA);
+      }
+      if (!isset_internalEndPoint)
+      {
+        throw new TProtocolException(TProtocolException.INVALID_DATA);
+      }
+      if (!isset_consensusEndPoint)
       {
         throw new TProtocolException(TProtocolException.INVALID_DATA);
       }
@@ -170,31 +152,31 @@ public partial class TSCloseOperationReq : TBase
     oprot.IncrementRecursionDepth();
     try
     {
-      var struc = new TStruct("TSCloseOperationReq");
+      var struc = new TStruct("TConfigNodeLocation");
       await oprot.WriteStructBeginAsync(struc, cancellationToken);
       var field = new TField();
-      field.Name = "sessionId";
-      field.Type = TType.I64;
+      field.Name = "configNodeId";
+      field.Type = TType.I32;
       field.ID = 1;
       await oprot.WriteFieldBeginAsync(field, cancellationToken);
-      await oprot.WriteI64Async(SessionId, cancellationToken);
+      await oprot.WriteI32Async(ConfigNodeId, cancellationToken);
       await oprot.WriteFieldEndAsync(cancellationToken);
-      if(__isset.queryId)
+      if((InternalEndPoint != null))
       {
-        field.Name = "queryId";
-        field.Type = TType.I64;
+        field.Name = "internalEndPoint";
+        field.Type = TType.Struct;
         field.ID = 2;
         await oprot.WriteFieldBeginAsync(field, cancellationToken);
-        await oprot.WriteI64Async(QueryId, cancellationToken);
+        await InternalEndPoint.WriteAsync(oprot, cancellationToken);
         await oprot.WriteFieldEndAsync(cancellationToken);
       }
-      if(__isset.statementId)
+      if((ConsensusEndPoint != null))
       {
-        field.Name = "statementId";
-        field.Type = TType.I64;
+        field.Name = "consensusEndPoint";
+        field.Type = TType.Struct;
         field.ID = 3;
         await oprot.WriteFieldBeginAsync(field, cancellationToken);
-        await oprot.WriteI64Async(StatementId, cancellationToken);
+        await ConsensusEndPoint.WriteAsync(oprot, cancellationToken);
         await oprot.WriteFieldEndAsync(cancellationToken);
       }
       await oprot.WriteFieldStopAsync(cancellationToken);
@@ -208,24 +190,24 @@ public partial class TSCloseOperationReq : TBase
 
   public override bool Equals(object that)
   {
-    if (!(that is TSCloseOperationReq other)) return false;
+    if (!(that is TConfigNodeLocation other)) return false;
     if (ReferenceEquals(this, other)) return true;
-    return System.Object.Equals(SessionId, other.SessionId)
-      && ((__isset.queryId == other.__isset.queryId) && ((!__isset.queryId) || (System.Object.Equals(QueryId, other.QueryId))))
-      && ((__isset.statementId == other.__isset.statementId) && ((!__isset.statementId) || (System.Object.Equals(StatementId, other.StatementId))));
+    return System.Object.Equals(ConfigNodeId, other.ConfigNodeId)
+      && System.Object.Equals(InternalEndPoint, other.InternalEndPoint)
+      && System.Object.Equals(ConsensusEndPoint, other.ConsensusEndPoint);
   }
 
   public override int GetHashCode() {
     int hashcode = 157;
     unchecked {
-      hashcode = (hashcode * 397) + SessionId.GetHashCode();
-      if(__isset.queryId)
+      hashcode = (hashcode * 397) + ConfigNodeId.GetHashCode();
+      if((InternalEndPoint != null))
       {
-        hashcode = (hashcode * 397) + QueryId.GetHashCode();
+        hashcode = (hashcode * 397) + InternalEndPoint.GetHashCode();
       }
-      if(__isset.statementId)
+      if((ConsensusEndPoint != null))
       {
-        hashcode = (hashcode * 397) + StatementId.GetHashCode();
+        hashcode = (hashcode * 397) + ConsensusEndPoint.GetHashCode();
       }
     }
     return hashcode;
@@ -233,18 +215,18 @@ public partial class TSCloseOperationReq : TBase
 
   public override string ToString()
   {
-    var sb = new StringBuilder("TSCloseOperationReq(");
-    sb.Append(", SessionId: ");
-    SessionId.ToString(sb);
-    if(__isset.queryId)
+    var sb = new StringBuilder("TConfigNodeLocation(");
+    sb.Append(", ConfigNodeId: ");
+    ConfigNodeId.ToString(sb);
+    if((InternalEndPoint != null))
     {
-      sb.Append(", QueryId: ");
-      QueryId.ToString(sb);
+      sb.Append(", InternalEndPoint: ");
+      InternalEndPoint.ToString(sb);
     }
-    if(__isset.statementId)
+    if((ConsensusEndPoint != null))
     {
-      sb.Append(", StatementId: ");
-      StatementId.ToString(sb);
+      sb.Append(", ConsensusEndPoint: ");
+      ConsensusEndPoint.ToString(sb);
     }
     sb.Append(')');
     return sb.ToString();

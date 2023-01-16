@@ -48,10 +48,10 @@ public partial class TSCancelOperationReq : TBase
 
   public TSCancelOperationReq DeepCopy()
   {
-    var tmp87 = new TSCancelOperationReq();
-    tmp87.SessionId = this.SessionId;
-    tmp87.QueryId = this.QueryId;
-    return tmp87;
+    var tmp83 = new TSCancelOperationReq();
+    tmp83.SessionId = this.SessionId;
+    tmp83.QueryId = this.QueryId;
+    return tmp83;
   }
 
   public async global::System.Threading.Tasks.Task ReadAsync(TProtocol iprot, CancellationToken cancellationToken)

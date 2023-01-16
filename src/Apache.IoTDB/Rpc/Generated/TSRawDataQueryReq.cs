@@ -34,6 +34,7 @@ public partial class TSRawDataQueryReq : TBase
   private int _fetchSize;
   private bool _enableRedirectQuery;
   private bool _jdbcQuery;
+  private long _timeout;
 
   public long SessionId { get; set; }
 
@@ -84,6 +85,19 @@ public partial class TSRawDataQueryReq : TBase
     }
   }
 
+  public long Timeout
+  {
+    get
+    {
+      return _timeout;
+    }
+    set
+    {
+      __isset.timeout = true;
+      this._timeout = value;
+    }
+  }
+
 
   public Isset __isset;
   public struct Isset
@@ -91,6 +105,7 @@ public partial class TSRawDataQueryReq : TBase
     public bool fetchSize;
     public bool enableRedirectQuery;
     public bool jdbcQuery;
+    public bool timeout;
   }
 
   public TSRawDataQueryReq()
@@ -132,6 +147,11 @@ public partial class TSRawDataQueryReq : TBase
       tmp318.JdbcQuery = this.JdbcQuery;
     }
     tmp318.__isset.jdbcQuery = this.__isset.jdbcQuery;
+    if(__isset.timeout)
+    {
+      tmp318.Timeout = this.Timeout;
+    }
+    tmp318.__isset.timeout = this.__isset.timeout;
     return tmp318;
   }
 
@@ -252,6 +272,16 @@ public partial class TSRawDataQueryReq : TBase
               await TProtocolUtil.SkipAsync(iprot, field.Type, cancellationToken);
             }
             break;
+          case 9:
+            if (field.Type == TType.I64)
+            {
+              Timeout = await iprot.ReadI64Async(cancellationToken);
+            }
+            else
+            {
+              await TProtocolUtil.SkipAsync(iprot, field.Type, cancellationToken);
+            }
+            break;
           default: 
             await TProtocolUtil.SkipAsync(iprot, field.Type, cancellationToken);
             break;
@@ -363,6 +393,15 @@ public partial class TSRawDataQueryReq : TBase
         await oprot.WriteBoolAsync(JdbcQuery, cancellationToken);
         await oprot.WriteFieldEndAsync(cancellationToken);
       }
+      if(__isset.timeout)
+      {
+        field.Name = "timeout";
+        field.Type = TType.I64;
+        field.ID = 9;
+        await oprot.WriteFieldBeginAsync(field, cancellationToken);
+        await oprot.WriteI64Async(Timeout, cancellationToken);
+        await oprot.WriteFieldEndAsync(cancellationToken);
+      }
       await oprot.WriteFieldStopAsync(cancellationToken);
       await oprot.WriteStructEndAsync(cancellationToken);
     }
@@ -383,7 +422,8 @@ public partial class TSRawDataQueryReq : TBase
       && System.Object.Equals(EndTime, other.EndTime)
       && System.Object.Equals(StatementId, other.StatementId)
       && ((__isset.enableRedirectQuery == other.__isset.enableRedirectQuery) && ((!__isset.enableRedirectQuery) || (System.Object.Equals(EnableRedirectQuery, other.EnableRedirectQuery))))
-      && ((__isset.jdbcQuery == other.__isset.jdbcQuery) && ((!__isset.jdbcQuery) || (System.Object.Equals(JdbcQuery, other.JdbcQuery))));
+      && ((__isset.jdbcQuery == other.__isset.jdbcQuery) && ((!__isset.jdbcQuery) || (System.Object.Equals(JdbcQuery, other.JdbcQuery))))
+      && ((__isset.timeout == other.__isset.timeout) && ((!__isset.timeout) || (System.Object.Equals(Timeout, other.Timeout))));
   }
 
   public override int GetHashCode() {
@@ -408,6 +448,10 @@ public partial class TSRawDataQueryReq : TBase
       if(__isset.jdbcQuery)
       {
         hashcode = (hashcode * 397) + JdbcQuery.GetHashCode();
+      }
+      if(__isset.timeout)
+      {
+        hashcode = (hashcode * 397) + Timeout.GetHashCode();
       }
     }
     return hashcode;
@@ -443,6 +487,11 @@ public partial class TSRawDataQueryReq : TBase
     {
       sb.Append(", JdbcQuery: ");
       JdbcQuery.ToString(sb);
+    }
+    if(__isset.timeout)
+    {
+      sb.Append(", Timeout: ");
+      Timeout.ToString(sb);
     }
     sb.Append(')');
     return sb.ToString();

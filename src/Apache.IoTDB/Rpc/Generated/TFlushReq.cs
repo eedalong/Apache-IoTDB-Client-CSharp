@@ -29,35 +29,63 @@ using Thrift.Processor;
 #pragma warning disable IDE1006  // parts of the code use IDL spelling
 
 
-public partial class TSQueryNonAlignDataSet : TBase
+public partial class TFlushReq : TBase
 {
+  private string _isSeq;
+  private List<string> _storageGroups;
 
-  public List<byte[]> TimeList { get; set; }
+  public string IsSeq
+  {
+    get
+    {
+      return _isSeq;
+    }
+    set
+    {
+      __isset.isSeq = true;
+      this._isSeq = value;
+    }
+  }
 
-  public List<byte[]> ValueList { get; set; }
+  public List<string> StorageGroups
+  {
+    get
+    {
+      return _storageGroups;
+    }
+    set
+    {
+      __isset.storageGroups = true;
+      this._storageGroups = value;
+    }
+  }
 
-  public TSQueryNonAlignDataSet()
+
+  public Isset __isset;
+  public struct Isset
+  {
+    public bool isSeq;
+    public bool storageGroups;
+  }
+
+  public TFlushReq()
   {
   }
 
-  public TSQueryNonAlignDataSet(List<byte[]> timeList, List<byte[]> valueList) : this()
+  public TFlushReq DeepCopy()
   {
-    this.TimeList = timeList;
-    this.ValueList = valueList;
-  }
-
-  public TSQueryNonAlignDataSet DeepCopy()
-  {
-    var tmp10 = new TSQueryNonAlignDataSet();
-    if((TimeList != null))
+    var tmp28 = new TFlushReq();
+    if((IsSeq != null) && __isset.isSeq)
     {
-      tmp10.TimeList = this.TimeList.DeepCopy();
+      tmp28.IsSeq = this.IsSeq;
     }
-    if((ValueList != null))
+    tmp28.__isset.isSeq = this.__isset.isSeq;
+    if((StorageGroups != null) && __isset.storageGroups)
     {
-      tmp10.ValueList = this.ValueList.DeepCopy();
+      tmp28.StorageGroups = this.StorageGroups.DeepCopy();
     }
-    return tmp10;
+    tmp28.__isset.storageGroups = this.__isset.storageGroups;
+    return tmp28;
   }
 
   public async global::System.Threading.Tasks.Task ReadAsync(TProtocol iprot, CancellationToken cancellationToken)
@@ -65,8 +93,6 @@ public partial class TSQueryNonAlignDataSet : TBase
     iprot.IncrementRecursionDepth();
     try
     {
-      bool isset_timeList = false;
-      bool isset_valueList = false;
       TField field;
       await iprot.ReadStructBeginAsync(cancellationToken);
       while (true)
@@ -80,20 +106,9 @@ public partial class TSQueryNonAlignDataSet : TBase
         switch (field.ID)
         {
           case 1:
-            if (field.Type == TType.List)
+            if (field.Type == TType.String)
             {
-              {
-                TList _list11 = await iprot.ReadListBeginAsync(cancellationToken);
-                TimeList = new List<byte[]>(_list11.Count);
-                for(int _i12 = 0; _i12 < _list11.Count; ++_i12)
-                {
-                  byte[] _elem13;
-                  _elem13 = await iprot.ReadBinaryAsync(cancellationToken);
-                  TimeList.Add(_elem13);
-                }
-                await iprot.ReadListEndAsync(cancellationToken);
-              }
-              isset_timeList = true;
+              IsSeq = await iprot.ReadStringAsync(cancellationToken);
             }
             else
             {
@@ -104,17 +119,16 @@ public partial class TSQueryNonAlignDataSet : TBase
             if (field.Type == TType.List)
             {
               {
-                TList _list14 = await iprot.ReadListBeginAsync(cancellationToken);
-                ValueList = new List<byte[]>(_list14.Count);
-                for(int _i15 = 0; _i15 < _list14.Count; ++_i15)
+                TList _list29 = await iprot.ReadListBeginAsync(cancellationToken);
+                StorageGroups = new List<string>(_list29.Count);
+                for(int _i30 = 0; _i30 < _list29.Count; ++_i30)
                 {
-                  byte[] _elem16;
-                  _elem16 = await iprot.ReadBinaryAsync(cancellationToken);
-                  ValueList.Add(_elem16);
+                  string _elem31;
+                  _elem31 = await iprot.ReadStringAsync(cancellationToken);
+                  StorageGroups.Add(_elem31);
                 }
                 await iprot.ReadListEndAsync(cancellationToken);
               }
-              isset_valueList = true;
             }
             else
             {
@@ -130,14 +144,6 @@ public partial class TSQueryNonAlignDataSet : TBase
       }
 
       await iprot.ReadStructEndAsync(cancellationToken);
-      if (!isset_timeList)
-      {
-        throw new TProtocolException(TProtocolException.INVALID_DATA);
-      }
-      if (!isset_valueList)
-      {
-        throw new TProtocolException(TProtocolException.INVALID_DATA);
-      }
     }
     finally
     {
@@ -150,36 +156,29 @@ public partial class TSQueryNonAlignDataSet : TBase
     oprot.IncrementRecursionDepth();
     try
     {
-      var struc = new TStruct("TSQueryNonAlignDataSet");
+      var struc = new TStruct("TFlushReq");
       await oprot.WriteStructBeginAsync(struc, cancellationToken);
       var field = new TField();
-      if((TimeList != null))
+      if((IsSeq != null) && __isset.isSeq)
       {
-        field.Name = "timeList";
-        field.Type = TType.List;
+        field.Name = "isSeq";
+        field.Type = TType.String;
         field.ID = 1;
         await oprot.WriteFieldBeginAsync(field, cancellationToken);
-        {
-          await oprot.WriteListBeginAsync(new TList(TType.String, TimeList.Count), cancellationToken);
-          foreach (byte[] _iter17 in TimeList)
-          {
-            await oprot.WriteBinaryAsync(_iter17, cancellationToken);
-          }
-          await oprot.WriteListEndAsync(cancellationToken);
-        }
+        await oprot.WriteStringAsync(IsSeq, cancellationToken);
         await oprot.WriteFieldEndAsync(cancellationToken);
       }
-      if((ValueList != null))
+      if((StorageGroups != null) && __isset.storageGroups)
       {
-        field.Name = "valueList";
+        field.Name = "storageGroups";
         field.Type = TType.List;
         field.ID = 2;
         await oprot.WriteFieldBeginAsync(field, cancellationToken);
         {
-          await oprot.WriteListBeginAsync(new TList(TType.String, ValueList.Count), cancellationToken);
-          foreach (byte[] _iter18 in ValueList)
+          await oprot.WriteListBeginAsync(new TList(TType.String, StorageGroups.Count), cancellationToken);
+          foreach (string _iter32 in StorageGroups)
           {
-            await oprot.WriteBinaryAsync(_iter18, cancellationToken);
+            await oprot.WriteStringAsync(_iter32, cancellationToken);
           }
           await oprot.WriteListEndAsync(cancellationToken);
         }
@@ -196,22 +195,22 @@ public partial class TSQueryNonAlignDataSet : TBase
 
   public override bool Equals(object that)
   {
-    if (!(that is TSQueryNonAlignDataSet other)) return false;
+    if (!(that is TFlushReq other)) return false;
     if (ReferenceEquals(this, other)) return true;
-    return TCollections.Equals(TimeList, other.TimeList)
-      && TCollections.Equals(ValueList, other.ValueList);
+    return ((__isset.isSeq == other.__isset.isSeq) && ((!__isset.isSeq) || (System.Object.Equals(IsSeq, other.IsSeq))))
+      && ((__isset.storageGroups == other.__isset.storageGroups) && ((!__isset.storageGroups) || (TCollections.Equals(StorageGroups, other.StorageGroups))));
   }
 
   public override int GetHashCode() {
     int hashcode = 157;
     unchecked {
-      if((TimeList != null))
+      if((IsSeq != null) && __isset.isSeq)
       {
-        hashcode = (hashcode * 397) + TCollections.GetHashCode(TimeList);
+        hashcode = (hashcode * 397) + IsSeq.GetHashCode();
       }
-      if((ValueList != null))
+      if((StorageGroups != null) && __isset.storageGroups)
       {
-        hashcode = (hashcode * 397) + TCollections.GetHashCode(ValueList);
+        hashcode = (hashcode * 397) + TCollections.GetHashCode(StorageGroups);
       }
     }
     return hashcode;
@@ -219,16 +218,19 @@ public partial class TSQueryNonAlignDataSet : TBase
 
   public override string ToString()
   {
-    var sb = new StringBuilder("TSQueryNonAlignDataSet(");
-    if((TimeList != null))
+    var sb = new StringBuilder("TFlushReq(");
+    int tmp33 = 0;
+    if((IsSeq != null) && __isset.isSeq)
     {
-      sb.Append(", TimeList: ");
-      TimeList.ToString(sb);
+      if(0 < tmp33++) { sb.Append(", "); }
+      sb.Append("IsSeq: ");
+      IsSeq.ToString(sb);
     }
-    if((ValueList != null))
+    if((StorageGroups != null) && __isset.storageGroups)
     {
-      sb.Append(", ValueList: ");
-      ValueList.ToString(sb);
+      if(0 < tmp33++) { sb.Append(", "); }
+      sb.Append("StorageGroups: ");
+      StorageGroups.ToString(sb);
     }
     sb.Append(')');
     return sb.ToString();

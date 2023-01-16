@@ -51,20 +51,20 @@ public partial class TSQueryDataSet : TBase
 
   public TSQueryDataSet DeepCopy()
   {
-    var tmp8 = new TSQueryDataSet();
+    var tmp0 = new TSQueryDataSet();
     if((Time != null))
     {
-      tmp8.Time = this.Time.ToArray();
+      tmp0.Time = this.Time.ToArray();
     }
     if((ValueList != null))
     {
-      tmp8.ValueList = this.ValueList.DeepCopy();
+      tmp0.ValueList = this.ValueList.DeepCopy();
     }
     if((BitmapList != null))
     {
-      tmp8.BitmapList = this.BitmapList.DeepCopy();
+      tmp0.BitmapList = this.BitmapList.DeepCopy();
     }
-    return tmp8;
+    return tmp0;
   }
 
   public async global::System.Threading.Tasks.Task ReadAsync(TProtocol iprot, CancellationToken cancellationToken)
@@ -102,13 +102,13 @@ public partial class TSQueryDataSet : TBase
             if (field.Type == TType.List)
             {
               {
-                TList _list9 = await iprot.ReadListBeginAsync(cancellationToken);
-                ValueList = new List<byte[]>(_list9.Count);
-                for(int _i10 = 0; _i10 < _list9.Count; ++_i10)
+                TList _list1 = await iprot.ReadListBeginAsync(cancellationToken);
+                ValueList = new List<byte[]>(_list1.Count);
+                for(int _i2 = 0; _i2 < _list1.Count; ++_i2)
                 {
-                  byte[] _elem11;
-                  _elem11 = await iprot.ReadBinaryAsync(cancellationToken);
-                  ValueList.Add(_elem11);
+                  byte[] _elem3;
+                  _elem3 = await iprot.ReadBinaryAsync(cancellationToken);
+                  ValueList.Add(_elem3);
                 }
                 await iprot.ReadListEndAsync(cancellationToken);
               }
@@ -123,13 +123,13 @@ public partial class TSQueryDataSet : TBase
             if (field.Type == TType.List)
             {
               {
-                TList _list12 = await iprot.ReadListBeginAsync(cancellationToken);
-                BitmapList = new List<byte[]>(_list12.Count);
-                for(int _i13 = 0; _i13 < _list12.Count; ++_i13)
+                TList _list4 = await iprot.ReadListBeginAsync(cancellationToken);
+                BitmapList = new List<byte[]>(_list4.Count);
+                for(int _i5 = 0; _i5 < _list4.Count; ++_i5)
                 {
-                  byte[] _elem14;
-                  _elem14 = await iprot.ReadBinaryAsync(cancellationToken);
-                  BitmapList.Add(_elem14);
+                  byte[] _elem6;
+                  _elem6 = await iprot.ReadBinaryAsync(cancellationToken);
+                  BitmapList.Add(_elem6);
                 }
                 await iprot.ReadListEndAsync(cancellationToken);
               }
@@ -193,9 +193,9 @@ public partial class TSQueryDataSet : TBase
         await oprot.WriteFieldBeginAsync(field, cancellationToken);
         {
           await oprot.WriteListBeginAsync(new TList(TType.String, ValueList.Count), cancellationToken);
-          foreach (byte[] _iter15 in ValueList)
+          foreach (byte[] _iter7 in ValueList)
           {
-            await oprot.WriteBinaryAsync(_iter15, cancellationToken);
+            await oprot.WriteBinaryAsync(_iter7, cancellationToken);
           }
           await oprot.WriteListEndAsync(cancellationToken);
         }
@@ -209,9 +209,9 @@ public partial class TSQueryDataSet : TBase
         await oprot.WriteFieldBeginAsync(field, cancellationToken);
         {
           await oprot.WriteListBeginAsync(new TList(TType.String, BitmapList.Count), cancellationToken);
-          foreach (byte[] _iter16 in BitmapList)
+          foreach (byte[] _iter8 in BitmapList)
           {
-            await oprot.WriteBinaryAsync(_iter16, cancellationToken);
+            await oprot.WriteBinaryAsync(_iter8, cancellationToken);
           }
           await oprot.WriteListEndAsync(cancellationToken);
         }
