@@ -21,7 +21,7 @@ jobs:
 
     - name: Set Docker & Run Test
       run: |
-        docker-compose -f docker-compose.yml up --build --abort-on-container-exit --remove-orphans
+        docker network create --subnet 172.18.0.0/24 iotdb-network && docker-compose -f docker-compose.yml up --build --abort-on-container-exit --remove-orphans
         
     - name: Clean IoTDB & Shut Down Docker
       run: |
