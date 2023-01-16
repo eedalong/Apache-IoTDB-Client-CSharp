@@ -266,7 +266,7 @@ namespace Apache.IoTDB
                     {
                         _logger.LogInformation("set storage group {0} successfully, server message is {1}", groupName, status.Message);
                     }
-                return _utilFunctions.VerifySuccess(status, SuccessCode, RedirectRecommendCode);
+                    return _utilFunctions.VerifySuccess(status, SuccessCode, RedirectRecommendCode);
                 }
                 catch (TException ex)
                 {
@@ -1739,7 +1739,8 @@ namespace Apache.IoTDB
 
             return sessionDataset;
         }
-        public async Task<SessionDataSet> ExecuteStatementAsync(string sql){
+        public async Task<SessionDataSet> ExecuteStatementAsync(string sql)
+        {
             TSExecuteStatementResp resp;
             TSStatus status;
             var client = _clients.Take();
@@ -2114,101 +2115,7 @@ namespace Apache.IoTDB
                 _clients.Add(client);
             }
         }
-        public async Task<int> AddAlignedMeasurementsInTemplateAsync(string templateName, List<MeasurementNode> measurementNodes)
-        {
-            var client = _clients.Take();
-            var measurements = measurementNodes.ConvertAll(m => m.Name);
-            var dataTypes = measurementNodes.ConvertAll(m => (int)m.DataType);
-            var encodings = measurementNodes.ConvertAll(m => (int)m.Encoding);
-            var compressors = measurementNodes.ConvertAll(m => (int)m.Compressor);
-            var req = new TSAppendSchemaTemplateReq(client.SessionId, templateName, true, measurements, dataTypes, encodings, compressors);
-            try
-            {
-                var status = await client.ServiceClient.appendSchemaTemplateAsync(req);
 
-                if (_debugMode)
-                {
-                    _logger.LogInformation("add aligned measurements in template {0} message: {1}", templateName, status.Message);
-                }
-
-                return _utilFunctions.VerifySuccess(status, SuccessCode, RedirectRecommendCode);
-
-            }
-            catch (TException e)
-            {
-                await Open(_enableRpcCompression);
-                client = _clients.Take();
-                req.SessionId = client.SessionId;
-                try
-                {
-                    var status = await client.ServiceClient.appendSchemaTemplateAsync(req);
-
-                    if (_debugMode)
-                    {
-                        _logger.LogInformation("add aligned measurements in template {0} message: {1}", templateName, status.Message);
-                    }
-
-                    return _utilFunctions.VerifySuccess(status, SuccessCode, RedirectRecommendCode);
-
-                }
-                catch (TException ex)
-                {
-                    throw new TException("Error occurs when adding aligned measurements in template", ex);
-                }
-            }
-            finally
-            {
-                _clients.Add(client);
-            }
-        }
-
-        public async Task<int> AddUnalignedMeasurementsInTemplateAsync(string templateName, List<MeasurementNode> measurementNodes)
-        {
-            var client = _clients.Take();
-            var measurements = measurementNodes.ConvertAll(m => m.Name);
-            var dataTypes = measurementNodes.ConvertAll(m => (int)m.DataType);
-            var encodings = measurementNodes.ConvertAll(m => (int)m.Encoding);
-            var compressors = measurementNodes.ConvertAll(m => (int)m.Compressor);
-            var req = new TSAppendSchemaTemplateReq(client.SessionId, templateName, false, measurements, dataTypes, encodings, compressors);
-            try
-            {
-                var status = await client.ServiceClient.appendSchemaTemplateAsync(req);
-
-                if (_debugMode)
-                {
-                    _logger.LogInformation("add unaligned measurements in template {0} message: {1}", templateName, status.Message);
-                }
-
-                return _utilFunctions.VerifySuccess(status, SuccessCode, RedirectRecommendCode);
-
-            }
-            catch (TException e)
-            {
-                await Open(_enableRpcCompression);
-                client = _clients.Take();
-                req.SessionId = client.SessionId;
-                try
-                {
-                    var status = await client.ServiceClient.appendSchemaTemplateAsync(req);
-
-                    if (_debugMode)
-                    {
-                        _logger.LogInformation("add unaligned measurements in template {0} message: {1}", templateName, status.Message);
-                    }
-
-                    return _utilFunctions.VerifySuccess(status, SuccessCode, RedirectRecommendCode);
-
-                }
-                catch (TException ex)
-                {
-                    throw new TException("Error occurs when adding unaligned measurements in template", ex);
-                }
-            }
-            finally
-            {
-                _clients.Add(client);
-            }
-        }
         public async Task<int> DeleteNodeInTemplateAsync(string templateName, string path)
         {
             var client = _clients.Take();
