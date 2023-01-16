@@ -473,7 +473,7 @@ namespace Apache.IoTDB.Samples
         {
             var session_pool = new SessionPool(host, port, pool_size);
             await session_pool.Open(false);
-            if(debug) session_pool.OpenDebugMode();
+            if (debug) session_pool.OpenDebugMode();
 
             System.Diagnostics.Debug.Assert(session_pool.IsOpen());
             var status = 0;

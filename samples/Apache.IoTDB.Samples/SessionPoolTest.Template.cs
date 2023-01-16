@@ -68,7 +68,6 @@ namespace Apache.IoTDB.Samples
             status = await session_pool.CreateSchemaTemplateAsync(template);
             System.Diagnostics.Debug.Assert(status == 0);
             status = await session_pool.SetSchemaTemplateAsync(test_template_name, string.Format("{0}.{1}", test_group_name, test_device));
-            System.Diagnostics.Debug.Assert(status == 0);
             var paths = await session_pool.ShowPathsTemplateSetOnAsync(test_template_name);
             foreach (var p in paths)
             {

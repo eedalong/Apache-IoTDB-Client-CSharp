@@ -250,7 +250,7 @@ namespace Apache.IoTDB.Samples
             while (res.HasNext()) Console.WriteLine(res.Next());
 
             await res.Close();
-            
+
             // large data test
             device_id = new List<string>() { };
             measurements_lst = new List<List<string>>() { };
@@ -402,10 +402,11 @@ namespace Apache.IoTDB.Samples
             await session_pool.Close();
             Console.WriteLine("TestInsertAlignedRecordsOfOneDevice Passed!");
         }
-        public async Task TestInsertAlignedStringRecordsOfOneDevice(){
+        public async Task TestInsertAlignedStringRecordsOfOneDevice()
+        {
             var session_pool = new SessionPool(host, port, pool_size);
             await session_pool.Open(false);
-            if(debug) session_pool.OpenDebugMode();
+            if (debug) session_pool.OpenDebugMode();
 
             System.Diagnostics.Debug.Assert(session_pool.IsOpen());
             var status = 0;
@@ -413,7 +414,7 @@ namespace Apache.IoTDB.Samples
             var device_id = string.Format("{0}.{1}", test_group_name, test_device);
             var measurements = new List<string>() { test_measurements[0], test_measurements[1], test_measurements[2] };
             var data_type_lst = new List<TSDataType>() { TSDataType.TEXT, TSDataType.TEXT, TSDataType.TEXT };
-            var encoding_lst  = new List<TSEncoding>() { TSEncoding.PLAIN, TSEncoding.PLAIN, TSEncoding.PLAIN };
+            var encoding_lst = new List<TSEncoding>() { TSEncoding.PLAIN, TSEncoding.PLAIN, TSEncoding.PLAIN };
             var compressor_lst = new List<Compressor>() { Compressor.SNAPPY, Compressor.SNAPPY, Compressor.SNAPPY };
             status = await session_pool.CreateAlignedTimeseriesAsync(device_id, measurements, data_type_lst, encoding_lst, compressor_lst);
             System.Diagnostics.Debug.Assert(status == 0);
