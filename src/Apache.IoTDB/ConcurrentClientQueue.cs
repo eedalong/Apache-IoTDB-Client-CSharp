@@ -24,9 +24,6 @@ namespace Apache.IoTDB
         {
             Monitor.Enter(ClientQueue);
             ClientQueue.Enqueue(client);
-#if DEBUG
-            Console.WriteLine($"Thread{Thread.CurrentThread.ManagedThreadId} put back {client}");
-#endif
             Monitor.Pulse(ClientQueue);
             Monitor.Exit(ClientQueue);
             Thread.Sleep(0);
@@ -57,23 +54,13 @@ namespace Apache.IoTDB
             Monitor.Enter(ClientQueue);
             if (ClientQueue.IsEmpty)
             {
-#if DEBUG
-                Console.WriteLine($"Thread{Thread.CurrentThread.ManagedThreadId} the connection pool is empty, wait timeout:{Timeout}");
-#endif
                 Monitor.Wait(ClientQueue, TimeSpan.FromSeconds(Timeout));
             }
             if (!ClientQueue.TryDequeue(out client))
             {
-#if DEBUG
-                Console.WriteLine($"Thread{Thread.CurrentThread.ManagedThreadId} obtaining a client from the client pool failed, wait and try again");
-#endif
             }
             else
             {
-
-#if DEBUG
-                Console.WriteLine($"Thread{Thread.CurrentThread.ManagedThreadId} take away {client}");
-#endif
             }
             Monitor.Exit(ClientQueue);
             if (client == null)
