@@ -3,7 +3,12 @@
 	<PropertyGroup>
 		<TargetFrameworks>net5.0;net6.0;netstandard2.1;netstandard2.0;net461</TargetFrameworks>
 		<LangVersion>latest</LangVersion>
-
+		<PackageVersion>1.0.0.1-alpha</PackageVersion>
+		<Authors>eedalong, lausannel, Aiemu, MysticBoy</Authors>
+		<Company>LiuLin Lab</Company>
+		<PackageDescription>C# client for Apache IoTDB</PackageDescription>
+		<PackageProjectUrl>https://github.com/eedalong/Apache-IoTDB-Client-CSharp</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/eedalong/Apache-IoTDB-Client-CSharp</RepositoryUrl>
 	</PropertyGroup>
 
 	<ItemGroup>

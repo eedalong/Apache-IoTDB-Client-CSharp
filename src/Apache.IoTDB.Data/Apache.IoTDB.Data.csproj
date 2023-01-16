@@ -3,6 +3,12 @@
 	<PropertyGroup>
 		<AssemblyName>Apache.IoTDB.Data</AssemblyName>
 		<RootNamespace>$(AssemblyName)</RootNamespace>
+		<PackageVersion>1.0.0.1-alpha</PackageVersion>
+		<Authors>eedalong, lausannel, Aiemu, MysticBoy</Authors>
+		<Company>LiuLin Lab</Company>
+		<PackageDescription>C# client for Apache IoTDB</PackageDescription>
+		<PackageProjectUrl>https://github.com/eedalong/Apache-IoTDB-Client-CSharp</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/eedalong/Apache-IoTDB-Client-CSharp</RepositoryUrl>
 		<PackageId>Apache.IoTDB.Data</PackageId>
 		<Description>
 			IoTDB implementation of the System.Data.Common provider model.
