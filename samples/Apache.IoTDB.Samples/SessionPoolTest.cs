@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Apache.IoTDB.Data;
 using Apache.IoTDB.DataStructure;
 using ConsoleTableExt;
+using System.Net.Sockets;
 
 namespace Apache.IoTDB.Samples
 {
@@ -39,10 +40,23 @@ namespace Apache.IoTDB.Samples
 
         public async Task Test()
         {
+            await TestInsertOneRecord();
 
             await TestInsertAlignedRecord();
 
             await TestInsertAlignedRecords();
+
+            await TestInsertAlignedStringRecords();
+
+            await TestInsertAlignedStringRecordsOfOneDevice();
+
+            await TestInsertStringRecord();
+
+            await TestInsertAlignedStringRecord();
+
+            await TestInsertStringRecords();
+
+            await TestInsertStringRecordsOfOneDevice();
 
             await TestInsertAlignedRecordsOfOneDevice();
 
@@ -66,17 +80,11 @@ namespace Apache.IoTDB.Samples
 
             await TestInsertTablets();
 
-            await TestAddAlignedMeasurements();
-
-            await TestAddUnalignedMeasurements();
-
             await TestSetAndUnsetSchemaTemplate();
 
             await TestCreateAlignedTimeseries();
 
             await TestCreateAndDropSchemaTemplate();
-
-            await TestDeleteNodeInTemplate();
 
             await TestGetTimeZone();
 
@@ -96,12 +104,32 @@ namespace Apache.IoTDB.Samples
 
             await TestNonSql();
 
+            await TestRawDataQuery();
+
+            await TestLastDataQuery();
 
             await TestSqlQuery();
 
             await TestNonSqlBy_ADO();
         }
-
+        public async Task TestInsertOneRecord()
+        {
+            var session_pool = new SessionPool(host, port, 1);
+            await session_pool.Open(false);
+            if (debug) session_pool.OpenDebugMode();
+            await session_pool.DeleteStorageGroupAsync(test_group_name);
+            var status = await session_pool.CreateTimeSeries(
+                string.Format("{0}.{1}.{2}", test_group_name, test_device, test_measurements[0]),
+                TSDataType.TEXT, TSEncoding.PLAIN, Compressor.SNAPPY);
+            status = await session_pool.CreateTimeSeries(
+                string.Format("{0}.{1}.{2}", test_group_name, test_device, test_measurements[1]),
+                TSDataType.TEXT, TSEncoding.PLAIN, Compressor.SNAPPY);
+            status = await session_pool.CreateTimeSeries(
+                string.Format("{0}.{1}.{2}", test_group_name, test_device, test_measurements[2]),
+                TSDataType.TEXT, TSEncoding.PLAIN, Compressor.SNAPPY);
+            var rowRecord = new RowRecord(1668404120807, new() { "1111111", "22222", "333333" }, new() { test_measurements[0], test_measurements[1], test_measurements[2] });
+            status = await session_pool.InsertRecordsAsync(new List<string>() { string.Format("{0}.{1}", test_group_name, test_device) }, new List<RowRecord>() { rowRecord });
+        }
         public async Task TestGetTimeZone()
         {
             var session_pool = new SessionPool(host, port, pool_size);
@@ -275,7 +303,7 @@ namespace Apache.IoTDB.Samples
         {
             var cnts = new IoTDB.Data.IoTDBConnectionStringBuilder();
             cnts.DataSource = host;
-            cnts.TimeOut =(int) TimeSpan.FromSeconds(20).TotalMilliseconds;
+            cnts.TimeOut = (int)TimeSpan.FromSeconds(20).TotalMilliseconds;
             var cnt = new IoTDB.Data.IoTDBConnection(cnts.ConnectionString);
             await cnt.OpenAsync();
             var session_pool = cnt.SessionPool;
@@ -303,7 +331,7 @@ namespace Apache.IoTDB.Samples
                 "insert into " + string.Format("{0}.{1}", test_group_name, test_device) + "(timestamp, status, hardware) VALUES (7, true,'lz')").ExecuteNonQueryAsync();
             var reader = await cnt.CreateCommand(
                 "select * from " + string.Format("{0}.{1}", test_group_name, test_device) + " where time<10").ExecuteReaderAsync();
-            ConsoleTableBuilder.From(reader.ToDataTable()).WithFormatter(0,fc=> $"{fc:yyyy-MM-dd HH:mm:ss.fff}" ).WithFormat(ConsoleTableBuilderFormat.Default).ExportAndWriteLine();
+            ConsoleTableBuilder.From(reader.ToDataTable()).WithFormatter(0, fc => $"{fc:yyyy-MM-dd HH:mm:ss.fff}").WithFormat(ConsoleTableBuilderFormat.Default).ExportAndWriteLine();
             status = await session_pool.DeleteStorageGroupAsync(test_group_name);
             await cnt.CloseAsync();
 
@@ -372,6 +400,101 @@ namespace Apache.IoTDB.Samples
             System.Diagnostics.Debug.Assert(status == 0);
             await session_pool.Close();
             Console.WriteLine("SELECT sql Passed");
+        }
+        public async Task TestRawDataQuery()
+        {
+            var session_pool = new SessionPool(host, port, pool_size);
+            var status = 0;
+            await session_pool.Open(false);
+            if (debug) session_pool.OpenDebugMode();
+
+            System.Diagnostics.Debug.Assert(session_pool.IsOpen());
+            status = await session_pool.DeleteStorageGroupAsync(test_group_name);
+
+            var device_id = string.Format("{0}.{1}", test_group_name, test_device);
+            var measurements = new List<string> { test_measurements[0], test_measurements[1] };
+            var data_type_lst = new List<TSDataType> { TSDataType.BOOLEAN, TSDataType.FLOAT };
+            var encoding_lst = new List<TSEncoding> { TSEncoding.PLAIN, TSEncoding.PLAIN };
+            var compressor_lst = new List<Compressor> { Compressor.SNAPPY, Compressor.SNAPPY };
+            status = await session_pool.CreateAlignedTimeseriesAsync(device_id, measurements, data_type_lst, encoding_lst, compressor_lst);
+
+            var records = new List<RowRecord>();
+            var values = new List<object>() { true, 20.0f };
+            var device_id_lst = new List<string>() { };
+            for (int i = 1; i <= fetch_size * processed_size; i++)
+            {
+                var record = new RowRecord(i, values, measurements);
+                records.Add(record);
+                device_id_lst.Add(device_id);
+            }
+            status = await session_pool.InsertAlignedRecordsAsync(device_id_lst, records);
+            System.Diagnostics.Debug.Assert(status == 0);
+
+            var paths = new List<string>() { string.Format("{0}.{1}", device_id, test_measurements[0]), string.Format("{0}.{1}", device_id, test_measurements[1]) };
+
+            var res = await session_pool.ExecuteRawDataQuery(paths, 10, fetch_size * processed_size);
+            var count = 0;
+            while (res.HasNext())
+            {
+                var record = res.Next();
+                count++;
+            }
+            Console.WriteLine(count + " " + (fetch_size * processed_size - 10));
+            System.Diagnostics.Debug.Assert(count == fetch_size * processed_size - 10);
+            await res.Close();
+
+            status = await session_pool.DeleteStorageGroupAsync(test_group_name);
+            System.Diagnostics.Debug.Assert(status == 0);
+            await session_pool.Close();
+            Console.WriteLine("RawDataQuery Passed");
+        }
+        public async Task TestLastDataQuery()
+        {
+            var session_pool = new SessionPool(host, port, pool_size);
+            var status = 0;
+            await session_pool.Open(false);
+            if (debug) session_pool.OpenDebugMode();
+
+            System.Diagnostics.Debug.Assert(session_pool.IsOpen());
+            status = await session_pool.DeleteStorageGroupAsync(test_group_name);
+
+            var device_id = string.Format("{0}.{1}", test_group_name, test_device);
+            var measurements = new List<string> { test_measurements[0], test_measurements[1] };
+            var data_type_lst = new List<TSDataType> { TSDataType.BOOLEAN, TSDataType.FLOAT };
+            var encoding_lst = new List<TSEncoding> { TSEncoding.PLAIN, TSEncoding.PLAIN };
+            var compressor_lst = new List<Compressor> { Compressor.SNAPPY, Compressor.SNAPPY };
+            status = await session_pool.CreateAlignedTimeseriesAsync(device_id, measurements, data_type_lst, encoding_lst, compressor_lst);
+
+            var records = new List<RowRecord>();
+            var values = new List<object>() { true, 20.0f };
+            var device_id_lst = new List<string>() { };
+            for (int i = 1; i <= fetch_size * processed_size; i++)
+            {
+                var record = new RowRecord(i, values, measurements);
+                records.Add(record);
+                device_id_lst.Add(device_id);
+            }
+            status = await session_pool.InsertAlignedRecordsAsync(device_id_lst, records);
+            System.Diagnostics.Debug.Assert(status == 0);
+
+            var paths = new List<string>() { string.Format("{0}.{1}", device_id, test_measurements[0]), string.Format("{0}.{1}", device_id, test_measurements[1]) };
+
+            var res = await session_pool.ExecuteLastDataQueryAsync(paths, fetch_size * processed_size - 10);
+            var count = 0;
+            while (res.HasNext())
+            {
+                var record = res.Next();
+                Console.WriteLine(record);
+                count++;
+            }
+            Console.WriteLine(count + " " + (fetch_size * processed_size - 10));
+            System.Diagnostics.Debug.Assert(count == 2);
+            await res.Close();
+
+            status = await session_pool.DeleteStorageGroupAsync(test_group_name);
+            System.Diagnostics.Debug.Assert(status == 0);
+            await session_pool.Close();
+            Console.WriteLine("LastDataQuery Passed");
         }
     }
 }
