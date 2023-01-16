@@ -657,7 +657,6 @@ namespace Apache.IoTDB
             try
             {
                 var status = await client.ServiceClient.insertRecordAsync(req);
-                Console.WriteLine("status Message {0}", status);
                 if (_debugMode)
                 {
                     _logger.LogInformation("insert one record to device {0}， server message: {1}", deviceId, status.Message);
