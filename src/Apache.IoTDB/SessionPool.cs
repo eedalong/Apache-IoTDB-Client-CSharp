@@ -1836,7 +1836,7 @@ namespace Apache.IoTDB
                 _clients.Add(client);
             }
         }
-        public async Task<SessionDataSet> ExecuteRawDataQuery(List<string> paths, int startTime, int endTime)
+        public async Task<SessionDataSet> ExecuteRawDataQuery(List<string> paths, long startTime, long endTime)
         {
             TSExecuteStatementResp resp;
             TSStatus status;
@@ -1887,7 +1887,7 @@ namespace Apache.IoTDB
 
             return sessionDataset;
         }
-        public async Task<SessionDataSet> ExecuteLastDataQueryAsync(List<string> paths, int lastTime)
+        public async Task<SessionDataSet> ExecuteLastDataQueryAsync(List<string> paths, long lastTime)
         {
             TSExecuteStatementResp resp;
             TSStatus status;
