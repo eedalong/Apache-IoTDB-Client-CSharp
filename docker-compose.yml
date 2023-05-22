@@ -19,9 +19,6 @@ services:
    image: apache/iotdb:1.1.0-standalone
    restart: always
    container_name: iotdb-standalone-1
-   depends_on:
-      iotdb-confignode-1:
-        condition: service_healthy
    healthcheck:
       test: ["CMD", "ls", "/iotdb/data"]
       interval: 3s
