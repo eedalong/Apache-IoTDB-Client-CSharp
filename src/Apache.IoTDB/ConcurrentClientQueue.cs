@@ -24,7 +24,7 @@ namespace Apache.IoTDB
         {
             Monitor.Enter(ClientQueue);
             ClientQueue.Enqueue(client);
-            Monitor.Pulse(ClientQueue);
+            Monitor.PulseAll(ClientQueue); // wake up all threads waiting on the queue, refresh the waiting time
             Monitor.Exit(ClientQueue);
             Thread.Sleep(0);
         }
@@ -52,15 +52,17 @@ namespace Apache.IoTDB
         {
             Client client = null;
             Monitor.Enter(ClientQueue);
-            if (ClientQueue.IsEmpty)
-            {
-                Monitor.Wait(ClientQueue, TimeSpan.FromSeconds(Timeout));
-            }
-            if (!ClientQueue.TryDequeue(out client))
-            {
-            }
-            else
-            {
+            while(true){
+                bool timeout = false;
+                if (ClientQueue.IsEmpty)
+                {
+                    timeout = !Monitor.Wait(ClientQueue, TimeSpan.FromSeconds(Timeout));
+                }
+                ClientQueue.TryDequeue(out client);
+
+                if(client != null || timeout){
+                    break;
+                }
             }
             Monitor.Exit(ClientQueue);
             if (client == null)
