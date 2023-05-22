@@ -122,7 +122,7 @@ namespace Apache.IoTDB.DataStructure
             // we have consumed all current data, fetch some more
             if (!_timeBuffer.HasRemaining())
             {
-                if (FetchResults())
+                if (!FetchResults())
                 {
                     return false;
                 }
