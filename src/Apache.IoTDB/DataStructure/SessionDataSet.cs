@@ -122,7 +122,7 @@ namespace Apache.IoTDB.DataStructure
             // we have consumed all current data, fetch some more
             if (!_timeBuffer.HasRemaining())
             {
-                if (!FetchResults())
+                if (FetchResults())
                 {
                     return false;
                 }
@@ -250,7 +250,9 @@ namespace Apache.IoTDB.DataStructure
             };
             try
             {
-                var resp = await myClient.ServiceClient.fetchResultsAsync(req);
+                var task = myClient.ServiceClient.fetchResultsAsync(req);
+
+                var resp = task.ConfigureAwait(false).GetAwaiter().GetResult();
 
                 if (resp.HasResultSet)
                 {
