@@ -16,7 +16,7 @@ services:
           ipv4_address: 172.18.0.2
       
   iotdb:
-   image: apache/iotdb:1.0.0-datanode
+   image: apache/iotdb:1.1.0-datanode
    restart: always
    container_name: iotdb-dn-1
    depends_on:
@@ -39,7 +39,7 @@ services:
          - dn_target_config_node_list=iotdb-confignode-1:22277
   
   iotdb-confignode-1:
-   image: apache/iotdb:1.0.0-confignode
+   image: apache/iotdb:1.1.0-confignode
    restart: always
    container_name: iotdb-cn-1
    healthcheck:
