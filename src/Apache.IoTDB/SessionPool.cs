@@ -38,7 +38,7 @@ namespace Apache.IoTDB
         private ILogger _logger;
 
         public SessionPool(string host, int port, int poolSize)
-                        : this(host, port, "root", "root", poolSize, "UTC+08:00", 8, true, 60)
+                        : this(host, port, "root", "root", 1024, "UTC+08:00", poolSize, true, 60)
         {
         }
 
