@@ -16,9 +16,9 @@ services:
           ipv4_address: 172.18.0.2
       
   iotdb:
-   image: apache/iotdb:1.1.0-datanode
+   image: apache/iotdb:1.1.0-standalone
    restart: always
-   container_name: iotdb-dn-1
+   container_name: iotdb-standalone-1
    depends_on:
       iotdb-confignode-1:
         condition: service_healthy
@@ -33,27 +33,6 @@ services:
    networks:
         iotdb-network:
           ipv4_address: 172.18.0.3
-   environment:
-         - dn_rpc_address=iotdb
-         - dn_internal_address=iotdb
-         - dn_target_config_node_list=iotdb-confignode-1:22277
-  
-  iotdb-confignode-1:
-   image: apache/iotdb:1.1.0-confignode
-   restart: always
-   container_name: iotdb-cn-1
-   healthcheck:
-      test: ["CMD", "ls", "/iotdb/data"]
-      interval: 3s
-      timeout: 5s
-      retries: 30
-      start_period: 30s
-   networks:
-        iotdb-network:
-          ipv4_address: 172.18.0.4
-   environment:
-         - cn_internal_address=iotdb-confignode-1
-         - cn_target_config_node_list=iotdb-confignode-1:22277
 
 
 networks: 
