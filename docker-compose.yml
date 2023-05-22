@@ -16,7 +16,7 @@ services:
           ipv4_address: 172.18.0.2
       
   iotdb:
-   image: apache/iotdb:1.1.0-standalone
+   image: apache/iotdb:1.0.1-standalone
    restart: always
    container_name: iotdb-standalone-1
    healthcheck:
